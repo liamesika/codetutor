@@ -1,0 +1,450 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== AUTH MODELS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  enrollments    UserEnrollment[]
+  topicStats     UserTopicStats[]
+  attempts       Attempt[]
+  hintUsages     HintUsage[]
+  pointsLedger   PointsLedger[]
+  achievements   UserAchievement[]
+  drafts         CodeDraft[]
+
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ==================== ADMIN MODELS ====================
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      AdminRole @default(EDITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contentVersions ContentVersion[]
+
+  @@index([email])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AdminRole {
+  EDITOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+// ==================== COURSE STRUCTURE ====================
+
+model Course {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @db.Text
+  language    String   @default("java")
+  isLocked    Boolean  @default(false)
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  weeks       Week[]
+  enrollments UserEnrollment[]
+
+  @@index([slug])
+}
+
+model Week {
+  id          String   @id @default(cuid())
+  courseId    String
+  weekNumber  Int
+  title       String
+  description String?  @db.Text
+  isLocked    Boolean  @default(false)
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topics Topic[]
+
+  @@unique([courseId, weekNumber])
+  @@index([courseId])
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  weekId      String
+  title       String
+  slug        String
+  description String?  @db.Text
+  orderIndex  Int      @default(0)
+  isLocked    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  week       Week             @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  lessons    Lesson[]
+  questions  Question[]
+  userStats  UserTopicStats[]
+
+  @@unique([weekId, slug])
+  @@index([weekId])
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  topicId     String
+  title       String
+  slug        String
+  content     String   @db.Text
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topic           Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  contentVersions ContentVersion[]
+
+  @@unique([topicId, slug])
+  @@index([topicId])
+}
+
+// ==================== QUESTIONS ====================
+
+model Question {
+  id               String         @id @default(cuid())
+  topicId          String
+  slug             String
+  type             QuestionType
+  title            String
+  prompt           String         @db.Text
+  constraints      String?        @db.Text
+  starterCode      String         @db.Text
+  solutionCode     String         @db.Text
+  tests            Json
+  rubric           Json?
+  hints            Json
+  tags             String[]       @default([])
+  difficulty       Int            @default(1)
+  estimatedMinutes Int            @default(10)
+  points           Int            @default(100)
+  orderIndex       Int            @default(0)
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  topic           Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questionTags    QuestionTag[]
+  attempts        Attempt[]
+  hintUsages      HintUsage[]
+  drafts          CodeDraft[]
+  contentVersions ContentVersion[]
+
+  @@unique([topicId, slug])
+  @@index([topicId])
+  @@index([difficulty])
+  @@index([type])
+}
+
+model QuestionTag {
+  id         String @id @default(cuid())
+  questionId String
+  tag        String
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, tag])
+  @@index([tag])
+}
+
+enum QuestionType {
+  FULL_PROGRAM
+  FUNCTION
+  FIX_BUG
+  PREDICT_OUTPUT
+}
+
+// ==================== USER PROGRESS ====================
+
+model UserEnrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  enrolledAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+model UserTopicStats {
+  id             String   @id @default(cuid())
+  userId         String
+  topicId        String
+  attemptsCount  Int      @default(0)
+  passCount      Int      @default(0)
+  failCount      Int      @default(0)
+  avgHintsUsed   Float    @default(0)
+  totalPoints    Int      @default(0)
+  streak         Int      @default(0)
+  bestStreak     Int      @default(0)
+  lastAttemptAt  DateTime?
+  skillLevel     Float    @default(0.5)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@index([userId])
+  @@index([topicId])
+  @@index([skillLevel])
+}
+
+model Attempt {
+  id           String        @id @default(cuid())
+  userId       String
+  questionId   String
+  code         String        @db.Text
+  status       AttemptStatus
+  stdout       String?       @db.Text
+  stderr       String?       @db.Text
+  compileError String?       @db.Text
+  executionMs  Int?
+  memoryKb     Int?
+  hintsUsed    Int           @default(0)
+  pointsEarned Int           @default(0)
+  aiFeedback   String?       @db.Text
+  createdAt    DateTime      @default(now())
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  testResults AttemptTestResult[]
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model AttemptTestResult {
+  id        String  @id @default(cuid())
+  attemptId String
+  testIndex Int
+  input     String  @db.Text
+  expected  String  @db.Text
+  actual    String? @db.Text
+  passed    Boolean
+  error     String? @db.Text
+
+  attempt Attempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+}
+
+enum AttemptStatus {
+  PASS
+  FAIL
+  COMPILE_ERROR
+  RUNTIME_ERROR
+  TIMEOUT
+  MEMORY_EXCEEDED
+}
+
+model HintUsage {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  hintIndex  Int
+  pointsCost Int      @default(0)
+  usedAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId, hintIndex])
+  @@index([userId])
+  @@index([questionId])
+}
+
+model CodeDraft {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  code       String   @db.Text
+  savedAt    DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([questionId])
+}
+
+// ==================== GAMIFICATION ====================
+
+model PointsLedger {
+  id          String      @id @default(cuid())
+  userId      String
+  amount      Int
+  type        PointsType
+  description String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum PointsType {
+  QUESTION_PASS
+  STREAK_BONUS
+  NO_HINTS_BONUS
+  SPEED_BONUS
+  ACHIEVEMENT
+  HINT_PENALTY
+  REVEAL_PENALTY
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String
+  icon        String
+  points      Int      @default(0)
+  criteria    Json
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@index([code])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  earnedAt      DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+// ==================== CONTENT VERSIONING ====================
+
+model ContentVersion {
+  id           String      @id @default(cuid())
+  entityType   EntityType
+  entityId     String
+  version      Int
+  content      Json
+  changeNote   String?
+  createdById  String?
+  createdAt    DateTime    @default(now())
+
+  createdBy  AdminUser? @relation(fields: [createdById], references: [id])
+  questionId String?
+  lessonId   String?
+  question   Question?  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  lesson     Lesson?    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([entityType, entityId, version])
+  @@index([entityType, entityId])
+}
+
+enum EntityType {
+  QUESTION
+  LESSON
+}
+
+// ==================== OBSERVABILITY ====================
+
+model EventLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  eventType String
+  payload   Json?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
