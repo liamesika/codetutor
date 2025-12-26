@@ -92,7 +92,7 @@ async function main() {
   const hashedPassword = await bcrypt.hash("demo123", 10)
   const adminHashedPassword = await bcrypt.hash("admin123", 10)
 
-  await prisma.user.upsert({
+  const demoUser = await prisma.user.upsert({
     where: { email: "demo@codetutor.dev" },
     update: {},
     create: {
@@ -103,7 +103,7 @@ async function main() {
     },
   })
 
-  await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
     where: { email: "admin@codetutor.dev" },
     update: {},
     create: {
@@ -128,6 +128,33 @@ async function main() {
       language: "java",
       isLocked: false,
       orderIndex: 0,
+    },
+  })
+
+  // Auto-enroll demo users in the course
+  console.log("Enrolling demo users...")
+
+  await prisma.userEnrollment.upsert({
+    where: {
+      userId_courseId: { userId: demoUser.id, courseId: course.id },
+    },
+    update: {},
+    create: {
+      userId: demoUser.id,
+      courseId: course.id,
+      isActive: true,
+    },
+  })
+
+  await prisma.userEnrollment.upsert({
+    where: {
+      userId_courseId: { userId: adminUser.id, courseId: course.id },
+    },
+    update: {},
+    create: {
+      userId: adminUser.id,
+      courseId: course.id,
+      isActive: true,
     },
   })
 
