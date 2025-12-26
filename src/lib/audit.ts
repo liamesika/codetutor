@@ -1,6 +1,8 @@
 import { db } from "./db"
-import * as Sentry from "@sentry/nextjs"
 import type { Prisma } from "@prisma/client"
+
+// Optional Sentry - only import if DSN is configured
+const Sentry = process.env.SENTRY_DSN ? require("@sentry/nextjs") : null
 
 // Audit event types
 export type AuditEventType =
@@ -53,10 +55,11 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
       },
     })
 
-    // For security-related events, also log to Sentry
+    // For security-related events, also log to Sentry (if configured)
     if (
-      entry.eventType === "SECURITY_ALERT" ||
-      entry.eventType === "RATE_LIMIT_EXCEEDED"
+      Sentry &&
+      (entry.eventType === "SECURITY_ALERT" ||
+        entry.eventType === "RATE_LIMIT_EXCEEDED")
     ) {
       Sentry.captureMessage(`Security Event: ${entry.eventType}`, {
         level: entry.eventType === "SECURITY_ALERT" ? "warning" : "info",
@@ -70,10 +73,12 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
   } catch (error) {
     // Don't throw - audit logging should never break the main flow
     console.error("Failed to log audit event:", error)
-    Sentry.captureException(error, {
-      tags: { component: "audit" },
-      extra: { entry },
-    })
+    if (Sentry) {
+      Sentry.captureException(error, {
+        tags: { component: "audit" },
+        extra: { entry },
+      })
+    }
   }
 }
 

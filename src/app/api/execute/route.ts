@@ -5,7 +5,9 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import { executeJavaCode, TestCase } from "@/lib/sandbox/docker-executor"
 import { checkExecutionRateLimit } from "@/lib/redis"
-import * as Sentry from "@sentry/nextjs"
+
+// Optional Sentry
+const Sentry = process.env.SENTRY_DSN ? require("@sentry/nextjs") : null
 
 const executeSchema = z.object({
   questionId: z.string(),
@@ -206,7 +208,7 @@ export async function POST(req: NextRequest) {
       pointsEarned,
     })
   } catch (error) {
-    Sentry.captureException(error)
+    if (Sentry) Sentry.captureException(error)
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

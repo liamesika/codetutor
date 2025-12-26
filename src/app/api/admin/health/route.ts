@@ -19,9 +19,8 @@ async function checkDatabase(): Promise<HealthStatus> {
 
 async function checkRedis(): Promise<HealthStatus> {
   try {
-    // Redis check - if REDIS_URL is set, assume healthy for now
-    // In production, you'd actually ping Redis
-    if (process.env.REDIS_URL) {
+    // Redis check - if Upstash REST URL is set, assume healthy
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
       return "healthy"
     }
     return "degraded" // Redis not configured
