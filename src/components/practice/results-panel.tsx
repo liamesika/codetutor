@@ -55,42 +55,48 @@ const statusConfig = {
     color: "text-green-500",
     icon: CheckCircle2,
     bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/30",
+    borderColor: "border-green-500/40",
+    glowClass: "success-glow",
   },
   FAIL: {
     label: "Some Tests Failed",
     color: "text-red-500",
     icon: XCircle,
     bgColor: "bg-red-500/10",
-    borderColor: "border-red-500/30",
+    borderColor: "border-red-500/40",
+    glowClass: "error-glow",
   },
   COMPILE_ERROR: {
     label: "Compilation Error",
     color: "text-amber-500",
     icon: Code2,
     bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/30",
+    borderColor: "border-amber-500/40",
+    glowClass: "",
   },
   RUNTIME_ERROR: {
     label: "Runtime Error",
     color: "text-orange-500",
     icon: AlertTriangle,
     bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/30",
+    borderColor: "border-orange-500/40",
+    glowClass: "",
   },
   TIMEOUT: {
     label: "Time Limit Exceeded",
     color: "text-yellow-500",
     icon: Clock,
     bgColor: "bg-yellow-500/10",
-    borderColor: "border-yellow-500/30",
+    borderColor: "border-yellow-500/40",
+    glowClass: "",
   },
   MEMORY_EXCEEDED: {
     label: "Memory Limit Exceeded",
     color: "text-purple-500",
     icon: MemoryStick,
     bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-500/30",
+    borderColor: "border-purple-500/40",
+    glowClass: "",
   },
 }
 
@@ -106,21 +112,34 @@ export function ResultsPanel({
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center space-y-4"
+          className="text-center space-y-6"
         >
-          <div className="relative mx-auto w-16 h-16">
-            <div className="absolute inset-0 rounded-full border-4 border-muted" />
+          <div className="relative mx-auto w-20 h-20">
+            <div className="absolute inset-0 rounded-full border-4 border-muted/30" />
             <motion.div
               className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             />
+            <div className="absolute inset-2 rounded-full bg-primary/10 flex items-center justify-center">
+              <Code2 className="h-8 w-8 text-primary animate-pulse" />
+            </div>
           </div>
           <div>
-            <p className="font-medium">Running your code...</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="font-semibold text-lg">Running your code...</p>
+            <p className="text-sm text-muted-foreground mt-2">
               Compiling and executing tests
             </p>
+          </div>
+          <div className="flex justify-center gap-1">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 rounded-full bg-primary"
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
           </div>
         </motion.div>
       </div>
@@ -130,18 +149,23 @@ export function ResultsPanel({
   if (!result) {
     return (
       <div className="h-full flex items-center justify-center p-8">
-        <div className="text-center space-y-4 max-w-sm">
-          <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto">
-            <Terminal className="h-8 w-8 text-muted-foreground" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-4 max-w-sm"
+        >
+          <div className="w-20 h-20 rounded-2xl bg-accent/50 flex items-center justify-center mx-auto neon-border">
+            <Terminal className="h-10 w-10 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="font-semibold">Ready to Run</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Click &quot;Run Code&quot; to test your output or &quot;Check&quot; to
+            <h3 className="font-semibold text-lg">Ready to Run</h3>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              Click <span className="text-primary font-medium">&quot;Run&quot;</span> to test your output or{" "}
+              <span className="gradient-neon-text font-medium">&quot;Check Solution&quot;</span> to
               submit against all test cases.
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     )
   }
@@ -152,52 +176,62 @@ export function ResultsPanel({
   const totalTests = result.testResults?.length || 0
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full scrollbar-thin">
       <div className="p-4 md:p-6 space-y-6">
         {/* Status header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className={cn(
-            "p-4 rounded-xl border-2",
+            "p-5 rounded-2xl border-2",
             config.bgColor,
-            config.borderColor
+            config.borderColor,
+            config.glowClass
           )}
         >
           <div className="flex items-center gap-4">
-            <div
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
               className={cn(
-                "h-12 w-12 rounded-xl flex items-center justify-center",
-                result.status === "PASS" ? "bg-green-500" : "bg-muted"
+                "h-14 w-14 rounded-xl flex items-center justify-center",
+                result.status === "PASS" ? "bg-green-500" : "bg-muted/50"
               )}
             >
               <StatusIcon
                 className={cn(
-                  "h-6 w-6",
+                  "h-7 w-7",
                   result.status === "PASS" ? "text-white" : config.color
                 )}
               />
-            </div>
+            </motion.div>
             <div className="flex-1">
-              <h2 className={cn("text-lg font-bold", config.color)}>
+              <h2 className={cn("text-xl font-bold", config.color)}>
                 {config.label}
               </h2>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <Badge variant="secondary" className="gap-1">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <Badge variant="secondary" className="gap-1 bg-background/50">
                   <CheckCircle2 className="h-3 w-3" />
                   {passedTests}/{totalTests} tests
                 </Badge>
                 {result.executionMs !== null && (
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="gap-1 border-border/50">
                     <Clock className="h-3 w-3" />
                     {result.executionMs}ms
                   </Badge>
                 )}
                 {result.status === "PASS" && result.pointsEarned > 0 && (
-                  <Badge className="gap-1 bg-primary">
-                    <Zap className="h-3 w-3" />
-                    +{result.pointsEarned} XP
-                  </Badge>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+                  >
+                    <Badge className="gap-1 gradient-neon text-white">
+                      <Zap className="h-3 w-3" />
+                      +{result.pointsEarned} XP
+                    </Badge>
+                  </motion.div>
                 )}
               </div>
             </div>
@@ -400,45 +434,59 @@ export function ResultsPanel({
           className="pt-4 space-y-4"
         >
           {result.status === "PASS" ? (
-            <Button onClick={onNextQuestion} className="w-full gap-2" size="lg">
+            <motion.button
+              onClick={onNextQuestion}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                "w-full flex items-center justify-center gap-2",
+                "px-6 py-3 rounded-xl font-semibold text-white",
+                "gradient-neon shadow-lg",
+                "hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all duration-300"
+              )}
+            >
               Next Question
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+              <ArrowRight className="h-5 w-5" />
+            </motion.button>
           ) : (
             <>
               {/* Next steps guidance */}
-              <Card className="border-muted bg-muted/30">
+              <Card className="border-border/50 bg-accent/30">
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <ChevronRight className="h-4 w-4 text-primary" />
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                      <ChevronRight className="h-4 w-4 text-primary" />
+                    </div>
                     <span className="font-medium text-sm">Next Steps</span>
                   </div>
                   <ul className="text-sm text-muted-foreground space-y-2">
                     <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium">1.</span>
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">1</span>
                       Review the failing test cases above
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium">2.</span>
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">2</span>
                       Compare expected vs actual output
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium">3.</span>
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">3</span>
                       Check for edge cases and off-by-one errors
                     </li>
                   </ul>
                 </CardContent>
               </Card>
 
-              <Button
-                onClick={onRetry}
-                variant="outline"
-                className="w-full gap-2"
-                size="lg"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Try Again
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  onClick={onRetry}
+                  variant="outline"
+                  className="w-full gap-2 neon-border hover:neon-glow transition-all duration-300"
+                  size="lg"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Try Again
+                </Button>
+              </motion.div>
             </>
           )}
         </motion.div>

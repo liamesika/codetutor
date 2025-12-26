@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -15,6 +16,7 @@ import {
   Save,
   Loader2,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface ActionBarProps {
   onRun: () => void
@@ -45,8 +47,13 @@ export function ActionBar({
 
   return (
     <TooltipProvider>
-      <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between p-3 gap-2">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="sticky bottom-0 glass-card border-t-0 rounded-t-none border-x-0"
+      >
+        <div className="flex items-center justify-between p-4 gap-3">
           {/* Left side - secondary actions */}
           <div className="flex items-center gap-2">
             <Tooltip>
@@ -56,13 +63,13 @@ export function ActionBar({
                   size="sm"
                   onClick={onHint}
                   disabled={isLoading || hintsAvailable === 0}
-                  className="gap-2"
+                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
                 >
                   <Lightbulb className="h-4 w-4" />
                   <span className="hidden sm:inline">Hint</span>
                   {hintsAvailable > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      ({hintsAvailable})
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">
+                      {hintsAvailable}
                     </span>
                   )}
                 </Button>
@@ -79,7 +86,7 @@ export function ActionBar({
                   size="sm"
                   onClick={onReset}
                   disabled={isLoading}
-                  className="gap-2"
+                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
                 >
                   <RotateCcw className="h-4 w-4" />
                   <span className="hidden sm:inline">Reset</span>
@@ -97,7 +104,7 @@ export function ActionBar({
                   size="sm"
                   onClick={onSave}
                   disabled={isLoading || isSaving || !hasChanges}
-                  className="gap-2"
+                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
                 >
                   {isSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -105,6 +112,9 @@ export function ActionBar({
                     <Save className="h-4 w-4" />
                   )}
                   <span className="hidden sm:inline">Save</span>
+                  {hasChanges && (
+                    <span className="w-2 h-2 rounded-full bg-warning animate-pulse" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -114,15 +124,15 @@ export function ActionBar({
           </div>
 
           {/* Right side - primary actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="secondary"
-                  size="sm"
+                  size="default"
                   onClick={onRun}
                   disabled={isLoading}
-                  className="gap-2"
+                  className="gap-2 neon-border hover:neon-glow transition-all duration-300"
                 >
                   {isRunning ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -139,27 +149,40 @@ export function ActionBar({
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  size="sm"
+                <motion.button
                   onClick={onCheck}
                   disabled={isLoading}
-                  className="gap-2"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    "relative inline-flex items-center justify-center gap-2",
+                    "px-6 py-2.5 rounded-xl font-semibold text-white",
+                    "gradient-neon shadow-lg",
+                    "hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all duration-300",
+                    "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg",
+                    isChecking && "animate-glow-pulse"
+                  )}
                 >
                   {isChecking ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    <CheckCircle className="h-4 w-4" />
+                    <CheckCircle className="h-5 w-5" />
                   )}
-                  <span>Check</span>
-                </Button>
+                  <span>Check Solution</span>
+
+                  {/* Shine effect */}
+                  <span className="absolute inset-0 rounded-xl overflow-hidden">
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer" />
+                  </span>
+                </motion.button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Submit and check answer</p>
+                <p>Submit and check against all tests</p>
               </TooltipContent>
             </Tooltip>
           </div>
         </div>
-      </div>
+      </motion.div>
     </TooltipProvider>
   )
 }

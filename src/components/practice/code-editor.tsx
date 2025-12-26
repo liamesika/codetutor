@@ -49,7 +49,7 @@ export function CodeEditor({
       editorRef.current = editor
       setIsReady(true)
 
-      // Define custom theme for better aesthetics
+      // Define custom theme for better aesthetics - matching premium dark theme
       monaco.editor.defineTheme("codetutor-dark", {
         base: "vs-dark",
         inherit: true,
@@ -61,16 +61,20 @@ export function CodeEditor({
           { token: "type", foreground: "4EC9B0" },
         ],
         colors: {
-          "editor.background": "#0d0d0d",
-          "editor.foreground": "#d4d4d4",
-          "editor.lineHighlightBackground": "#1a1a2e",
-          "editor.selectionBackground": "#264f78",
-          "editorCursor.foreground": "#a855f7",
+          "editor.background": "#0B0F19",
+          "editor.foreground": "#E5E7EB",
+          "editor.lineHighlightBackground": "#141A2B",
+          "editor.selectionBackground": "#4F46E540",
+          "editorCursor.foreground": "#4F46E5",
           "editorLineNumber.foreground": "#4a5568",
-          "editorLineNumber.activeForeground": "#a855f7",
-          "editor.inactiveSelectionBackground": "#3a3d41",
-          "editorIndentGuide.background": "#2d2d2d",
-          "editorIndentGuide.activeBackground": "#4a5568",
+          "editorLineNumber.activeForeground": "#4F46E5",
+          "editor.inactiveSelectionBackground": "#1E2433",
+          "editorIndentGuide.background": "#1E2433",
+          "editorIndentGuide.activeBackground": "#4F46E540",
+          "editorGutter.background": "#0B0F19",
+          "scrollbarSlider.background": "#4F46E530",
+          "scrollbarSlider.hoverBackground": "#4F46E550",
+          "scrollbarSlider.activeBackground": "#4F46E570",
         },
       })
 

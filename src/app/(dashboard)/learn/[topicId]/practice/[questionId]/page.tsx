@@ -5,10 +5,11 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,6 +18,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import {
   CodeEditor,
   QuestionPanel,
@@ -30,6 +38,9 @@ import {
   Code2,
   FileQuestion,
   MessageSquare,
+  Zap,
+  Clock,
+  GripVertical,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -259,16 +270,35 @@ export default function PracticePage({
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <div className="p-4 border-b">
-          <Skeleton className="h-6 w-64" />
-        </div>
-        <div className="flex-1 flex">
-          <div className="flex-1 p-4">
-            <Skeleton className="h-full" />
+      <div className="min-h-screen flex flex-col bg-background">
+        {/* Header skeleton */}
+        <div className="p-4 border-b border-border/50">
+          <div className="flex items-center gap-4">
+            <div className="skeleton h-8 w-8 rounded-lg" />
+            <div className="skeleton h-5 w-64 rounded" />
           </div>
-          <div className="w-96 border-l p-4 hidden lg:block">
-            <Skeleton className="h-full" />
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 flex p-4 gap-4">
+          <div className="flex-1 glass-card p-4 flex flex-col">
+            <div className="skeleton h-8 w-48 rounded mb-4" />
+            <div className="flex-1 skeleton rounded-lg" />
+          </div>
+          <div className="w-[400px] glass-card p-4 hidden lg:flex flex-col gap-4">
+            <div className="skeleton h-6 w-32 rounded" />
+            <div className="skeleton h-4 w-full rounded" />
+            <div className="skeleton h-4 w-3/4 rounded" />
+            <div className="skeleton h-32 w-full rounded-lg mt-4" />
+          </div>
+        </div>
+        {/* Action bar skeleton */}
+        <div className="glass-card border-t-0 rounded-t-none p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <div className="skeleton h-9 w-20 rounded-lg" />
+              <div className="skeleton h-9 w-20 rounded-lg" />
+            </div>
+            <div className="skeleton h-10 w-36 rounded-xl" />
           </div>
         </div>
       </div>
@@ -290,14 +320,27 @@ export default function PracticePage({
 
   const hasChanges = code !== originalCode && code !== (question.draft || "")
   const hintsAvailable = question.hints.length - hintsUsed
+  const [resultsOpen, setResultsOpen] = useState(false)
+
+  // Open results drawer when result changes
+  useEffect(() => {
+    if (result) {
+      setResultsOpen(true)
+    }
+  }, [result])
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden bg-background">
       {/* Header */}
-      <header className="border-b bg-background px-4 py-2 flex items-center justify-between shrink-0">
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="border-b border-border/50 bg-background/80 backdrop-blur-sm px-4 py-3 flex items-center justify-between shrink-0"
+      >
         <div className="flex items-center gap-4">
           <Link href={`/learn/${question.topic.id}`}>
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2 hover:bg-accent/50">
               <ChevronLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
@@ -305,48 +348,64 @@ export default function PracticePage({
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard" className="text-muted-foreground hover:text-foreground">
+                  Dashboard
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/learn/${question.topic.id}`}>
+                <BreadcrumbLink href={`/learn/${question.topic.id}`} className="text-muted-foreground hover:text-foreground">
                   Week {question.topic.week.weekNumber}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/learn/${question.topic.id}`}>
-                  {question.topic.title}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{question.title}</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium">{question.title}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="font-semibold truncate md:hidden">{question.title}</h1>
+          <div className="md:hidden">
+            <h1 className="font-semibold truncate">{question.title}</h1>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="hidden lg:flex"
-          onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-          aria-label={isPanelCollapsed ? "Show panel" : "Hide panel"}
-        >
-          {isPanelCollapsed ? (
-            <PanelLeft className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-        </Button>
-      </header>
+        <div className="flex items-center gap-3">
+          {/* Quick stats */}
+          <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Zap className="h-4 w-4 text-primary" />
+              <span>{question.points} XP</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              <span>~{question.estimatedMinutes}m</span>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:flex hover:bg-accent/50"
+            onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+            aria-label={isPanelCollapsed ? "Show panel" : "Hide panel"}
+          >
+            {isPanelCollapsed ? (
+              <PanelLeft className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </motion.header>
 
       {/* Desktop layout */}
-      <div className="flex-1 flex overflow-hidden hidden lg:flex">
+      <div className="flex-1 flex overflow-hidden hidden lg:flex p-4 gap-4">
         {/* Code editor panel */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="flex-1 flex flex-col min-w-0 glass-card overflow-hidden"
+        >
+          <div className="flex-1 overflow-hidden rounded-t-2xl">
             <CodeEditor
               value={code}
               onChange={setCode}
@@ -365,24 +424,45 @@ export default function PracticePage({
             hintsAvailable={hintsAvailable}
             hasChanges={hasChanges}
           />
-        </div>
+        </motion.div>
 
         {/* Side panel */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
           className={cn(
-            "border-l bg-card flex flex-col transition-all duration-200",
-            isPanelCollapsed ? "w-0 overflow-hidden" : "w-[400px] xl:w-[480px]"
+            "glass-card flex flex-col transition-all duration-300",
+            isPanelCollapsed ? "w-0 overflow-hidden opacity-0" : "w-[400px] xl:w-[480px]"
           )}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-4">
-              <TabsTrigger value="question" className="gap-2">
+            <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-4 pt-2">
+              <TabsTrigger
+                value="question"
+                className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
+              >
                 <FileQuestion className="h-4 w-4" />
                 Question
               </TabsTrigger>
-              <TabsTrigger value="feedback" className="gap-2">
+              <TabsTrigger
+                value="feedback"
+                className={cn(
+                  "gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg",
+                  result?.status === "PASS" && "data-[state=active]:bg-green-500/20",
+                  result?.status === "FAIL" && "data-[state=active]:bg-red-500/20"
+                )}
+              >
                 <MessageSquare className="h-4 w-4" />
                 Results
+                {result && (
+                  <Badge
+                    variant={result.status === "PASS" ? "default" : "destructive"}
+                    className="ml-1 h-5 px-1.5 text-[10px]"
+                  >
+                    {result.status === "PASS" ? "PASS" : "!"}
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="question" className="flex-1 mt-0 overflow-hidden">
@@ -407,24 +487,45 @@ export default function PracticePage({
               />
             </TabsContent>
           </Tabs>
-        </div>
+        </motion.div>
       </div>
 
       {/* Mobile layout */}
       <div className="flex-1 flex flex-col overflow-hidden lg:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-4 shrink-0">
-            <TabsTrigger value="question" className="gap-2">
+          <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-4 shrink-0">
+            <TabsTrigger
+              value="question"
+              className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
+            >
               <FileQuestion className="h-4 w-4" />
               <span className="hidden sm:inline">Question</span>
             </TabsTrigger>
-            <TabsTrigger value="code" className="gap-2">
+            <TabsTrigger
+              value="code"
+              className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
+            >
               <Code2 className="h-4 w-4" />
               <span className="hidden sm:inline">Code</span>
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="gap-2">
+            <TabsTrigger
+              value="feedback"
+              className={cn(
+                "gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg",
+                result?.status === "PASS" && "data-[state=active]:bg-green-500/20",
+                result?.status === "FAIL" && "data-[state=active]:bg-red-500/20"
+              )}
+            >
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Results</span>
+              {result && (
+                <span
+                  className={cn(
+                    "w-2 h-2 rounded-full",
+                    result.status === "PASS" ? "bg-green-500" : "bg-red-500"
+                  )}
+                />
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -475,6 +576,46 @@ export default function PracticePage({
           hintsAvailable={hintsAvailable}
           hasChanges={hasChanges}
         />
+
+        {/* Mobile results drawer */}
+        <Sheet open={resultsOpen} onOpenChange={setResultsOpen}>
+          <SheetContent
+            side="bottom"
+            className="h-[70vh] glass-card border-t border-border/50 rounded-t-3xl p-0"
+          >
+            <SheetHeader className="px-4 pt-4 pb-2 border-b border-border/50">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30" />
+              </div>
+              <SheetTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Test Results
+                {result && (
+                  <Badge
+                    variant={result.status === "PASS" ? "default" : "destructive"}
+                    className={cn(
+                      "ml-2",
+                      result.status === "PASS" && "bg-green-500"
+                    )}
+                  >
+                    {result.status}
+                  </Badge>
+                )}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-auto">
+              <ResultsPanel
+                result={result}
+                isLoading={executeMutation.isPending}
+                onNextQuestion={handleNextQuestion}
+                onRetry={() => {
+                  handleRetry()
+                  setResultsOpen(false)
+                }}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   )
