@@ -50,6 +50,11 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+// Root health check (for Railway)
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', service: 'codetutor-executor', java: isJavaAvailable() });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', java: isJavaAvailable() });
@@ -279,6 +284,13 @@ function runCommand(cmd, args, cwd, timeout, stdin = '') {
     });
   });
 }
+
+// Alias /run to /execute for compatibility
+app.post('/run', authMiddleware, async (req, res) => {
+  // Forward to /execute handler
+  req.url = '/execute';
+  app._router.handle(req, res, () => {});
+});
 
 app.listen(PORT, () => {
   console.log(`CodeTutor Executor running on port ${PORT}`);

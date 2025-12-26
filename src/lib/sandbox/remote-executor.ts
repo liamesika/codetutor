@@ -23,7 +23,18 @@ export interface FullExecutionResult {
   testResults: TestResult[]
 }
 
-const EXECUTOR_URL = process.env.EXECUTOR_URL
+function getExecutorUrl(): string | null {
+  const url = process.env.EXECUTOR_URL
+  if (!url) return null
+  // Ensure https and no trailing slash
+  let normalized = url.trim()
+  if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+    normalized = `https://${normalized}`
+  }
+  return normalized.replace(/\/$/, "")
+}
+
+const EXECUTOR_URL = getExecutorUrl()
 const EXECUTOR_SECRET = process.env.EXECUTOR_SECRET
 
 export async function executeJavaCode(
