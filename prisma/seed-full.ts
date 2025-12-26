@@ -24,6 +24,18 @@ interface SeedQuestion {
   tags: string[]
 }
 
+// Map question types to valid enum values
+function mapQuestionType(type: string): QuestionType {
+  const typeMap: Record<string, QuestionType> = {
+    "CODE": QuestionType.FULL_PROGRAM,
+    "FULL_PROGRAM": QuestionType.FULL_PROGRAM,
+    "FUNCTION": QuestionType.FUNCTION,
+    "FIX_BUG": QuestionType.FIX_BUG,
+    "PREDICT_OUTPUT": QuestionType.PREDICT_OUTPUT,
+  }
+  return typeMap[type] || QuestionType.FULL_PROGRAM
+}
+
 async function seedQuestions(
   topicId: string,
   questions: SeedQuestion[],
@@ -31,6 +43,7 @@ async function seedQuestions(
 ) {
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i]
+    const questionType = mapQuestionType(q.type)
     await prisma.question.upsert({
       where: { topicId_slug: { topicId, slug: q.slug } },
       update: {
@@ -52,7 +65,7 @@ async function seedQuestions(
         topicId,
         title: q.title,
         slug: q.slug,
-        type: q.type as QuestionType,
+        type: questionType,
         prompt: q.prompt,
         constraints: q.constraints,
         difficulty: q.difficulty,

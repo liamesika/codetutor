@@ -1,23 +1,10 @@
-import Redis from "ioredis"
+import { Redis } from "@upstash/redis"
 
-declare global {
-  // eslint-disable-next-line no-var
-  var redis: Redis | undefined
-}
-
-const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
-
-export const redis = globalThis.redis || new Redis(redisUrl, {
-  maxRetriesPerRequest: 3,
-  retryStrategy: (times) => {
-    if (times > 3) return null
-    return Math.min(times * 100, 3000)
-  },
+// Initialize Upstash Redis client
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || "",
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 })
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.redis = redis
-}
 
 // Rate limiting utility
 export interface RateLimitConfig {
@@ -38,29 +25,34 @@ export async function checkRateLimit(
   const now = Date.now()
   const windowStart = now - config.windowMs
 
+  // If Redis is not configured, allow all requests
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return { allowed: true, remaining: config.maxRequests - 1, resetMs: config.windowMs }
+  }
+
   try {
-    // Use sorted set for sliding window rate limiting
-    const multi = redis.multi()
+    // Use pipeline for atomic operations
+    const pipeline = redis.pipeline()
 
     // Remove old entries
-    multi.zremrangebyscore(key, 0, windowStart)
+    pipeline.zremrangebyscore(key, 0, windowStart)
 
     // Count current entries
-    multi.zcard(key)
+    pipeline.zcard(key)
 
     // Add current request
-    multi.zadd(key, now, `${now}-${Math.random()}`)
+    pipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` })
 
     // Set expiry
-    multi.expire(key, Math.ceil(config.windowMs / 1000))
+    pipeline.expire(key, Math.ceil(config.windowMs / 1000))
 
-    const results = await multi.exec()
+    const results = await pipeline.exec()
 
     if (!results) {
       return { allowed: true, remaining: config.maxRequests - 1, resetMs: config.windowMs }
     }
 
-    const currentCount = (results[1]?.[1] as number) || 0
+    const currentCount = (results[1] as number) || 0
     const allowed = currentCount < config.maxRequests
 
     if (!allowed) {
