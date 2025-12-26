@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: codetutor-executor
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: EXECUTOR_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3001

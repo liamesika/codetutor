@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
-import { executeJavaCode, TestCase } from "@/lib/sandbox/docker-executor"
+import { executeJavaCode, TestCase } from "@/lib/sandbox/remote-executor"
 import { checkExecutionRateLimit } from "@/lib/redis"
 
 // Optional Sentry
