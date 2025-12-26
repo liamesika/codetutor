@@ -1,6 +1,6 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-jammy
 
-RUN apk add --no-cache nodejs npm
+RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY package*.json ./
