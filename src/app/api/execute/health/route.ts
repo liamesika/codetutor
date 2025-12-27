@@ -1,13 +1,28 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { normalizeExecutorUrl } from "@/lib/executor"
+import { normalizeExecutorUrl, getExecutorConfig } from "@/lib/executor"
+
+// Force Node.js runtime - Edge runtime has issues with env vars
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+interface ConfigDiagnostics {
+  hasExecutorUrl: boolean
+  hasExecutorSecret: boolean
+  executorUrlNormalized: string | null
+  isConfigured: boolean
+  env: string
+  vercelEnv: string
+}
 
 interface ExecutorHealthResult {
   app: "ok" | "fail"
   auth: "ok" | "fail"
   executor: "ok" | "fail" | "not_configured"
   reason?: string
+  actionRequired?: string
+  config: ConfigDiagnostics
   details: {
     executorUrl: string | null
     healthUrl: string | null
@@ -15,6 +30,21 @@ interface ExecutorHealthResult {
     latencyMs?: number
     errorCode?: string
     hasSecret: boolean
+  }
+}
+
+/**
+ * Returns config diagnostics for debugging
+ */
+function getConfigDiagnostics(): ConfigDiagnostics {
+  const config = getExecutorConfig()
+  return {
+    hasExecutorUrl: !!process.env.EXECUTOR_URL,
+    hasExecutorSecret: !!process.env.EXECUTOR_SECRET,
+    executorUrlNormalized: config.url,
+    isConfigured: config.isConfigured && !!process.env.EXECUTOR_SECRET,
+    env: process.env.NODE_ENV || "unknown",
+    vercelEnv: process.env.VERCEL_ENV || "local",
   }
 }
 
@@ -28,11 +58,13 @@ export async function GET() {
   const rawExecutorUrl = process.env.EXECUTOR_URL
   const executorUrl = normalizeExecutorUrl(rawExecutorUrl)
   const executorSecret = process.env.EXECUTOR_SECRET
+  const configDiagnostics = getConfigDiagnostics()
 
   const result: ExecutorHealthResult = {
     app: "ok",
     auth: "fail",
     executor: "fail",
+    config: configDiagnostics,
     details: {
       executorUrl,
       healthUrl: executorUrl ? `${executorUrl}/health` : null,
@@ -55,11 +87,20 @@ export async function GET() {
   }
 
   // Check executor
-  if (!executorUrl) {
+  if (!executorUrl || !executorSecret) {
     result.executor = "not_configured"
-    result.reason = result.reason || (rawExecutorUrl
-      ? `Invalid EXECUTOR_URL format: "${rawExecutorUrl}"`
-      : "EXECUTOR_URL not configured")
+
+    // Build specific reason
+    const missingVars: string[] = []
+    if (!executorUrl) {
+      missingVars.push(rawExecutorUrl ? `EXECUTOR_URL invalid format` : "EXECUTOR_URL not set")
+    }
+    if (!executorSecret) {
+      missingVars.push("EXECUTOR_SECRET not set")
+    }
+
+    result.reason = result.reason || missingVars.join(", ")
+    result.actionRequired = "Set EXECUTOR_URL and EXECUTOR_SECRET in Vercel Dashboard > Settings > Environment Variables"
   } else {
     const healthUrl = `${executorUrl}/health`
     const startTime = Date.now()

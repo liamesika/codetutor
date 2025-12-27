@@ -3,12 +3,23 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
 
+interface ConfigDiagnostics {
+  hasExecutorUrl: boolean
+  hasExecutorSecret: boolean
+  executorUrlNormalized: string | null
+  isConfigured: boolean
+  env: string
+  vercelEnv: string
+}
+
 // New format from /api/execute/health
 interface ExecutorHealthDetailed {
   app: "ok" | "fail"
   auth: "ok" | "fail"
   executor: "ok" | "fail" | "not_configured"
   reason?: string
+  actionRequired?: string
+  config?: ConfigDiagnostics
   details: {
     executorUrl: string | null
     healthUrl: string | null
@@ -74,13 +85,17 @@ export function normalizeHealthData(data: ExecutorHealthData | undefined): {
   isHealthy: boolean
   authOk: boolean
   executorOk: boolean
+  executorNotConfigured: boolean
   message: string
+  actionRequired?: string
+  config?: ConfigDiagnostics
 } {
   if (!data) {
     return {
       isHealthy: false,
       authOk: false,
       executorOk: false,
+      executorNotConfigured: false,
       message: "Health data unavailable",
     }
   }
@@ -91,7 +106,10 @@ export function normalizeHealthData(data: ExecutorHealthData | undefined): {
       isHealthy: data.app === "ok" && data.auth === "ok" && data.executor === "ok",
       authOk: data.auth === "ok",
       executorOk: data.executor === "ok",
+      executorNotConfigured: data.executor === "not_configured",
       message: data.reason || (data.executor === "ok" ? "All systems operational" : "Executor unavailable"),
+      actionRequired: data.actionRequired,
+      config: data.config,
     }
   }
 
@@ -100,6 +118,7 @@ export function normalizeHealthData(data: ExecutorHealthData | undefined): {
     isHealthy: data.executor?.healthy ?? false,
     authOk: true, // Legacy doesn't track auth
     executorOk: data.executor?.healthy ?? false,
+    executorNotConfigured: false,
     message: data.executor?.message || "Unknown status",
   }
 }

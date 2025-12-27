@@ -8,6 +8,7 @@ import {
   generateRequestId,
   logExecutorEvent,
   checkExecutorHealth,
+  getExecutorConfig,
   type TestCase,
   type ExecutionResponse,
 } from "@/lib/executor"
@@ -15,6 +16,29 @@ import { checkExecutionRateLimit } from "@/lib/redis"
 import { processQuestionCompletion } from "@/lib/progression"
 import { updateNodeProgress } from "@/lib/skill-tree"
 import { completeDailyChallenge, getDailyChallenge } from "@/lib/daily-challenge"
+
+// Force Node.js runtime - Edge runtime has issues with env vars
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+// Log ENV at module load to debug production issues
+console.log("[/api/execute] Module loaded - EXECUTOR_URL:", !!process.env.EXECUTOR_URL, "EXECUTOR_SECRET:", !!process.env.EXECUTOR_SECRET)
+
+/**
+ * Returns executor config diagnostics for debugging
+ */
+function getConfigDiagnostics() {
+  const config = getExecutorConfig()
+  return {
+    hasExecutorUrl: !!process.env.EXECUTOR_URL,
+    hasExecutorSecret: !!process.env.EXECUTOR_SECRET,
+    executorUrlNormalized: config.url ? `${config.url.substring(0, 20)}...` : null,
+    isConfigured: config.isConfigured,
+    env: process.env.NODE_ENV || "unknown",
+    vercelEnv: process.env.VERCEL_ENV || "local",
+    version: process.env.npm_package_version || "unknown",
+  }
+}
 
 // Optional Sentry - non-blocking
 let Sentry: typeof import("@sentry/nextjs") | null = null
@@ -75,6 +99,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Unauthorized", requestId },
         { status: 401 }
+      )
+    }
+
+    // Check executor config BEFORE proceeding - return 503 with diagnostics if not configured
+    const executorConfig = getExecutorConfig()
+    if (!executorConfig.isConfigured || !process.env.EXECUTOR_SECRET) {
+      const diagnostics = getConfigDiagnostics()
+
+      logExecutorEvent("executor_not_configured", {
+        requestId,
+        diagnostics,
+      })
+
+      return NextResponse.json(
+        {
+          error: "EXECUTOR_NOT_CONFIGURED",
+          message: "Code execution service is not configured. Please ensure EXECUTOR_URL and EXECUTOR_SECRET environment variables are set in your deployment.",
+          details: diagnostics,
+          requestId,
+          actionRequired: "Set EXECUTOR_URL and EXECUTOR_SECRET in Vercel Environment Variables",
+          docsUrl: "/api/execute/health",
+        },
+        {
+          status: 503,
+          headers: {
+            "X-Request-Id": requestId,
+            "Retry-After": "60",
+          },
+        }
       )
     }
 
@@ -470,11 +523,36 @@ async function checkAchievements(userId: string) {
   }
 }
 
-// Health check endpoint for executor status
+// Health check endpoint for executor status with config diagnostics
 export async function GET() {
+  const config = getExecutorConfig()
+  const diagnostics = getConfigDiagnostics()
+
+  // If not configured, return 503 with actionable diagnostics
+  if (!config.isConfigured || !process.env.EXECUTOR_SECRET) {
+    return NextResponse.json(
+      {
+        status: "not_configured",
+        error: "EXECUTOR_NOT_CONFIGURED",
+        message: "Code execution service is not configured",
+        config: diagnostics,
+        actionRequired: "Set EXECUTOR_URL and EXECUTOR_SECRET in Vercel Environment Variables",
+        executor: {
+          healthy: false,
+          message: "Executor not configured",
+          checkedAt: new Date().toISOString(),
+        },
+      },
+      { status: 503 }
+    )
+  }
+
+  // Executor is configured, check actual health
   const health = await checkExecutorHealth()
 
   return NextResponse.json({
+    status: health.healthy ? "healthy" : "unhealthy",
+    config: diagnostics,
     executor: {
       healthy: health.healthy,
       message: health.message,

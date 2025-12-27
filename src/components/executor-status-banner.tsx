@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { AlertTriangle, RefreshCw, Server, LogIn, Shield, WifiOff } from "lucide-react"
+import { AlertTriangle, RefreshCw, Server, LogIn, Shield, WifiOff, Settings2, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useExecutorStatus } from "@/lib/hooks"
 import Link from "next/link"
@@ -15,7 +15,10 @@ export function ExecutorStatusBanner() {
     isHealthy,
     authOk,
     executorOk,
+    executorNotConfigured,
     message,
+    actionRequired,
+    config,
   } = useExecutorStatus()
 
   // Don't show anything while loading or if everything is healthy
@@ -28,7 +31,8 @@ export function ExecutorStatusBanner() {
   let Icon = Server
   let showRetry = true
   let showLogin = false
-  let variant: "warning" | "error" | "info" = "warning"
+  let showDiagnostics = false
+  let variant: "warning" | "error" | "info" | "config" = "warning"
 
   if (!authOk) {
     title = "Authentication Required"
@@ -37,6 +41,14 @@ export function ExecutorStatusBanner() {
     showRetry = false
     showLogin = true
     variant = "info"
+  } else if (executorNotConfigured) {
+    // Special handling for not configured state
+    title = "Executor Not Configured"
+    description = actionRequired || "Set EXECUTOR_URL and EXECUTOR_SECRET in Vercel Environment Variables"
+    Icon = Settings2
+    showRetry = true
+    showDiagnostics = true
+    variant = "config"
   } else if (!executorOk) {
     if (message?.includes("401") || message?.includes("403") || message?.includes("authentication")) {
       title = "Deployment Protection Active"
@@ -62,12 +74,14 @@ export function ExecutorStatusBanner() {
     warning: "bg-warning/10 border-warning/30",
     error: "bg-destructive/10 border-destructive/30",
     info: "bg-primary/10 border-primary/30",
+    config: "bg-amber-500/10 border-amber-500/30",
   }[variant]
 
   const textColor = {
     warning: "text-warning",
     error: "text-destructive",
     info: "text-primary",
+    config: "text-amber-500",
   }[variant]
 
   return (
@@ -97,6 +111,18 @@ export function ExecutorStatusBanner() {
                 </Button>
               </Link>
             )}
+            {showDiagnostics && (
+              <Link href="/api/execute/health" target="_blank">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Diagnostics
+                </Button>
+              </Link>
+            )}
             {showRetry && (
               <Button
                 variant="outline"
@@ -123,6 +149,7 @@ export function ExecutorStatusBadge() {
     isHealthy,
     authOk,
     executorOk,
+    executorNotConfigured,
     message,
     refetch,
     isFetching,
@@ -140,6 +167,10 @@ export function ExecutorStatusBadge() {
     label = "Login required"
     Icon = LogIn
     colorClasses = "bg-primary/10 border-primary/30 text-primary"
+  } else if (executorNotConfigured) {
+    label = "Not configured"
+    Icon = Settings2
+    colorClasses = "bg-amber-500/10 border-amber-500/30 text-amber-500"
   } else if (!executorOk) {
     if (message?.includes("401") || message?.includes("SSO") || message?.includes("authentication")) {
       label = "SSO blocking"

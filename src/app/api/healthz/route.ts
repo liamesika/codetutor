@@ -2,6 +2,10 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { normalizeExecutorUrl } from "@/lib/executor"
 
+// Force Node.js runtime - Edge runtime has issues with env vars
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 // Track server start time
 const serverStartTime = Date.now()
 
