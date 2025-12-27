@@ -317,7 +317,7 @@ export default function AccountAccessPage() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <NeonButton
-                  onClick={() => router.push("/pricing")}
+                  onClick={() => router.push("/upgrade")}
                   className="flex-1"
                   rightIcon={<ChevronRight className="size-4" />}
                 >

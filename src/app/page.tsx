@@ -150,16 +150,23 @@ export default function HomePage() {
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link
+              href="/demo"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <Play className="h-3.5 w-3.5" />
+              Try Demo
+            </Link>
+            <Link
+              href="/pricing"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
               href="#features"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Features
-            </Link>
-            <Link
-              href="#curriculum"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Curriculum
             </Link>
             <Link
               href="#how-it-works"
@@ -254,30 +261,34 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <Link href="/signup">
+              <Link href="/signup?plan=free">
                 <NeonButton
                   variant="primary"
                   size="lg"
                   rightIcon={<ArrowRight className="h-5 w-5" />}
                 >
-                  Start Learning Free
+                  Start Free
                 </NeonButton>
               </Link>
-              <Link href="/login">
+              <Link href="/demo">
                 <NeonButton variant="secondary" size="lg" leftIcon={<Play className="h-5 w-5" />}>
-                  View Demo
+                  Try Demo
                 </NeonButton>
               </Link>
             </motion.div>
 
-            <motion.p
-              className="text-sm text-muted-foreground"
+            <motion.div
+              className="flex items-center justify-center gap-4 text-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              No credit card required. Start with Weeks 1-5 for free.
-            </motion.p>
+              <span className="text-muted-foreground">No credit card required</span>
+              <span className="text-muted-foreground/50">|</span>
+              <Link href="/pricing" className="text-[#22D3EE] hover:text-[#4F46E5] transition-colors">
+                View pricing
+              </Link>
+            </motion.div>
 
             {/* Trust strip */}
             <motion.div

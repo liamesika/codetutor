@@ -1,18 +1,31 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
+import { NeonButton } from "@/components/ui/neon-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, Eye, EyeOff, Check } from "lucide-react"
+import {
+  Loader2,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Check,
+  ArrowRight,
+  Sparkles,
+  Crown,
+  Zap,
+  Code2,
+  BookOpen,
+  Target,
+  Shield,
+} from "lucide-react"
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -31,8 +44,24 @@ const signupSchema = z.object({
 
 type SignupForm = z.infer<typeof signupSchema>
 
-export default function SignupPage() {
+const freeFeatures = [
+  { icon: Code2, text: "Week 1 Java Fundamentals" },
+  { icon: Zap, text: "Real-time code execution" },
+  { icon: Target, text: "Progress tracking" },
+]
+
+const proFeatures = [
+  { icon: BookOpen, text: "All 9 weeks of curriculum" },
+  { icon: Sparkles, text: "PRO Mentor Intelligence" },
+  { icon: Shield, text: "Priority support" },
+]
+
+function SignupFormContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const selectedPlan = searchParams.get("plan") || "free"
+  const isPro = selectedPlan === "pro"
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -51,8 +80,8 @@ export default function SignupPage() {
 
   const passwordChecks = [
     { label: "8+ characters", valid: password.length >= 8 },
-    { label: "Uppercase letter", valid: /[A-Z]/.test(password) },
-    { label: "Lowercase letter", valid: /[a-z]/.test(password) },
+    { label: "Uppercase", valid: /[A-Z]/.test(password) },
+    { label: "Lowercase", valid: /[a-z]/.test(password) },
     { label: "Number", valid: /[0-9]/.test(password) },
   ]
 
@@ -68,6 +97,7 @@ export default function SignupPage() {
           name: data.name,
           email: data.email,
           password: data.password,
+          plan: selectedPlan,
         }),
       })
 
@@ -91,7 +121,12 @@ export default function SignupPage() {
         return
       }
 
-      router.push("/dashboard")
+      // Redirect to upgrade if PRO selected, otherwise dashboard
+      if (isPro) {
+        router.push("/upgrade")
+      } else {
+        router.push("/dashboard")
+      }
       router.refresh()
     } catch {
       setError("Something went wrong. Please try again.")
@@ -99,152 +134,344 @@ export default function SignupPage() {
     }
   }
 
+  const features = isPro ? proFeatures : freeFeatures
+
   return (
-    <Card className="w-full max-w-md animate-slide-up">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-        <CardDescription>
-          Start your journey to Java mastery
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive" className="animate-fade-in">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Your name"
-              autoComplete="name"
-              disabled={isLoading}
-              {...register("name")}
-              aria-invalid={!!errors.name}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              disabled={isLoading}
-              {...register("email")}
-              aria-invalid={!!errors.email}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Create a password"
-                autoComplete="new-password"
-                disabled={isLoading}
-                {...register("password")}
-                aria-invalid={!!errors.password}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {password && (
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                {passwordChecks.map((check) => (
-                  <div
-                    key={check.label}
-                    className={`flex items-center gap-1.5 text-xs ${
-                      check.valid ? "text-success" : "text-muted-foreground"
-                    }`}
-                  >
-                    <Check
-                      className={`h-3 w-3 ${
-                        check.valid ? "opacity-100" : "opacity-30"
-                      }`}
-                    />
-                    {check.label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm your password"
-                autoComplete="new-password"
-                disabled={isLoading}
-                {...register("confirmPassword")}
-                aria-invalid={!!errors.confirmPassword}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="text-sm text-destructive">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
+    <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      {/* Left side - Plan info (hidden on mobile) */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="hidden lg:block"
+      >
+        <div className="mb-8">
+          <h1 className="text-4xl xl:text-5xl font-bold text-white mb-4">
+            {isPro ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                Unlock{" "}
+                <span className="bg-gradient-to-r from-[#F59E0B] to-[#EF4444] bg-clip-text text-transparent">
+                  PRO Power
+                </span>
               </>
             ) : (
-              "Create account"
+              <>
+                Start Your{" "}
+                <span className="bg-gradient-to-r from-[#4F46E5] to-[#22D3EE] bg-clip-text text-transparent">
+                  Journey
+                </span>
+              </>
             )}
-          </Button>
-          <p className="text-sm text-muted-foreground text-center">
-            Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline font-medium">
-              Sign in
-            </Link>
+          </h1>
+          <p className="text-lg text-[#9CA3AF]">
+            {isPro
+              ? "Get full access to all curriculum weeks and PRO features."
+              : "Begin mastering Java fundamentals with Week 1 content."}
           </p>
-        </CardFooter>
-      </form>
-    </Card>
+        </div>
+
+        <div className="space-y-6">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.text}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 + index * 0.1 }}
+              className="flex items-start gap-4"
+            >
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                isPro
+                  ? "bg-[#F59E0B]/20 border border-[#F59E0B]/30"
+                  : "bg-[#4F46E5]/20 border border-[#4F46E5]/30"
+              }`}>
+                <feature.icon className={`h-6 w-6 ${isPro ? "text-[#F59E0B]" : "text-[#22D3EE]"}`} />
+              </div>
+              <div>
+                <h3 className="font-semibold text-white">{feature.text}</h3>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Plan comparison CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-10"
+        >
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-white transition-colors"
+          >
+            <span>Compare all plans</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </motion.div>
+      </motion.div>
+
+      {/* Right side - Signup form */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md mx-auto lg:mx-0"
+      >
+        <div className="rounded-2xl border border-white/10 bg-[#0F0F23]/80 backdrop-blur-xl p-8 shadow-[0_0_60px_rgba(79,70,229,0.1)]">
+          {/* Plan badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6"
+          >
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+              isPro
+                ? "bg-gradient-to-r from-[#F59E0B]/20 to-[#EF4444]/20 border border-[#F59E0B]/30 text-[#F59E0B]"
+                : "bg-[#4F46E5]/20 border border-[#4F46E5]/30 text-[#22D3EE]"
+            }`}>
+              {isPro ? <Crown className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+              Selected plan: {isPro ? "PRO" : "FREE"}
+            </div>
+          </motion.div>
+
+          {/* Mobile header */}
+          <div className="lg:hidden text-center mb-6">
+            <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
+            <p className="text-[#9CA3AF]">
+              {isPro ? "Get full PRO access" : "Start learning Java free"}
+            </p>
+          </div>
+
+          {/* Desktop header */}
+          <div className="hidden lg:block mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
+            <p className="text-[#9CA3AF]">Enter your details to get started</p>
+          </div>
+
+          {/* Error alert */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3"
+            >
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-300">{error}</p>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Name field */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-[#E5E7EB]">
+                Name
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Your name"
+                autoComplete="name"
+                disabled={isLoading}
+                {...register("name")}
+                aria-invalid={!!errors.name}
+                className="h-12 bg-[#1F1F3A] border-white/10 text-white placeholder:text-[#6B7280] focus:border-[#4F46E5] focus:ring-[#4F46E5]/20"
+              />
+              {errors.name && (
+                <p className="text-sm text-red-400">{errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Email field */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-[#E5E7EB]">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                disabled={isLoading}
+                {...register("email")}
+                aria-invalid={!!errors.email}
+                className="h-12 bg-[#1F1F3A] border-white/10 text-white placeholder:text-[#6B7280] focus:border-[#4F46E5] focus:ring-[#4F46E5]/20"
+              />
+              {errors.email && (
+                <p className="text-sm text-red-400">{errors.email.message}</p>
+              )}
+            </div>
+
+            {/* Password field */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-[#E5E7EB]">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  disabled={isLoading}
+                  {...register("password")}
+                  aria-invalid={!!errors.password}
+                  className="h-12 bg-[#1F1F3A] border-white/10 text-white placeholder:text-[#6B7280] focus:border-[#4F46E5] focus:ring-[#4F46E5]/20 pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-white transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {password && (
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  {passwordChecks.map((check) => (
+                    <div
+                      key={check.label}
+                      className={`flex items-center gap-1.5 text-xs transition-colors ${
+                        check.valid ? "text-green-400" : "text-[#6B7280]"
+                      }`}
+                    >
+                      <Check
+                        className={`h-3 w-3 transition-opacity ${
+                          check.valid ? "opacity-100" : "opacity-30"
+                        }`}
+                      />
+                      {check.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Confirm Password field */}
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-[#E5E7EB]">
+                Confirm Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  autoComplete="new-password"
+                  disabled={isLoading}
+                  {...register("confirmPassword")}
+                  aria-invalid={!!errors.confirmPassword}
+                  className="h-12 bg-[#1F1F3A] border-white/10 text-white placeholder:text-[#6B7280] focus:border-[#4F46E5] focus:ring-[#4F46E5]/20 pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-white transition-colors"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-400">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <NeonButton
+              type="submit"
+              className="w-full h-12 mt-2"
+              disabled={isLoading}
+              rightIcon={!isLoading && <ArrowRight className="h-4 w-4" />}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : isPro ? (
+                "Create Account to Upgrade"
+              ) : (
+                "Create Free Account"
+              )}
+            </NeonButton>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <p className="text-center text-[#9CA3AF]">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-[#22D3EE] hover:text-[#4F46E5] font-medium transition-colors"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+
+          {/* Switch plan link */}
+          <div className="mt-4 text-center">
+            <Link
+              href={isPro ? "/signup?plan=free" : "/signup?plan=pro"}
+              className="text-sm text-[#6B7280] hover:text-white transition-colors"
+            >
+              {isPro ? "Switch to Free plan" : "Upgrade to PRO plan"}
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function SignupFormFallback() {
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <div className="rounded-2xl border border-white/10 bg-[#0F0F23]/80 p-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-32 bg-white/10 rounded-full" />
+          <div className="space-y-2">
+            <div className="h-6 w-40 bg-white/10 rounded" />
+            <div className="h-4 w-56 bg-white/5 rounded" />
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="h-4 w-16 bg-white/10 rounded" />
+              <div className="h-12 w-full bg-white/5 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-16 bg-white/10 rounded" />
+              <div className="h-12 w-full bg-white/5 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-20 bg-white/10 rounded" />
+              <div className="h-12 w-full bg-white/5 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-32 bg-white/10 rounded" />
+              <div className="h-12 w-full bg-white/5 rounded-xl" />
+            </div>
+          </div>
+          <div className="h-12 w-full bg-white/10 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<SignupFormFallback />}>
+      <SignupFormContent />
+    </Suspense>
   )
 }

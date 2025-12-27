@@ -172,7 +172,7 @@ export function DailyMissionProvider({ children }: { children: ReactNode }) {
 
   const handleUpgrade = useCallback(() => {
     setOverlayOpen(false)
-    router.push("/pricing")
+    router.push("/upgrade")
   }, [router])
 
   return (

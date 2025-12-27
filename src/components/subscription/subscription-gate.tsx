@@ -134,7 +134,7 @@ export function SubscriptionOverlay({ weekNumber }: SubscriptionOverlayProps) {
           </div>
 
           {/* CTA */}
-          <Link href="/pricing">
+          <Link href="/upgrade">
             <NeonButton
               className="w-full py-4 text-lg"
               rightIcon={<ChevronRight className="size-5" />}
@@ -236,7 +236,7 @@ export function WeekLockedCard({ weekNumber, title }: WeekLockedCardProps) {
         <p className="text-sm text-[#9CA3AF]">
           Unlock with{" "}
           <Link
-            href="/pricing"
+            href="/upgrade"
             className="text-[#8B5CF6] hover:text-[#A78BFA] transition-colors"
           >
             Premium
