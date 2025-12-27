@@ -2,6 +2,9 @@ import type { NextConfig } from "next"
 import { withSentryConfig } from "@sentry/nextjs"
 
 const nextConfig: NextConfig = {
+  // Disable sourcemaps in production to prevent 404s
+  productionBrowserSourceMaps: false,
+
   // Optimize images
   images: {
     remotePatterns: [
