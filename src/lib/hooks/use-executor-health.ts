@@ -1,8 +1,25 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
 
-// Legacy format from /api/execute GET
+// New format from /api/execute/health
+interface ExecutorHealthDetailed {
+  app: "ok" | "fail"
+  auth: "ok" | "fail"
+  executor: "ok" | "fail" | "not_configured"
+  reason?: string
+  details: {
+    executorUrl: string | null
+    healthUrl: string | null
+    httpStatus?: number
+    latencyMs?: number
+    errorCode?: string
+    hasSecret: boolean
+  }
+}
+
+// Legacy format from /api/execute GET (still supported for backwards compat)
 interface ExecutorHealthLegacy {
   executor: {
     healthy: boolean
@@ -12,47 +29,44 @@ interface ExecutorHealthLegacy {
   }
 }
 
-// New format from /api/execute/health
-interface ExecutorHealthDetailed {
-  app: "ok" | "fail"
-  auth: "ok" | "fail"
-  executor: "ok" | "fail" | "not_configured"
-  reason?: string
-  details?: Record<string, unknown>
-}
+export type ExecutorHealthData = ExecutorHealthDetailed | ExecutorHealthLegacy
 
-export type ExecutorHealthData = ExecutorHealthLegacy | ExecutorHealthDetailed
-
-// Check health every 30 seconds
-const HEALTH_CHECK_INTERVAL = 30 * 1000
+// Check health every 15 seconds (reduced from 30 for faster recovery)
+const HEALTH_CHECK_INTERVAL = 15 * 1000
 
 export function useExecutorHealth() {
   return useQuery<ExecutorHealthData>({
     queryKey: ["executorHealth"],
     queryFn: async () => {
-      // Try new endpoint first, fall back to legacy
-      try {
-        const response = await fetch("/api/execute/health")
-        if (response.ok) {
-          return response.json()
-        }
-      } catch {
-        // Fall through to legacy
-      }
+      // Always use the new detailed endpoint
+      const response = await fetch("/api/execute/health", {
+        cache: "no-store", // Never use cached responses
+      })
 
-      // Legacy fallback
-      const response = await fetch("/api/execute", { method: "GET" })
-      if (!response.ok) {
-        throw new Error("Failed to check executor health")
-      }
-      return response.json()
+      // Even non-200 responses have useful data
+      const data = await response.json()
+      return data
     },
-    staleTime: HEALTH_CHECK_INTERVAL,
+    staleTime: 0, // Always consider stale - force recheck
     gcTime: HEALTH_CHECK_INTERVAL * 2,
     refetchInterval: HEALTH_CHECK_INTERVAL,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Recheck when window gets focus
+    refetchOnMount: "always", // Always recheck on mount
     retry: 1,
   })
+}
+
+/**
+ * Hook to force immediate health recheck
+ * Use this when entering a practice page
+ */
+export function useForceHealthCheck() {
+  const queryClient = useQueryClient()
+
+  return () => {
+    // Invalidate and refetch immediately
+    queryClient.invalidateQueries({ queryKey: ["executorHealth"] })
+  }
 }
 
 // Helper to normalize health data

@@ -13,11 +13,13 @@ interface ExecuteHealthResponse {
   auth: "ok" | "fail"
   executor: "ok" | "fail" | "not_configured"
   reason?: string
-  details?: {
-    executorUrl?: string
-    responseStatus?: number
-    responseTime?: number
-    executorResponse?: unknown
+  details: {
+    executorUrl: string | null
+    healthUrl: string | null
+    httpStatus?: number
+    latencyMs?: number
+    errorCode?: string
+    hasSecret: boolean
   }
 }
 
@@ -146,23 +148,41 @@ export function ExecutionDebugPanel() {
                         <span className="font-mono truncate max-w-[200px]">{data.details.executorUrl}</span>
                       </div>
                     )}
-                    {data.details.responseStatus && (
+                    {data.details.healthUrl && (
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Status</span>
+                        <span className="text-muted-foreground">Health</span>
+                        <span className="font-mono truncate max-w-[200px]">{data.details.healthUrl}</span>
+                      </div>
+                    )}
+                    {data.details.httpStatus !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">HTTP</span>
                         <span className={cn(
                           "font-mono",
-                          data.details.responseStatus >= 200 && data.details.responseStatus < 300 ? "text-green-500" : "text-red-500"
+                          data.details.httpStatus >= 200 && data.details.httpStatus < 300 ? "text-green-500" : "text-red-500"
                         )}>
-                          {data.details.responseStatus}
+                          {data.details.httpStatus}
                         </span>
                       </div>
                     )}
-                    {data.details.responseTime !== undefined && (
+                    {data.details.latencyMs !== undefined && (
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Response Time</span>
-                        <span className="font-mono">{data.details.responseTime}ms</span>
+                        <span className="text-muted-foreground">Latency</span>
+                        <span className="font-mono">{data.details.latencyMs}ms</span>
                       </div>
                     )}
+                    {data.details.errorCode && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Error</span>
+                        <span className="font-mono text-red-400">{data.details.errorCode}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Secret</span>
+                      <span className={cn("font-mono", data.details.hasSecret ? "text-green-500" : "text-yellow-500")}>
+                        {data.details.hasSecret ? "set" : "missing"}
+                      </span>
+                    </div>
                   </div>
                 )}
 

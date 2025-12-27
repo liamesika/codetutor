@@ -1,23 +1,43 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { normalizeExecutorUrl } from "@/lib/executor"
+
+interface ExecutorHealthResult {
+  app: "ok" | "fail"
+  auth: "ok" | "fail"
+  executor: "ok" | "fail" | "not_configured"
+  reason?: string
+  details: {
+    executorUrl: string | null
+    healthUrl: string | null
+    httpStatus?: number
+    latencyMs?: number
+    errorCode?: string
+    hasSecret: boolean
+  }
+}
 
 /**
  * Execution health check endpoint
  * Returns detailed status of the execution pipeline
  * MUST never throw - returns failure reasons instead
+ * Always returns real debug fields for diagnosis
  */
 export async function GET() {
-  const result: {
-    app: "ok" | "fail"
-    auth: "ok" | "fail"
-    executor: "ok" | "fail" | "not_configured"
-    reason?: string
-    details?: Record<string, unknown>
-  } = {
+  const rawExecutorUrl = process.env.EXECUTOR_URL
+  const executorUrl = normalizeExecutorUrl(rawExecutorUrl)
+  const executorSecret = process.env.EXECUTOR_SECRET
+
+  const result: ExecutorHealthResult = {
     app: "ok",
     auth: "fail",
     executor: "fail",
+    details: {
+      executorUrl,
+      healthUrl: executorUrl ? `${executorUrl}/health` : null,
+      hasSecret: !!executorSecret,
+    },
   }
 
   // Check auth
@@ -35,27 +55,29 @@ export async function GET() {
   }
 
   // Check executor
-  const executorUrl = process.env.EXECUTOR_URL
-  const executorSecret = process.env.EXECUTOR_SECRET
-
   if (!executorUrl) {
     result.executor = "not_configured"
-    result.reason = result.reason || "Executor URL not configured"
+    result.reason = result.reason || (rawExecutorUrl
+      ? `Invalid EXECUTOR_URL format: "${rawExecutorUrl}"`
+      : "EXECUTOR_URL not configured")
   } else {
+    const healthUrl = `${executorUrl}/health`
+    const startTime = Date.now()
+
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-      const headers: Record<string, string> = {}
-      if (executorSecret) {
-        headers["X-Executor-Secret"] = executorSecret
-      }
-
-      const response = await fetch(`${executorUrl}/health`, {
+      const response = await fetch(healthUrl, {
         signal: controller.signal,
-        headers,
+        headers: {
+          "X-Executor-Token": executorSecret || "",
+        },
       })
       clearTimeout(timeoutId)
+
+      result.details.latencyMs = Date.now() - startTime
+      result.details.httpStatus = response.status
 
       if (response.ok) {
         result.executor = "ok"
@@ -65,32 +87,37 @@ export async function GET() {
         }
       } else {
         result.executor = "fail"
-        result.reason = result.reason || `Executor returned ${response.status}`
+        result.details.errorCode = `HTTP_${response.status}`
 
-        // Check for SSO/auth issues
         if (response.status === 401 || response.status === 403) {
-          result.reason = "Executor blocked by authentication. Check EXECUTOR_URL configuration."
+          result.reason = result.reason || "Executor auth failed. Check EXECUTOR_SECRET."
+        } else {
+          result.reason = result.reason || `Executor returned HTTP ${response.status}`
         }
       }
     } catch (error) {
+      result.details.latencyMs = Date.now() - startTime
       result.executor = "fail"
+
       if (error instanceof Error) {
         if (error.name === "AbortError") {
-          result.reason = result.reason || "Executor timeout (5s)"
+          result.details.errorCode = "TIMEOUT"
+          result.reason = result.reason || "Executor health check timed out (5s)"
+        } else if (error.message.includes("fetch failed") || error.message.includes("ENOTFOUND")) {
+          result.details.errorCode = "DNS_ERROR"
+          result.reason = result.reason || `Cannot resolve executor host`
+        } else if (error.message.includes("ECONNREFUSED")) {
+          result.details.errorCode = "CONNECTION_REFUSED"
+          result.reason = result.reason || "Executor refused connection"
         } else {
-          result.reason = result.reason || "Executor unreachable"
+          result.details.errorCode = "NETWORK_ERROR"
+          result.reason = result.reason || error.message
         }
+      } else {
+        result.details.errorCode = "UNKNOWN_ERROR"
+        result.reason = result.reason || "Unknown executor error"
       }
       console.error("Execute health executor check failed:", error)
-    }
-  }
-
-  // Add debug details in development
-  if (process.env.NODE_ENV === "development") {
-    result.details = {
-      executorUrl: executorUrl ? `${executorUrl.substring(0, 30)}...` : "not set",
-      hasExecutorSecret: !!executorSecret,
-      nodeEnv: process.env.NODE_ENV,
     }
   }
 

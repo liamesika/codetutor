@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { routes } from "@/lib/routes"
-import { useInvalidateStats, useIsExecutorAvailable, useInvalidateProgression } from "@/lib/hooks"
+import { useInvalidateStats, useIsExecutorAvailable, useInvalidateProgression, useForceHealthCheck } from "@/lib/hooks"
 import { useLevelUpContext } from "@/components/providers/level-up-provider"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -195,7 +195,13 @@ export default function PracticePage({
   const isExecutorAvailable = useIsExecutorAvailable()
   const invalidateStats = useInvalidateStats()
   const invalidateProgression = useInvalidateProgression()
+  const forceHealthCheck = useForceHealthCheck()
   const { triggerLevelUp } = useLevelUpContext()
+
+  // Force health check on page mount to ensure fresh status
+  useEffect(() => {
+    forceHealthCheck()
+  }, [forceHealthCheck])
 
   // Fetch question data - with proper error handling
   const {

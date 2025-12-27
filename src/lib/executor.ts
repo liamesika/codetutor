@@ -5,6 +5,54 @@
 
 import { randomUUID } from "crypto"
 
+/**
+ * Normalize executor URL:
+ * - Add https:// if missing protocol
+ * - Remove trailing slash
+ * - Never include /health in the base URL
+ * - Returns null if empty or invalid
+ */
+export function normalizeExecutorUrl(url: string | undefined): string | null {
+  if (!url || url.trim() === "") {
+    return null
+  }
+
+  let normalized = url.trim()
+
+  // Add https:// if no protocol
+  if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+    normalized = `https://${normalized}`
+  }
+
+  // Remove trailing slash
+  normalized = normalized.replace(/\/+$/, "")
+
+  // Remove /health if present at the end (it should be appended in code)
+  normalized = normalized.replace(/\/health$/, "")
+
+  return normalized
+}
+
+/**
+ * Get executor config with validation
+ */
+export function getExecutorConfig(): {
+  url: string | null
+  secret: string | null
+  isConfigured: boolean
+  healthUrl: string | null
+} {
+  const url = normalizeExecutorUrl(process.env.EXECUTOR_URL)
+  const secret = process.env.EXECUTOR_SECRET || null
+
+  return {
+    url,
+    secret,
+    isConfigured: !!url,
+    healthUrl: url ? `${url}/health` : null,
+  }
+}
+
 // Types
 export interface TestCase {
   input: string
@@ -41,9 +89,10 @@ export interface ExecutorHealthStatus {
   checkedAt: Date
 }
 
-// Configuration
-const EXECUTOR_URL = process.env.EXECUTOR_URL?.replace(/\/$/, "") || ""
-const EXECUTOR_SECRET = process.env.EXECUTOR_SECRET || ""
+// Configuration - use normalized URL
+const executorConfig = getExecutorConfig()
+const EXECUTOR_URL = executorConfig.url || ""
+const EXECUTOR_SECRET = executorConfig.secret || ""
 const EXECUTION_TIMEOUT_MS = 25000 // 25 second hard limit
 const HEALTH_CHECK_TIMEOUT_MS = 5000 // 5 second health check timeout
 const MAX_RETRIES = 1 // Only retry once for network/5xx errors
