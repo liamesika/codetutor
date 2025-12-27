@@ -3,11 +3,25 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
-import { executeJavaCode, TestCase } from "@/lib/sandbox"
+import {
+  executeCode,
+  generateRequestId,
+  logExecutorEvent,
+  checkExecutorHealth,
+  type TestCase,
+  type ExecutionResponse,
+} from "@/lib/executor"
 import { checkExecutionRateLimit } from "@/lib/redis"
 
-// Optional Sentry
-const Sentry = process.env.SENTRY_DSN ? require("@sentry/nextjs") : null
+// Optional Sentry - non-blocking
+let Sentry: typeof import("@sentry/nextjs") | null = null
+if (process.env.SENTRY_DSN) {
+  try {
+    Sentry = require("@sentry/nextjs")
+  } catch {
+    // Sentry not available
+  }
+}
 
 const executeSchema = z.object({
   questionId: z.string(),
@@ -42,7 +56,13 @@ function sanitizeCode(code: string): { safe: boolean; reason?: string } {
   return { safe: true }
 }
 
+// Hash user ID for logging (privacy)
+function hashUserId(userId: string): string {
+  return userId.substring(0, 8) + "..."
+}
+
 export async function POST(req: NextRequest) {
+  const requestId = generateRequestId()
   const startTime = Date.now()
 
   try {
@@ -50,26 +70,40 @@ export async function POST(req: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized", requestId },
         { status: 401 }
       )
     }
 
     const userId = session.user.id
 
+    // Log request start
+    logExecutorEvent("api_request_start", {
+      requestId,
+      userId: hashUserId(userId),
+    })
+
     // Redis-based rate limiting
     const rateLimit = await checkExecutionRateLimit(userId)
     if (!rateLimit.allowed) {
+      logExecutorEvent("rate_limit_exceeded", {
+        requestId,
+        userId: hashUserId(userId),
+        retryAfter: Math.ceil(rateLimit.resetMs / 1000),
+      })
+
       return NextResponse.json(
         {
           error: "Too many requests. Please wait a moment.",
           retryAfter: Math.ceil(rateLimit.resetMs / 1000),
+          requestId,
         },
         {
           status: 429,
           headers: {
             "Retry-After": Math.ceil(rateLimit.resetMs / 1000).toString(),
             "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-Request-Id": requestId,
           },
         }
       )
@@ -81,8 +115,17 @@ export async function POST(req: NextRequest) {
     // Sanitize code
     const validation = sanitizeCode(code)
     if (!validation.safe) {
+      logExecutorEvent("code_blocked", {
+        requestId,
+        userId: hashUserId(userId),
+        reason: validation.reason,
+      })
+
       return NextResponse.json(
-        { error: `Code contains restricted operations: ${validation.reason}` },
+        {
+          error: `Code contains restricted operations: ${validation.reason}`,
+          requestId,
+        },
         { status: 400 }
       )
     }
@@ -102,7 +145,7 @@ export async function POST(req: NextRequest) {
 
     if (!question) {
       return NextResponse.json(
-        { error: "Question not found" },
+        { error: "Question not found", requestId },
         { status: 404 }
       )
     }
@@ -115,12 +158,15 @@ export async function POST(req: NextRequest) {
       where: { userId, questionId },
     })
 
-    // Execute code using Docker sandbox
-    const result = await executeJavaCode(code, testCases)
+    // Execute code using new executor service
+    const result = await executeCode(code, testCases, requestId)
+
+    // Convert to internal format for DB storage
+    const internalStatus = mapExecutionStatus(result)
 
     // Calculate points
     let pointsEarned = 0
-    if (result.status === "PASS" && !runOnly) {
+    if (result.passed && !runOnly) {
       // Check if user has already passed this question
       const existingPass = await db.attempt.findFirst({
         where: { userId, questionId, status: "PASS" },
@@ -151,7 +197,7 @@ export async function POST(req: NextRequest) {
         // Check for achievements
         await checkAchievements(userId)
       }
-    } else if (result.status !== "PASS" && !runOnly) {
+    } else if (!result.passed && !runOnly) {
       // Update topic stats for failed attempt
       await updateTopicStats(userId, question.topicId, false, hintsUsed)
     }
@@ -163,65 +209,131 @@ export async function POST(req: NextRequest) {
           userId,
           questionId,
           code,
-          status: result.status,
+          status: internalStatus,
           stdout: result.stdout,
           stderr: result.stderr,
           compileError: result.compileError,
-          executionMs: result.executionMs,
+          executionMs: result.durationMs,
           hintsUsed,
           pointsEarned,
         },
       })
 
       // Save test results
-      if (result.testResults.length > 0) {
+      if (result.tests.length > 0) {
         await db.attemptTestResult.createMany({
-          data: result.testResults.map((tr) => ({
+          data: result.tests.map((tr, i) => ({
             attemptId: attempt.id,
-            testIndex: tr.testIndex,
-            input: tr.input,
-            expected: tr.expected,
-            actual: tr.actual,
+            testIndex: i,
+            input: tr.isHidden ? "[hidden]" : (testCases[i]?.input || ""),
+            expected: tr.expected || "",
+            actual: tr.received || "",
             passed: tr.passed,
-            error: tr.error,
+            error: tr.message || null,
           })),
         })
       }
     }
 
     // Log event for audit
+    const processingMs = Date.now() - startTime
     await db.eventLog.create({
       data: {
         userId,
         eventType: runOnly ? "CODE_RUN" : "CODE_CHECK",
         payload: {
+          requestId,
           questionId,
-          status: result.status,
-          executionMs: result.executionMs,
-          processingMs: Date.now() - startTime,
+          status: internalStatus,
+          executionMs: result.durationMs,
+          processingMs,
         },
       },
     })
 
-    return NextResponse.json({
-      ...result,
-      pointsEarned,
+    logExecutorEvent("api_request_complete", {
+      requestId,
+      userId: hashUserId(userId),
+      questionId,
+      status: result.status,
+      passed: result.passed,
+      durationMs: processingMs,
     })
+
+    // Return standardized response
+    return NextResponse.json(
+      {
+        status: result.status,
+        passed: result.passed,
+        tests: result.tests,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        compileError: result.compileError,
+        runtimeError: result.runtimeError,
+        durationMs: result.durationMs,
+        requestId: result.requestId,
+        pointsEarned,
+        // Legacy fields for backwards compatibility
+        testResults: result.tests.map((t, i) => ({
+          testIndex: i,
+          input: t.isHidden ? "[hidden]" : (testCases[i]?.input || ""),
+          expected: t.expected || "",
+          actual: t.received || "",
+          passed: t.passed,
+          error: t.message || null,
+          isHidden: t.isHidden || false,
+        })),
+        executionMs: result.durationMs,
+      },
+      {
+        headers: {
+          "X-Request-Id": requestId,
+        },
+      }
+    )
   } catch (error) {
-    if (Sentry) Sentry.captureException(error)
+    const processingMs = Date.now() - startTime
+
+    // Log error
+    logExecutorEvent("api_request_error", {
+      requestId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      durationMs: processingMs,
+    })
+
+    // Report to Sentry if available
+    if (Sentry) {
+      Sentry.withScope((scope) => {
+        scope.setTag("requestId", requestId)
+        Sentry.captureException(error)
+      })
+    }
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.issues[0].message },
-        { status: 400 }
+        { error: error.issues[0].message, requestId },
+        { status: 400, headers: { "X-Request-Id": requestId } }
       )
     }
+
     console.error("Execution error:", error)
     return NextResponse.json(
-      { error: "Failed to execute code" },
-      { status: 500 }
+      { error: "Failed to execute code", requestId },
+      { status: 500, headers: { "X-Request-Id": requestId } }
     )
   }
+}
+
+// Map execution status to internal status
+type AttemptStatus = "PASS" | "FAIL" | "COMPILE_ERROR" | "RUNTIME_ERROR" | "TIMEOUT" | "MEMORY_EXCEEDED"
+
+function mapExecutionStatus(result: ExecutionResponse): AttemptStatus {
+  if (result.passed) return "PASS"
+  if (result.compileError) return "COMPILE_ERROR"
+  if (result.runtimeError?.includes("timeout")) return "TIMEOUT"
+  if (result.runtimeError?.includes("memory")) return "MEMORY_EXCEEDED"
+  if (result.runtimeError) return "RUNTIME_ERROR"
+  return "FAIL"
 }
 
 async function updateTopicStats(
@@ -338,4 +450,18 @@ async function checkAchievements(userId: string) {
       }
     }
   }
+}
+
+// Health check endpoint for executor status
+export async function GET() {
+  const health = await checkExecutorHealth()
+
+  return NextResponse.json({
+    executor: {
+      healthy: health.healthy,
+      message: health.message,
+      latencyMs: health.latencyMs,
+      checkedAt: health.checkedAt,
+    },
+  })
 }

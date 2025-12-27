@@ -7,9 +7,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useInvalidateStats, useIsExecutorAvailable } from "@/lib/hooks"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { ExecutorStatusBadge } from "@/components/executor-status-banner"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -98,6 +100,8 @@ export default function PracticePage({
   const { status } = useSession()
   const router = useRouter()
   const queryClient = useQueryClient()
+  const isExecutorAvailable = useIsExecutorAvailable()
+  const invalidateStats = useInvalidateStats()
 
   const [code, setCode] = useState("")
   const [originalCode, setOriginalCode] = useState("")
@@ -163,7 +167,7 @@ export default function PracticePage({
       setActiveTab("feedback")
       if (data.status === "PASS") {
         toast.success(`Great job! +${data.pointsEarned} XP`)
-        queryClient.invalidateQueries({ queryKey: ["userStats"] })
+        invalidateStats()
         queryClient.invalidateQueries({ queryKey: ["courses"] })
       }
     },
@@ -369,6 +373,8 @@ export default function PracticePage({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {/* Executor status badge */}
+          <ExecutorStatusBadge />
           {/* Quick stats */}
           <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
@@ -423,6 +429,7 @@ export default function PracticePage({
             isSaving={saveDraftMutation.isPending}
             hintsAvailable={hintsAvailable}
             hasChanges={hasChanges}
+            executorAvailable={isExecutorAvailable}
           />
         </motion.div>
 
@@ -575,6 +582,7 @@ export default function PracticePage({
           isSaving={saveDraftMutation.isPending}
           hintsAvailable={hintsAvailable}
           hasChanges={hasChanges}
+          executorAvailable={isExecutorAvailable}
         />
 
         {/* Mobile results drawer */}

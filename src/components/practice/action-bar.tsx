@@ -29,6 +29,7 @@ interface ActionBarProps {
   isSaving: boolean
   hintsAvailable: number
   hasChanges: boolean
+  executorAvailable?: boolean
 }
 
 export function ActionBar({
@@ -42,8 +43,10 @@ export function ActionBar({
   isSaving,
   hintsAvailable,
   hasChanges,
+  executorAvailable = true,
 }: ActionBarProps) {
   const isLoading = isRunning || isChecking
+  const canExecute = executorAvailable && !isLoading
 
   return (
     <TooltipProvider>
@@ -131,7 +134,7 @@ export function ActionBar({
                   variant="secondary"
                   size="default"
                   onClick={onRun}
-                  disabled={isLoading}
+                  disabled={!canExecute}
                   className="gap-2 neon-border hover:neon-glow transition-all duration-300"
                 >
                   {isRunning ? (
@@ -143,7 +146,7 @@ export function ActionBar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Run code without testing</p>
+                <p>{executorAvailable ? "Run code without testing" : "Code execution unavailable"}</p>
               </TooltipContent>
             </Tooltip>
 
@@ -151,9 +154,9 @@ export function ActionBar({
               <TooltipTrigger asChild>
                 <motion.button
                   onClick={onCheck}
-                  disabled={isLoading}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  disabled={!canExecute}
+                  whileHover={{ scale: canExecute ? 1.02 : 1 }}
+                  whileTap={{ scale: canExecute ? 0.98 : 1 }}
                   className={cn(
                     "relative inline-flex items-center justify-center gap-2",
                     "px-6 py-2.5 rounded-xl font-semibold text-white",
@@ -177,7 +180,7 @@ export function ActionBar({
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Submit and check against all tests</p>
+                <p>{executorAvailable ? "Submit and check against all tests" : "Code execution unavailable"}</p>
               </TooltipContent>
             </Tooltip>
           </div>
