@@ -224,8 +224,8 @@ export default function PublicPricingPage() {
                       transition={{ delay: 0.4 }}
                       className="absolute -top-14 left-1/2 -translate-x-1/2 z-20 w-full max-w-[280px] sm:max-w-xs"
                     >
-                      <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#F59E0B]/20 to-[#EF4444]/20 border border-[#F59E0B]/30 backdrop-blur-sm text-center">
-                        <span className="text-sm text-[#F59E0B] font-medium">
+                      <div className="px-4 py-2.5 rounded-xl bg-[#1a1a2e]/95 border border-[#F59E0B]/40 shadow-lg text-center">
+                        <span className="text-sm text-[#FCD34D] font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
                           Only $9.99/month — basically the price of 2 coffees <span className="inline-block">☕☕</span>
                         </span>
                       </div>
@@ -264,16 +264,16 @@ export default function PublicPricingPage() {
                     {/* Price with promo label */}
                     <div className="mb-8">
                       {"promoLabel" in plan && plan.promoLabel && (
-                        <div className="inline-block px-3 py-1 rounded-full bg-[#F59E0B]/20 border border-[#F59E0B]/30 mb-3">
-                          <span className="text-xs font-semibold text-[#F59E0B]">{plan.promoLabel}</span>
+                        <div className="inline-block px-3 py-1.5 rounded-full bg-[#1a1a2e] border border-[#F59E0B]/50 mb-3 shadow-md">
+                          <span className="text-xs font-bold text-[#FCD34D] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">{plan.promoLabel}</span>
                         </div>
                       )}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-bold text-white">{plan.price}</span>
+                        <span className="text-4xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">{plan.price}</span>
                         {"originalPrice" in plan && plan.originalPrice && (
-                          <span className="text-lg text-[#6B7280] line-through">{plan.originalPrice}</span>
+                          <span className="text-lg text-[#9CA3AF] line-through drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{plan.originalPrice}</span>
                         )}
-                        <span className="text-[#6B7280]">{plan.period}</span>
+                        <span className="text-[#9CA3AF]">{plan.period}</span>
                       </div>
                     </div>
 

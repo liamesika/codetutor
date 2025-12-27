@@ -36,6 +36,12 @@ const nextConfig: NextConfig = {
         destination: "/practice/:questionId",
         permanent: true, // 308 redirect
       },
+      // Unify /upgrade to /pricing (canonical)
+      {
+        source: "/upgrade",
+        destination: "/pricing?from=app",
+        permanent: true, // 308 redirect
+      },
     ]
   },
 

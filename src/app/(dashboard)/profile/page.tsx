@@ -384,7 +384,10 @@ export default function ProfilePage() {
                       color: data.rank.rankConfig.color,
                     }}
                   >
-                    {getRankIcon(data.rank.currentRank)({ className: "size-3" })}
+                    {(() => {
+                      const RankIcon = getRankIcon(data.rank.currentRank)
+                      return <RankIcon className="size-3" />
+                    })()}
                     {data.rank.rankConfig.name}
                   </Badge>
 
