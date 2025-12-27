@@ -1331,6 +1331,1289 @@ public class Solution {
           ]
         }
       ]
+    },
+    // Week 6 - Object-Oriented Programming Basics
+    {
+      weekNumber: 6,
+      title: "OOP Fundamentals",
+      description: "Classes, objects, constructors, and encapsulation",
+      topics: [
+        {
+          slug: "classes-basics",
+          title: "Classes & Objects",
+          description: "Creating classes and instantiating objects",
+          questions: [
+            {
+              slug: "simple-class",
+              type: "FULL_PROGRAM",
+              title: "Simple Class",
+              prompt: "Create a class Person with name field. Create object and print name.",
+              starterCode: `class Person {
+    // Add name field
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        // Create Person and print name
+
+    }
+}`,
+              solutionCode: `class Person {
+    String name;
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Person p = new Person();
+        p.name = "Alice";
+        System.out.println(p.name);
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Alice", isHidden: false }
+              ],
+              hints: [
+                "Declare String name in class",
+                "Use new Person()",
+                "Access with p.name"
+              ],
+              tags: ["oop", "class", "object"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "constructor",
+              type: "FULL_PROGRAM",
+              title: "Constructor",
+              prompt: "Create Person class with constructor that takes name. Print the name.",
+              starterCode: `class Person {
+    String name;
+
+    // Add constructor
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Person p = new Person("Bob");
+        System.out.println(p.name);
+    }
+}`,
+              solutionCode: `class Person {
+    String name;
+
+    Person(String name) {
+        this.name = name;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Person p = new Person("Bob");
+        System.out.println(p.name);
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Bob", isHidden: false }
+              ],
+              hints: [
+                "Constructor has same name as class",
+                "Use this.name = name",
+                "No return type for constructor"
+              ],
+              tags: ["oop", "constructor", "this"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "getter-setter",
+              type: "FULL_PROGRAM",
+              title: "Getters & Setters",
+              prompt: "Create Person with private name, getter and setter. Set to 'Charlie' and print.",
+              starterCode: `class Person {
+    private String name;
+
+    // Add getter and setter
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Person p = new Person();
+        p.setName("Charlie");
+        System.out.println(p.getName());
+    }
+}`,
+              solutionCode: `class Person {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Person p = new Person();
+        p.setName("Charlie");
+        System.out.println(p.getName());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Charlie", isHidden: false }
+              ],
+              hints: [
+                "getName() returns name",
+                "setName(String) assigns name",
+                "Use public for methods"
+              ],
+              tags: ["oop", "encapsulation", "getter", "setter"],
+              difficulty: 2,
+              estimatedMinutes: 10,
+              points: 35
+            },
+            {
+              slug: "multiple-fields",
+              type: "FULL_PROGRAM",
+              title: "Multiple Fields",
+              prompt: "Create Rectangle with width and height. Print area (width * height).",
+              starterCode: `class Rectangle {
+    int width;
+    int height;
+
+    // Add constructor and getArea method
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Rectangle r = new Rectangle(4, 5);
+        System.out.println(r.getArea());
+    }
+}`,
+              solutionCode: `class Rectangle {
+    int width;
+    int height;
+
+    Rectangle(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    int getArea() {
+        return width * height;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Rectangle r = new Rectangle(4, 5);
+        System.out.println(r.getArea());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "20", isHidden: false }
+              ],
+              hints: [
+                "Constructor takes two params",
+                "getArea returns width * height",
+                "4 * 5 = 20"
+              ],
+              tags: ["oop", "methods", "constructor"],
+              difficulty: 2,
+              estimatedMinutes: 10,
+              points: 35
+            }
+          ]
+        },
+        {
+          slug: "methods-objects",
+          title: "Object Methods",
+          description: "Instance methods and behavior",
+          questions: [
+            {
+              slug: "instance-method",
+              type: "FULL_PROGRAM",
+              title: "Instance Method",
+              prompt: "Create Counter class with count field and increment() method. Print count after 3 increments.",
+              starterCode: `class Counter {
+    int count = 0;
+
+    // Add increment method
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Counter c = new Counter();
+        c.increment();
+        c.increment();
+        c.increment();
+        System.out.println(c.count);
+    }
+}`,
+              solutionCode: `class Counter {
+    int count = 0;
+
+    void increment() {
+        count++;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Counter c = new Counter();
+        c.increment();
+        c.increment();
+        c.increment();
+        System.out.println(c.count);
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "3", isHidden: false }
+              ],
+              hints: [
+                "void increment()",
+                "count++ or count = count + 1",
+                "Called 3 times"
+              ],
+              tags: ["oop", "methods", "instance"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "method-return",
+              type: "FULL_PROGRAM",
+              title: "Method with Return",
+              prompt: "Create BankAccount with balance. Add deposit(int) and getBalance() methods.",
+              starterCode: `class BankAccount {
+    private int balance = 0;
+
+    // Add deposit and getBalance
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        BankAccount acc = new BankAccount();
+        acc.deposit(100);
+        acc.deposit(50);
+        System.out.println(acc.getBalance());
+    }
+}`,
+              solutionCode: `class BankAccount {
+    private int balance = 0;
+
+    void deposit(int amount) {
+        balance += amount;
+    }
+
+    int getBalance() {
+        return balance;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        BankAccount acc = new BankAccount();
+        acc.deposit(100);
+        acc.deposit(50);
+        System.out.println(acc.getBalance());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "150", isHidden: false }
+              ],
+              hints: [
+                "deposit adds to balance",
+                "getBalance returns balance",
+                "100 + 50 = 150"
+              ],
+              tags: ["oop", "methods", "return"],
+              difficulty: 2,
+              estimatedMinutes: 10,
+              points: 35
+            },
+            {
+              slug: "tostring-method",
+              type: "FULL_PROGRAM",
+              title: "toString Method",
+              prompt: "Create Point class with x, y. Override toString() to return \"(x, y)\" format.",
+              starterCode: `class Point {
+    int x, y;
+
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    // Override toString
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Point p = new Point(3, 4);
+        System.out.println(p);
+    }
+}`,
+              solutionCode: `class Point {
+    int x, y;
+
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + y + ")";
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Point p = new Point(3, 4);
+        System.out.println(p);
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "(3, 4)", isHidden: false }
+              ],
+              hints: [
+                "Use @Override annotation",
+                "Return String format",
+                "Concatenate with +"
+              ],
+              tags: ["oop", "toString", "override"],
+              difficulty: 3,
+              estimatedMinutes: 10,
+              points: 40
+            }
+          ]
+        }
+      ]
+    },
+    // Week 7 - Inheritance & Polymorphism
+    {
+      weekNumber: 7,
+      title: "Inheritance & Polymorphism",
+      description: "Extending classes, method overriding, and polymorphic behavior",
+      topics: [
+        {
+          slug: "inheritance-basics",
+          title: "Inheritance Basics",
+          description: "Extending classes and using super",
+          questions: [
+            {
+              slug: "extends-class",
+              type: "FULL_PROGRAM",
+              title: "Class Extension",
+              prompt: "Create Animal with name. Create Dog that extends Animal and has breed. Print both.",
+              starterCode: `class Animal {
+    String name;
+
+    Animal(String name) {
+        this.name = name;
+    }
+}
+
+class Dog extends Animal {
+    // Add breed field and constructor
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Dog d = new Dog("Buddy", "Labrador");
+        System.out.println(d.name);
+        System.out.println(d.breed);
+    }
+}`,
+              solutionCode: `class Animal {
+    String name;
+
+    Animal(String name) {
+        this.name = name;
+    }
+}
+
+class Dog extends Animal {
+    String breed;
+
+    Dog(String name, String breed) {
+        super(name);
+        this.breed = breed;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Dog d = new Dog("Buddy", "Labrador");
+        System.out.println(d.name);
+        System.out.println(d.breed);
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Buddy\nLabrador", isHidden: false }
+              ],
+              hints: [
+                "Use extends keyword",
+                "Call super(name) in constructor",
+                "Dog inherits name from Animal"
+              ],
+              tags: ["inheritance", "extends", "super"],
+              difficulty: 3,
+              estimatedMinutes: 12,
+              points: 45
+            },
+            {
+              slug: "method-override",
+              type: "FULL_PROGRAM",
+              title: "Method Override",
+              prompt: "Animal has speak() returning \"...\". Dog overrides to return \"Woof!\". Print Dog's speak.",
+              starterCode: `class Animal {
+    String speak() {
+        return "...";
+    }
+}
+
+class Dog extends Animal {
+    // Override speak
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+        System.out.println(d.speak());
+    }
+}`,
+              solutionCode: `class Animal {
+    String speak() {
+        return "...";
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    String speak() {
+        return "Woof!";
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+        System.out.println(d.speak());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Woof!", isHidden: false }
+              ],
+              hints: [
+                "Use @Override annotation",
+                "Same method signature",
+                "Return different value"
+              ],
+              tags: ["inheritance", "override", "polymorphism"],
+              difficulty: 3,
+              estimatedMinutes: 10,
+              points: 40
+            },
+            {
+              slug: "super-method",
+              type: "FULL_PROGRAM",
+              title: "Calling Super Method",
+              prompt: "Animal.describe() returns name. Dog.describe() adds breed. Use super.",
+              starterCode: `class Animal {
+    String name;
+    Animal(String name) { this.name = name; }
+
+    String describe() {
+        return "Name: " + name;
+    }
+}
+
+class Dog extends Animal {
+    String breed;
+    Dog(String name, String breed) {
+        super(name);
+        this.breed = breed;
+    }
+
+    // Override describe to add breed
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Dog d = new Dog("Max", "Husky");
+        System.out.println(d.describe());
+    }
+}`,
+              solutionCode: `class Animal {
+    String name;
+    Animal(String name) { this.name = name; }
+
+    String describe() {
+        return "Name: " + name;
+    }
+}
+
+class Dog extends Animal {
+    String breed;
+    Dog(String name, String breed) {
+        super(name);
+        this.breed = breed;
+    }
+
+    @Override
+    String describe() {
+        return super.describe() + ", Breed: " + breed;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Dog d = new Dog("Max", "Husky");
+        System.out.println(d.describe());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Name: Max, Breed: Husky", isHidden: false }
+              ],
+              hints: [
+                "Call super.describe()",
+                "Concatenate breed info",
+                "super accesses parent method"
+              ],
+              tags: ["inheritance", "super", "override"],
+              difficulty: 3,
+              estimatedMinutes: 12,
+              points: 45
+            }
+          ]
+        },
+        {
+          slug: "polymorphism",
+          title: "Polymorphism",
+          description: "Using parent type for child objects",
+          questions: [
+            {
+              slug: "polymorphic-array",
+              type: "FULL_PROGRAM",
+              title: "Polymorphic Array",
+              prompt: "Create Animal array with Dog and Cat objects. Call speak() on each.",
+              starterCode: `class Animal {
+    String speak() { return "..."; }
+}
+class Dog extends Animal {
+    String speak() { return "Woof"; }
+}
+class Cat extends Animal {
+    String speak() { return "Meow"; }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        // Create Animal array with Dog and Cat
+
+    }
+}`,
+              solutionCode: `class Animal {
+    String speak() { return "..."; }
+}
+class Dog extends Animal {
+    String speak() { return "Woof"; }
+}
+class Cat extends Animal {
+    String speak() { return "Meow"; }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Animal[] animals = {new Dog(), new Cat()};
+        for (Animal a : animals) {
+            System.out.println(a.speak());
+        }
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Woof\nMeow", isHidden: false }
+              ],
+              hints: [
+                "Animal[] can hold Dog and Cat",
+                "Use for-each loop",
+                "speak() is polymorphic"
+              ],
+              tags: ["polymorphism", "array", "inheritance"],
+              difficulty: 3,
+              estimatedMinutes: 12,
+              points: 45
+            },
+            {
+              slug: "instanceof-check",
+              type: "FULL_PROGRAM",
+              title: "instanceof Check",
+              prompt: "Given Animal, print \"Dog!\" if it's a Dog, \"Cat!\" if Cat, else \"Animal\".",
+              starterCode: `class Animal {}
+class Dog extends Animal {}
+class Cat extends Animal {}
+
+public class Solution {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        // Check type and print
+
+    }
+}`,
+              solutionCode: `class Animal {}
+class Dog extends Animal {}
+class Cat extends Animal {}
+
+public class Solution {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        if (a instanceof Dog) {
+            System.out.println("Dog!");
+        } else if (a instanceof Cat) {
+            System.out.println("Cat!");
+        } else {
+            System.out.println("Animal");
+        }
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Dog!", isHidden: false }
+              ],
+              hints: [
+                "Use instanceof operator",
+                "Check Dog first",
+                "a is actually a Dog"
+              ],
+              tags: ["polymorphism", "instanceof", "type"],
+              difficulty: 3,
+              estimatedMinutes: 10,
+              points: 40
+            }
+          ]
+        }
+      ]
+    },
+    // Week 8 - Abstract Classes & Interfaces
+    {
+      weekNumber: 8,
+      title: "Abstract Classes & Interfaces",
+      description: "Abstract methods, interfaces, and contracts",
+      topics: [
+        {
+          slug: "abstract-classes",
+          title: "Abstract Classes",
+          description: "Creating and extending abstract classes",
+          questions: [
+            {
+              slug: "abstract-method",
+              type: "FULL_PROGRAM",
+              title: "Abstract Method",
+              prompt: "Create abstract Shape with abstract getArea(). Circle extends it with radius 5. Print area.",
+              starterCode: `abstract class Shape {
+    // Add abstract getArea
+
+}
+
+class Circle extends Shape {
+    double radius = 5;
+
+    // Implement getArea
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Circle c = new Circle();
+        System.out.println(c.getArea());
+    }
+}`,
+              solutionCode: `abstract class Shape {
+    abstract double getArea();
+}
+
+class Circle extends Shape {
+    double radius = 5;
+
+    @Override
+    double getArea() {
+        return Math.PI * radius * radius;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Circle c = new Circle();
+        System.out.println(c.getArea());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "78.53981633974483", isHidden: false }
+              ],
+              hints: [
+                "abstract keyword for method",
+                "No body for abstract method",
+                "Math.PI for π value"
+              ],
+              tags: ["abstract", "inheritance", "method"],
+              difficulty: 3,
+              estimatedMinutes: 12,
+              points: 45
+            },
+            {
+              slug: "abstract-with-concrete",
+              type: "FULL_PROGRAM",
+              title: "Mixed Methods",
+              prompt: "Abstract Vehicle with abstract start() and concrete honk() that prints \"Beep!\". Car implements start().",
+              starterCode: `abstract class Vehicle {
+    // Add abstract start and concrete honk
+
+}
+
+class Car extends Vehicle {
+    // Implement start
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Car c = new Car();
+        c.start();
+        c.honk();
+    }
+}`,
+              solutionCode: `abstract class Vehicle {
+    abstract void start();
+
+    void honk() {
+        System.out.println("Beep!");
+    }
+}
+
+class Car extends Vehicle {
+    @Override
+    void start() {
+        System.out.println("Engine started");
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Car c = new Car();
+        c.start();
+        c.honk();
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Engine started\nBeep!", isHidden: false }
+              ],
+              hints: [
+                "abstract for start()",
+                "Regular method for honk()",
+                "Car inherits honk()"
+              ],
+              tags: ["abstract", "concrete", "method"],
+              difficulty: 3,
+              estimatedMinutes: 12,
+              points: 45
+            }
+          ]
+        },
+        {
+          slug: "interfaces",
+          title: "Interfaces",
+          description: "Implementing interfaces and multiple inheritance",
+          questions: [
+            {
+              slug: "simple-interface",
+              type: "FULL_PROGRAM",
+              title: "Simple Interface",
+              prompt: "Create Drawable interface with draw(). Rectangle implements it printing \"Drawing rectangle\".",
+              starterCode: `interface Drawable {
+    // Add draw method
+
+}
+
+class Rectangle implements Drawable {
+    // Implement draw
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Drawable d = new Rectangle();
+        d.draw();
+    }
+}`,
+              solutionCode: `interface Drawable {
+    void draw();
+}
+
+class Rectangle implements Drawable {
+    @Override
+    public void draw() {
+        System.out.println("Drawing rectangle");
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Drawable d = new Rectangle();
+        d.draw();
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Drawing rectangle", isHidden: false }
+              ],
+              hints: [
+                "Interface methods are abstract",
+                "Use implements keyword",
+                "Methods must be public"
+              ],
+              tags: ["interface", "implements", "polymorphism"],
+              difficulty: 3,
+              estimatedMinutes: 10,
+              points: 40
+            },
+            {
+              slug: "multiple-interfaces",
+              type: "FULL_PROGRAM",
+              title: "Multiple Interfaces",
+              prompt: "Create Flyable and Swimmable interfaces. Duck implements both. Call fly() and swim().",
+              starterCode: `interface Flyable {
+    void fly();
+}
+
+interface Swimmable {
+    void swim();
+}
+
+class Duck implements Flyable, Swimmable {
+    // Implement both
+
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Duck d = new Duck();
+        d.fly();
+        d.swim();
+    }
+}`,
+              solutionCode: `interface Flyable {
+    void fly();
+}
+
+interface Swimmable {
+    void swim();
+}
+
+class Duck implements Flyable, Swimmable {
+    @Override
+    public void fly() {
+        System.out.println("Flying");
+    }
+
+    @Override
+    public void swim() {
+        System.out.println("Swimming");
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Duck d = new Duck();
+        d.fly();
+        d.swim();
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Flying\nSwimming", isHidden: false }
+              ],
+              hints: [
+                "Comma separates interfaces",
+                "Must implement all methods",
+                "Multiple inheritance via interfaces"
+              ],
+              tags: ["interface", "multiple", "inheritance"],
+              difficulty: 3,
+              estimatedMinutes: 12,
+              points: 45
+            },
+            {
+              slug: "interface-default",
+              type: "FULL_PROGRAM",
+              title: "Default Method",
+              prompt: "Interface Logger with default log(String) that prints the message. TestClass uses it.",
+              starterCode: `interface Logger {
+    // Add default log method
+
+}
+
+class TestClass implements Logger {
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        TestClass t = new TestClass();
+        t.log("Hello World");
+    }
+}`,
+              solutionCode: `interface Logger {
+    default void log(String message) {
+        System.out.println(message);
+    }
+}
+
+class TestClass implements Logger {
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        TestClass t = new TestClass();
+        t.log("Hello World");
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Hello World", isHidden: false }
+              ],
+              hints: [
+                "Use default keyword",
+                "Default methods have body",
+                "No override needed"
+              ],
+              tags: ["interface", "default", "method"],
+              difficulty: 3,
+              estimatedMinutes: 10,
+              points: 40
+            }
+          ]
+        }
+      ]
+    },
+    // Week 9 - Exception Handling & Collections Intro
+    {
+      weekNumber: 9,
+      title: "Exceptions & Collections",
+      description: "Error handling with try-catch and intro to ArrayList",
+      topics: [
+        {
+          slug: "exception-handling",
+          title: "Exception Handling",
+          description: "Try-catch blocks and throwing exceptions",
+          questions: [
+            {
+              slug: "try-catch-basic",
+              type: "FULL_PROGRAM",
+              title: "Basic Try-Catch",
+              prompt: "Divide 10 by 0 in try block. Catch ArithmeticException and print \"Error\".",
+              starterCode: `public class Solution {
+    public static void main(String[] args) {
+        // Try-catch for division by zero
+
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static void main(String[] args) {
+        try {
+            int result = 10 / 0;
+            System.out.println(result);
+        } catch (ArithmeticException e) {
+            System.out.println("Error");
+        }
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Error", isHidden: false }
+              ],
+              hints: [
+                "Use try { } catch { }",
+                "ArithmeticException for math errors",
+                "Catch prevents crash"
+              ],
+              tags: ["exception", "try", "catch"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "finally-block",
+              type: "FULL_PROGRAM",
+              title: "Finally Block",
+              prompt: "Use finally to print \"Done\" after try-catch (even if exception occurs).",
+              starterCode: `public class Solution {
+    public static void main(String[] args) {
+        try {
+            int[] arr = new int[1];
+            arr[5] = 10;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Out of bounds");
+        }
+        // Add finally
+
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static void main(String[] args) {
+        try {
+            int[] arr = new int[1];
+            arr[5] = 10;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Out of bounds");
+        } finally {
+            System.out.println("Done");
+        }
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Out of bounds\nDone", isHidden: false }
+              ],
+              hints: [
+                "finally after catch",
+                "Always executes",
+                "Used for cleanup"
+              ],
+              tags: ["exception", "finally", "cleanup"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "throw-exception",
+              type: "FULL_PROGRAM",
+              title: "Throw Exception",
+              prompt: "Create divide(a, b) that throws IllegalArgumentException if b is 0. Catch it in main.",
+              starterCode: `public class Solution {
+    static int divide(int a, int b) {
+        // Throw if b is 0
+
+        return a / b;
+    }
+
+    public static void main(String[] args) {
+        try {
+            System.out.println(divide(10, 0));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Cannot divide by zero");
+        }
+    }
+}`,
+              solutionCode: `public class Solution {
+    static int divide(int a, int b) {
+        if (b == 0) {
+            throw new IllegalArgumentException("Division by zero");
+        }
+        return a / b;
+    }
+
+    public static void main(String[] args) {
+        try {
+            System.out.println(divide(10, 0));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Cannot divide by zero");
+        }
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "Cannot divide by zero", isHidden: false }
+              ],
+              hints: [
+                "Check if b == 0",
+                "throw new Exception()",
+                "Caught in main"
+              ],
+              tags: ["exception", "throw", "validation"],
+              difficulty: 3,
+              estimatedMinutes: 10,
+              points: 40
+            }
+          ]
+        },
+        {
+          slug: "arraylist-basics",
+          title: "ArrayList Basics",
+          description: "Dynamic arrays with ArrayList",
+          questions: [
+            {
+              slug: "arraylist-add",
+              type: "FULL_PROGRAM",
+              title: "ArrayList Add",
+              prompt: "Create ArrayList<String>, add \"Hello\" and \"World\", print size.",
+              starterCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        // Create ArrayList and add elements
+
+    }
+}`,
+              solutionCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        list.add("Hello");
+        list.add("World");
+        System.out.println(list.size());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "2", isHidden: false }
+              ],
+              hints: [
+                "ArrayList<String> for String list",
+                "Use add() method",
+                "size() returns count"
+              ],
+              tags: ["collections", "arraylist", "add"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "arraylist-get",
+              type: "FULL_PROGRAM",
+              title: "ArrayList Get",
+              prompt: "Create list with 10, 20, 30. Print element at index 1.",
+              starterCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<Integer> nums = new ArrayList<>();
+        nums.add(10);
+        nums.add(20);
+        nums.add(30);
+        // Print element at index 1
+
+    }
+}`,
+              solutionCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<Integer> nums = new ArrayList<>();
+        nums.add(10);
+        nums.add(20);
+        nums.add(30);
+        System.out.println(nums.get(1));
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "20", isHidden: false }
+              ],
+              hints: [
+                "Use get(index)",
+                "0-indexed like arrays",
+                "Index 1 = second element"
+              ],
+              tags: ["collections", "arraylist", "get"],
+              difficulty: 2,
+              estimatedMinutes: 6,
+              points: 25
+            },
+            {
+              slug: "arraylist-loop",
+              type: "FULL_PROGRAM",
+              title: "ArrayList Loop",
+              prompt: "Create list with 1, 2, 3. Print each element on new line using for-each.",
+              starterCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<Integer> nums = new ArrayList<>();
+        nums.add(1);
+        nums.add(2);
+        nums.add(3);
+        // Loop and print
+
+    }
+}`,
+              solutionCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<Integer> nums = new ArrayList<>();
+        nums.add(1);
+        nums.add(2);
+        nums.add(3);
+        for (int n : nums) {
+            System.out.println(n);
+        }
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "1\n2\n3", isHidden: false }
+              ],
+              hints: [
+                "for (int n : nums)",
+                "Same as array for-each",
+                "Works with any Iterable"
+              ],
+              tags: ["collections", "arraylist", "loop"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            },
+            {
+              slug: "arraylist-remove",
+              type: "FULL_PROGRAM",
+              title: "ArrayList Remove",
+              prompt: "Create list with A, B, C. Remove \"B\" and print remaining size.",
+              starterCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        list.add("A");
+        list.add("B");
+        list.add("C");
+        // Remove B and print size
+
+    }
+}`,
+              solutionCode: `import java.util.ArrayList;
+
+public class Solution {
+    public static void main(String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        list.add("A");
+        list.add("B");
+        list.add("C");
+        list.remove("B");
+        System.out.println(list.size());
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "2", isHidden: false }
+              ],
+              hints: [
+                "remove(Object) or remove(index)",
+                "remove(\"B\") removes by value",
+                "Size becomes 2"
+              ],
+              tags: ["collections", "arraylist", "remove"],
+              difficulty: 2,
+              estimatedMinutes: 8,
+              points: 30
+            }
+          ]
+        }
+      ]
     }
   ]
 }

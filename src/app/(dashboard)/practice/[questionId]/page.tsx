@@ -50,6 +50,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { SubscriptionGate } from "@/components/subscription/subscription-gate"
+import { ExecutionOverlay } from "@/components/overlays/execution-overlay"
 
 interface SubscriptionCheck {
   isLocked: boolean
@@ -752,6 +753,9 @@ export default function PracticePage({
 
       {/* Dev-only debug panel */}
       <ExecutionDebugPanel />
+
+      {/* Execution immersion overlay */}
+      <ExecutionOverlay isExecuting={executeMutation.isPending} />
     </div>
   )
 }
