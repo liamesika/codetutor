@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { ExecutorStatusBadge } from "@/components/executor-status-banner"
+import { ExecutionDebugPanel } from "@/components/execution-debug-panel"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Breadcrumb,
@@ -705,6 +706,9 @@ export default function PracticePage({
           </SheetContent>
         </Sheet>
       </div>
+
+      {/* Dev-only debug panel */}
+      <ExecutionDebugPanel />
     </div>
   )
 }
