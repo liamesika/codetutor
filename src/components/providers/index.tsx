@@ -9,6 +9,7 @@ import { AppSplashProvider } from "./app-splash-provider"
 import { DailyLoginProvider } from "./daily-login-provider"
 import { RankProvider } from "./rank-provider"
 import { DopamineProvider } from "./dopamine-provider"
+import { ImmersionProvider } from "@/components/immersion"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -29,7 +30,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
                   <RankProvider>
                     <SkillUnlockProvider>
                       <DailyLoginProvider>
-                        {children}
+                        <ImmersionProvider>
+                          {children}
+                        </ImmersionProvider>
                       </DailyLoginProvider>
                     </SkillUnlockProvider>
                   </RankProvider>
