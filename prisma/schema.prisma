@@ -110,6 +110,7 @@ model Course {
   description String   @db.Text
   language    String   @default("java")
   isLocked    Boolean  @default(false)
+  isPublished Boolean  @default(true)
   orderIndex  Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -118,6 +119,7 @@ model Course {
   enrollments UserEnrollment[]
 
   @@index([slug])
+  @@index([isPublished])
 }
 
 model Week {
@@ -127,6 +129,7 @@ model Week {
   title       String
   description String?  @db.Text
   isLocked    Boolean  @default(false)
+  isPublished Boolean  @default(true)
   orderIndex  Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -136,6 +139,7 @@ model Week {
 
   @@unique([courseId, weekNumber])
   @@index([courseId])
+  @@index([isPublished])
 }
 
 model Topic {
@@ -146,6 +150,7 @@ model Topic {
   description String?  @db.Text
   orderIndex  Int      @default(0)
   isLocked    Boolean  @default(false)
+  isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -157,6 +162,7 @@ model Topic {
 
   @@unique([weekId, slug])
   @@index([weekId])
+  @@index([isPublished])
 }
 
 model Lesson {
@@ -166,6 +172,7 @@ model Lesson {
   slug        String
   content     String   @db.Text
   orderIndex  Int      @default(0)
+  isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -174,6 +181,7 @@ model Lesson {
 
   @@unique([topicId, slug])
   @@index([topicId])
+  @@index([isPublished])
 }
 
 // ==================== QUESTIONS ====================
@@ -191,12 +199,17 @@ model Question {
   tests            Json
   rubric           Json?
   hints            Json
+  explanation      String?        @db.Text
   tags             String[]       @default([])
   difficulty       Int            @default(1)
   estimatedMinutes Int            @default(10)
   points           Int            @default(100)
+  xpReward         Int            @default(100)
+  timeLimit        Int            @default(5000)
+  memoryLimit      Int            @default(256)
   orderIndex       Int            @default(0)
   isActive         Boolean        @default(true)
+  isPublished      Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -212,6 +225,8 @@ model Question {
   @@index([topicId])
   @@index([difficulty])
   @@index([type])
+  @@index([isPublished])
+  @@index([isActive])
 }
 
 model QuestionTag {

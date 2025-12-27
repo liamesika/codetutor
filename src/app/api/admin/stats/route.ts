@@ -15,6 +15,13 @@ export async function GET() {
       )
     }
 
+    // Get counts in parallel
+    const [totalCourses, totalWeeks, totalTopics] = await Promise.all([
+      db.course.count(),
+      db.week.count(),
+      db.topic.count(),
+    ])
+
     // Get total users
     const totalUsers = await db.user.count()
 
@@ -125,7 +132,27 @@ export async function GET() {
       }
     })
 
+    // Get recent attempts for activity feed
+    const recentAttempts = await db.attempt.findMany({
+      take: 10,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        user: {
+          select: { email: true, name: true },
+        },
+        question: {
+          select: { title: true },
+        },
+      },
+    })
+
     return NextResponse.json({
+      totalCourses,
+      totalWeeks,
+      totalTopics,
       totalUsers,
       activeToday: activeToday.length,
       totalQuestions,
@@ -134,6 +161,13 @@ export async function GET() {
       avgAttemptsPerQuestion,
       hardestQuestions,
       recentActivity,
+      recentAttempts: recentAttempts.map((a) => ({
+        id: a.id,
+        user: a.user.name || a.user.email || "Unknown",
+        question: a.question.title,
+        status: a.status,
+        createdAt: a.createdAt.toISOString(),
+      })),
     })
   } catch (error) {
     console.error("Error fetching admin stats:", error)

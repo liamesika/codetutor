@@ -25,6 +25,11 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Curriculum",
+    href: "/admin/curriculum",
+    icon: BookOpen,
+  },
+  {
     title: "Questions",
     href: "/admin/questions",
     icon: FileQuestion,
