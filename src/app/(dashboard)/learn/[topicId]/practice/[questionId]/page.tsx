@@ -7,7 +7,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { useInvalidateStats, useIsExecutorAvailable } from "@/lib/hooks"
+import { useInvalidateStats, useIsExecutorAvailable, useInvalidateProgression } from "@/lib/hooks"
+import { useLevelUpContext } from "@/components/providers/level-up-provider"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -89,6 +90,17 @@ interface ExecutionResult {
     error: string | null
   }[]
   pointsEarned: number
+  progression?: {
+    xpAwarded: number
+    xpBreakdown: { label: string; amount: number }[]
+    isFirstPass: boolean
+    leveledUp: boolean
+    previousLevel: number
+    newLevel: number
+    newXp: number
+    streak: number
+    dailyChallengeBonus: number
+  } | null
 }
 
 export default function PracticePage({
@@ -102,6 +114,8 @@ export default function PracticePage({
   const queryClient = useQueryClient()
   const isExecutorAvailable = useIsExecutorAvailable()
   const invalidateStats = useInvalidateStats()
+  const invalidateProgression = useInvalidateProgression()
+  const { triggerLevelUp } = useLevelUpContext()
 
   const [code, setCode] = useState("")
   const [originalCode, setOriginalCode] = useState("")
@@ -168,7 +182,16 @@ export default function PracticePage({
       if (data.status === "PASS") {
         toast.success(`Great job! +${data.pointsEarned} XP`)
         invalidateStats()
+        invalidateProgression()
         queryClient.invalidateQueries({ queryKey: ["courses"] })
+
+        // Check for level up and trigger ceremony
+        if (data.progression?.leveledUp && data.progression.previousLevel && data.progression.newLevel) {
+          // Small delay to let the success toast show first
+          setTimeout(() => {
+            triggerLevelUp(data.progression!.previousLevel, data.progression!.newLevel)
+          }, 500)
+        }
       }
     },
     onError: (error) => {

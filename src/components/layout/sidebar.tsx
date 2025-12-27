@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Settings,
   Trophy,
+  GitBranch,
 } from "lucide-react"
 
 interface Topic {
@@ -100,7 +101,7 @@ export function Sidebar({ weeks, currentCourse, isLoading }: SidebarProps) {
       </div>
 
       {/* Navigation links */}
-      <div className="px-3 py-2">
+      <div className="px-3 py-2 space-y-1">
         <Link href="/dashboard">
           <Button
             variant={pathname === "/dashboard" ? "secondary" : "ghost"}
@@ -108,6 +109,15 @@ export function Sidebar({ weeks, currentCourse, isLoading }: SidebarProps) {
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
+          </Button>
+        </Link>
+        <Link href="/skills">
+          <Button
+            variant={pathname === "/skills" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+          >
+            <GitBranch className="mr-2 h-4 w-4" />
+            Skill Tree
           </Button>
         </Link>
         <Link href="/achievements">

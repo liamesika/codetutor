@@ -3,6 +3,7 @@
 import { SessionProvider } from "./session-provider"
 import { QueryProvider } from "./query-provider"
 import { ThemeProvider } from "./theme-provider"
+import { LevelUpProvider } from "./level-up-provider"
 import { Toaster } from "@/components/ui/sonner"
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <LevelUpProvider>
+            {children}
+          </LevelUpProvider>
           <Toaster position="top-right" richColors />
         </ThemeProvider>
       </QueryProvider>

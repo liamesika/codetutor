@@ -20,15 +20,18 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  enrollments    UserEnrollment[]
-  topicStats     UserTopicStats[]
-  attempts       Attempt[]
-  hintUsages     HintUsage[]
-  pointsLedger   PointsLedger[]
-  achievements   UserAchievement[]
-  drafts         CodeDraft[]
+  accounts                  Account[]
+  sessions                  Session[]
+  enrollments               UserEnrollment[]
+  topicStats                UserTopicStats[]
+  attempts                  Attempt[]
+  hintUsages                HintUsage[]
+  pointsLedger              PointsLedger[]
+  achievements              UserAchievement[]
+  drafts                    CodeDraft[]
+  progress                  UserProgress?
+  skillUnlocks              SkillUnlock[]
+  dailyChallengeCompletions DailyChallengeCompletion[]
 
   @@index([email])
 }
@@ -150,6 +153,7 @@ model Topic {
   lessons    Lesson[]
   questions  Question[]
   userStats  UserTopicStats[]
+  skillNodes SkillNode[]
 
   @@unique([weekId, slug])
   @@index([weekId])
@@ -202,6 +206,7 @@ model Question {
   hintUsages      HintUsage[]
   drafts          CodeDraft[]
   contentVersions ContentVersion[]
+  dailyChallenges DailyChallenge[]
 
   @@unique([topicId, slug])
   @@index([topicId])
@@ -349,6 +354,100 @@ model CodeDraft {
   @@unique([userId, questionId])
   @@index([userId])
   @@index([questionId])
+}
+
+// ==================== PROGRESSION SYSTEM ====================
+
+model UserProgress {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  xp             Int      @default(0)
+  level          Int      @default(1)
+  totalSolved    Int      @default(0)
+  currentStreak  Int      @default(0)
+  bestStreak     Int      @default(0)
+  lastActiveDate DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([level])
+  @@index([xp])
+}
+
+model SkillNode {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  description   String   @db.Text
+  icon          String   @default("Code")
+  color         String   @default("#4F46E5")
+  parentId      String?
+  requiredLevel Int      @default(1)
+  requiredXp    Int      @default(0)
+  xpReward      Int      @default(100)
+  orderIndex    Int      @default(0)
+  topicId       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  parent   SkillNode?  @relation("SkillNodeHierarchy", fields: [parentId], references: [id])
+  children SkillNode[] @relation("SkillNodeHierarchy")
+  topic    Topic?      @relation(fields: [topicId], references: [id])
+  unlocks  SkillUnlock[]
+
+  @@index([parentId])
+  @@index([topicId])
+  @@index([requiredLevel])
+}
+
+model SkillUnlock {
+  id          String   @id @default(cuid())
+  userId      String
+  nodeId      String
+  unlockedAt  DateTime @default(now())
+  completedAt DateTime?
+  progress    Float    @default(0)
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  node SkillNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, nodeId])
+  @@index([userId])
+  @@index([nodeId])
+}
+
+model DailyChallenge {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  questionId  String
+  bonusXp     Int      @default(25)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  question    Question @relation(fields: [questionId], references: [id])
+  completions DailyChallengeCompletion[]
+
+  @@unique([date])
+  @@index([date])
+  @@index([questionId])
+}
+
+model DailyChallengeCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String
+  completedAt DateTime @default(now())
+  xpEarned    Int      @default(0)
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge DailyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
 }
 
 // ==================== GAMIFICATION ====================

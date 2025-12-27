@@ -12,6 +12,9 @@ import {
   type ExecutionResponse,
 } from "@/lib/executor"
 import { checkExecutionRateLimit } from "@/lib/redis"
+import { processQuestionCompletion } from "@/lib/progression"
+import { updateNodeProgress } from "@/lib/skill-tree"
+import { completeDailyChallenge, getDailyChallenge } from "@/lib/daily-challenge"
 
 // Optional Sentry - non-blocking
 let Sentry: typeof import("@sentry/nextjs") | null = null
@@ -164,39 +167,42 @@ export async function POST(req: NextRequest) {
     // Convert to internal format for DB storage
     const internalStatus = mapExecutionStatus(result)
 
-    // Calculate points
+    // Calculate points and process progression
     let pointsEarned = 0
+    let progressionResult = null
+    let dailyChallengeBonus = 0
+
     if (result.passed && !runOnly) {
-      // Check if user has already passed this question
-      const existingPass = await db.attempt.findFirst({
-        where: { userId, questionId, status: "PASS" },
+      // Process question completion through progression system
+      progressionResult = await processQuestionCompletion(userId, questionId, {
+        hintsUsed,
+        executionMs: result.durationMs,
       })
 
-      if (!existingPass) {
-        // Base points
-        pointsEarned = question.points
+      pointsEarned = progressionResult.xpAwarded
 
-        // Deduct for hints used
-        const hintPenalty = hintsUsed * 10
-        pointsEarned = Math.max(pointsEarned - hintPenalty, 10)
+      // Update skill tree node progress
+      await updateNodeProgress(userId, question.topicId)
 
-        // Add points to ledger
-        await db.pointsLedger.create({
-          data: {
-            userId,
-            amount: pointsEarned,
-            type: "QUESTION_PASS",
-            description: `Passed question`,
-            metadata: { questionId, hintsUsed },
-          },
-        })
-
-        // Update topic stats
-        await updateTopicStats(userId, question.topicId, true, hintsUsed)
-
-        // Check for achievements
-        await checkAchievements(userId)
+      // Check if this is today's daily challenge
+      try {
+        const dailyChallenge = await getDailyChallenge(userId)
+        if (dailyChallenge && dailyChallenge.question.id === questionId && !dailyChallenge.isCompleted) {
+          const challengeResult = await completeDailyChallenge(userId, dailyChallenge.id)
+          if (!challengeResult.alreadyCompleted) {
+            dailyChallengeBonus = challengeResult.xpEarned
+            pointsEarned += dailyChallengeBonus
+          }
+        }
+      } catch {
+        // Daily challenge check failed, continue without it
       }
+
+      // Update topic stats
+      await updateTopicStats(userId, question.topicId, true, hintsUsed)
+
+      // Check for achievements
+      await checkAchievements(userId)
     } else if (!result.passed && !runOnly) {
       // Update topic stats for failed attempt
       await updateTopicStats(userId, question.topicId, false, hintsUsed)
@@ -273,6 +279,18 @@ export async function POST(req: NextRequest) {
         durationMs: result.durationMs,
         requestId: result.requestId,
         pointsEarned,
+        // Progression data
+        progression: progressionResult ? {
+          xpAwarded: progressionResult.xpAwarded,
+          xpBreakdown: progressionResult.breakdown,
+          isFirstPass: progressionResult.isFirstPass,
+          leveledUp: progressionResult.leveledUp,
+          previousLevel: progressionResult.previousLevel,
+          newLevel: progressionResult.progress.level,
+          newXp: progressionResult.progress.xp,
+          streak: progressionResult.progress.currentStreak,
+          dailyChallengeBonus,
+        } : null,
         // Legacy fields for backwards compatibility
         testResults: result.tests.map((t, i) => ({
           testIndex: i,

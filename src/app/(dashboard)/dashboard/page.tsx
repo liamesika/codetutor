@@ -3,13 +3,12 @@
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { useCourses, useUserStats } from "@/lib/hooks"
 import { DashboardShell } from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import {
@@ -24,8 +23,25 @@ import {
   AlertTriangle,
   Play,
   Sparkles,
+  LayoutDashboard,
+  Calendar,
+  Award,
+  Activity,
+  Lock,
+  Star,
+  GitBranch,
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
+import { ProgressHeader } from "@/components/progression/progress-header"
+import { DailyChallengeCard } from "@/components/progression/daily-challenge-card"
+
+// Tab configuration
+const dashboardTabs = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "weeks", label: "Weeks", icon: Calendar },
+  { id: "achievements", label: "Achievements", icon: Award },
+  { id: "activity", label: "Activity", icon: Activity },
+]
 
 function StatCard({
   title,
@@ -79,6 +95,7 @@ function WeekProgress({
   week,
   courseId,
   index = 0,
+  expanded = false,
 }: {
   week: {
     id: string
@@ -95,6 +112,7 @@ function WeekProgress({
   }
   courseId: string
   index?: number
+  expanded?: boolean
 }) {
   const completedTopics = week.topics.filter((t) => t.isCompleted).length
   const isComplete = week.progress === 100
@@ -103,7 +121,7 @@ function WeekProgress({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+      transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
     >
       <Card className={cn(
         "glass-card glass-card-hover overflow-hidden",
@@ -136,13 +154,41 @@ function WeekProgress({
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${week.progress}%` }}
-              transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+              transition={{ duration: 0.5, delay: 0.2 + index * 0.05 }}
               className={cn(
                 "absolute h-full rounded-full",
                 isComplete ? "bg-green-500" : "gradient-neon"
               )}
             />
           </div>
+
+          {/* Topics list for expanded view */}
+          {expanded && (
+            <div className="space-y-2 mb-4">
+              {week.topics.map((topic) => (
+                <Link
+                  key={topic.id}
+                  href={`/learn/${topic.id}`}
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors group"
+                >
+                  <div className="flex items-center gap-2">
+                    {topic.isCompleted ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <div className="h-4 w-4 rounded-full border border-muted-foreground/30" />
+                    )}
+                    <span className="text-sm group-hover:text-primary transition-colors">
+                      {topic.title}
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {topic.questionCount} Q
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
               {completedTopics}/{week.topics.length} topics completed
@@ -160,11 +206,89 @@ function WeekProgress({
   )
 }
 
+// Achievement card component
+function AchievementCard({
+  title,
+  description,
+  icon: Icon,
+  unlocked,
+  progress,
+  index = 0,
+}: {
+  title: string
+  description: string
+  icon: React.ComponentType<{ className?: string }>
+  unlocked: boolean
+  progress?: number
+  index?: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Card className={cn(
+        "glass-card overflow-hidden transition-all duration-300",
+        unlocked ? "glass-card-hover" : "opacity-60"
+      )}>
+        <CardContent className="p-4 flex items-center gap-4">
+          <div className={cn(
+            "h-12 w-12 rounded-xl flex items-center justify-center shrink-0",
+            unlocked
+              ? "bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+              : "bg-muted"
+          )}>
+            {unlocked ? (
+              <Icon className="h-6 w-6 text-white" />
+            ) : (
+              <Lock className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={cn(
+              "font-medium",
+              !unlocked && "text-muted-foreground"
+            )}>
+              {title}
+            </p>
+            <p className="text-xs text-muted-foreground">{description}</p>
+            {!unlocked && progress !== undefined && (
+              <div className="mt-2 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+                <div
+                  className="h-full gradient-neon rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+          </div>
+          {unlocked && (
+            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+// Sample achievements data
+const sampleAchievements = [
+  { id: "first-pass", title: "First Steps", description: "Pass your first question", icon: CheckCircle2, unlocked: true },
+  { id: "streak-3", title: "On Fire", description: "Maintain a 3-day streak", icon: Flame, unlocked: true },
+  { id: "streak-7", title: "Week Warrior", description: "Maintain a 7-day streak", icon: Flame, unlocked: false, progress: 43 },
+  { id: "pass-10", title: "Getting Started", description: "Pass 10 questions", icon: Target, unlocked: true },
+  { id: "pass-50", title: "Problem Solver", description: "Pass 50 questions", icon: Target, unlocked: false, progress: 60 },
+  { id: "pass-100", title: "Century Club", description: "Pass 100 questions", icon: Trophy, unlocked: false, progress: 30 },
+  { id: "week-complete", title: "Week Master", description: "Complete an entire week", icon: Calendar, unlocked: true },
+  { id: "perfect-topic", title: "Perfectionist", description: "100% on any topic", icon: Star, unlocked: false, progress: 85 },
+]
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { data: courses, isLoading: coursesLoading } = useCourses()
   const { data: stats, isLoading: statsLoading } = useUserStats()
+  const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -179,6 +303,474 @@ export default function DashboardPage() {
   const activeCourse = courses?.find((c) => c.isEnrolled && !c.isLocked)
   const weeks = activeCourse?.weeks || []
 
+  // Tab content renderer
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "overview":
+        return (
+          <div className="space-y-8">
+            {/* Progress header with XP bar */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 md:p-6 rounded-2xl bg-gradient-to-r from-[#1E1B4B]/80 to-[#4F46E5]/20 border border-[#4F46E5]/30"
+            >
+              <ProgressHeader />
+            </motion.div>
+
+            {/* Daily Challenge + Skill Tree Quick Access */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <DailyChallengeCard />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Link href="/skills" className="block">
+                  <Card className="glass-card glass-card-hover h-full overflow-hidden group">
+                    <CardContent className="p-6 flex flex-col justify-between h-full">
+                      <div>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 rounded-xl bg-gradient-to-br from-[#4F46E5]/20 to-[#22D3EE]/20 group-hover:from-[#4F46E5]/30 group-hover:to-[#22D3EE]/30 transition-colors">
+                            <GitBranch className="size-6 text-[#22D3EE]" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white">Skill Tree</h3>
+                            <p className="text-sm text-muted-foreground">Master skills, unlock topics</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Progress through the skill tree to unlock new learning paths and earn bonus XP.
+                        </p>
+                      </div>
+                      <Button variant="ghost" className="w-full justify-between group-hover:bg-primary/10">
+                        <span>View Skill Tree</span>
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {statsLoading ? (
+                <>
+                  {[1, 2, 3, 4].map((i) => (
+                    <Card key={i} className="glass-card">
+                      <CardHeader className="pb-2">
+                        <div className="skeleton h-4 w-20 rounded" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="skeleton h-8 w-16 rounded" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <StatCard
+                    title="Day Streak"
+                    value={stats?.streak || 0}
+                    icon={Flame}
+                    iconColor="text-orange-500"
+                    description="Keep it going!"
+                    index={0}
+                  />
+                  <StatCard
+                    title="Total XP"
+                    value={stats?.totalPoints?.toLocaleString() || 0}
+                    icon={Zap}
+                    iconColor="text-yellow-500"
+                    index={1}
+                  />
+                  <StatCard
+                    title="Pass Rate"
+                    value={`${stats?.passRate || 0}%`}
+                    icon={Target}
+                    iconColor="text-green-500"
+                    description={`${stats?.passCount || 0} passed`}
+                    index={2}
+                  />
+                  <StatCard
+                    title="Achievements"
+                    value={stats?.achievementsCount || 0}
+                    icon={Trophy}
+                    iconColor="text-purple-500"
+                    index={3}
+                  />
+                </>
+              )}
+            </div>
+
+            {/* Main content grid */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Course progress */}
+              <div className="lg:col-span-2 space-y-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex items-center justify-between"
+                >
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                    </div>
+                    Course Progress
+                  </h2>
+                  {activeCourse && (
+                    <Badge variant="outline" className="bg-accent/50">
+                      {activeCourse.name}
+                    </Badge>
+                  )}
+                </motion.div>
+
+                {coursesLoading ? (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <Card key={i} className="glass-card">
+                        <CardHeader>
+                          <div className="skeleton h-5 w-24 rounded" />
+                          <div className="skeleton h-4 w-32 rounded mt-2" />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="skeleton h-2 w-full rounded mb-4" />
+                          <div className="skeleton h-4 w-40 rounded" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : weeks.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {weeks.slice(0, 4).map((week, index) => (
+                      <WeekProgress
+                        key={week.id}
+                        week={week}
+                        courseId={activeCourse?.id || ""}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Card className="glass-card">
+                      <CardContent className="flex flex-col items-center justify-center py-12">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4">
+                          <BookOpen className="h-8 w-8 text-primary" />
+                        </div>
+                        <p className="text-muted-foreground text-center mb-4">
+                          No course enrolled yet.
+                        </p>
+                        <Link href="/courses">
+                          <Button className="gradient-neon text-white">Browse Courses</Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {weeks.length > 4 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex justify-center"
+                  >
+                    <Button
+                      variant="ghost"
+                      onClick={() => setActiveTab("weeks")}
+                      className="gap-2 hover:bg-primary/10"
+                    >
+                      View All Weeks
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Sidebar content */}
+              <div className="space-y-6">
+                {/* Weak topics */}
+                {stats?.weakTopics && stats.weakTopics.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Card className="glass-card overflow-hidden">
+                      <CardHeader className="border-b border-border/50">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-lg bg-warning/20 flex items-center justify-center">
+                            <AlertTriangle className="h-4 w-4 text-warning" />
+                          </div>
+                          Focus Areas
+                        </CardTitle>
+                        <CardDescription>
+                          Topics that need more practice
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2 pt-4">
+                        {stats.weakTopics.slice(0, 3).map((topic, index) => (
+                          <motion.div
+                            key={topic.topicId}
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 + index * 0.1 }}
+                          >
+                            <Link
+                              href={`/learn/${topic.topicId}/practice`}
+                              className="block"
+                            >
+                              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent/50 transition-colors group">
+                                <div>
+                                  <p className="font-medium text-sm group-hover:text-primary transition-colors">
+                                    {topic.topicTitle}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {topic.passRate}% pass rate
+                                  </p>
+                                </div>
+                                <div className="w-16 h-2 bg-muted/50 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full gradient-neon rounded-full"
+                                    style={{ width: `${topic.skillLevel}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {/* Quick achievements preview */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Card className="glass-card overflow-hidden">
+                    <CardHeader className="border-b border-border/50">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                          <Trophy className="h-4 w-4 text-purple-500" />
+                        </div>
+                        Recent Achievements
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-3">
+                      {sampleAchievements.filter(a => a.unlocked).slice(0, 3).map((achievement, index) => (
+                        <div
+                          key={achievement.id}
+                          className="flex items-center gap-3 p-2 rounded-lg"
+                        >
+                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center">
+                            <achievement.icon className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{achievement.title}</p>
+                            <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setActiveTab("achievements")}
+                        className="w-full mt-2 gap-2"
+                      >
+                        View All
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "weeks":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-primary" />
+                </div>
+                All Weeks
+              </h2>
+              {activeCourse && (
+                <Badge variant="outline" className="bg-accent/50">
+                  {activeCourse.name}
+                </Badge>
+              )}
+            </div>
+
+            {coursesLoading ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="glass-card">
+                    <CardHeader>
+                      <div className="skeleton h-5 w-24 rounded" />
+                      <div className="skeleton h-4 w-32 rounded mt-2" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="skeleton h-2 w-full rounded mb-4" />
+                      <div className="skeleton h-4 w-40 rounded" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : weeks.length > 0 ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {weeks.map((week, index) => (
+                  <WeekProgress
+                    key={week.id}
+                    week={week}
+                    courseId={activeCourse?.id || ""}
+                    index={index}
+                    expanded
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card className="glass-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4">
+                    <BookOpen className="h-8 w-8 text-primary" />
+                  </div>
+                  <p className="text-muted-foreground text-center mb-4">
+                    No course enrolled yet.
+                  </p>
+                  <Link href="/courses">
+                    <Button className="gradient-neon text-white">Browse Courses</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )
+
+      case "achievements":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <Award className="h-4 w-4 text-purple-500" />
+                </div>
+                Achievements
+              </h2>
+              <Badge variant="outline" className="bg-accent/50">
+                {sampleAchievements.filter(a => a.unlocked).length}/{sampleAchievements.length} Unlocked
+              </Badge>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sampleAchievements.map((achievement, index) => (
+                <AchievementCard
+                  key={achievement.id}
+                  title={achievement.title}
+                  description={achievement.description}
+                  icon={achievement.icon}
+                  unlocked={achievement.unlocked}
+                  progress={achievement.progress}
+                  index={index}
+                />
+              ))}
+            </div>
+          </div>
+        )
+
+      case "activity":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Activity className="h-4 w-4 text-primary" />
+                </div>
+                Recent Activity
+              </h2>
+            </div>
+
+            {stats?.recentAttempts && stats.recentAttempts.length > 0 ? (
+              <div className="space-y-3">
+                {stats.recentAttempts.map((attempt, index) => (
+                  <motion.div
+                    key={attempt.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="glass-card glass-card-hover">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+                          attempt.status === "PASS" ? "bg-green-500/20" : "bg-red-500/20"
+                        )}>
+                          {attempt.status === "PASS" ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {attempt.questionTitle}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {attempt.topicTitle}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          {attempt.status === "PASS" && attempt.pointsEarned > 0 && (
+                            <Badge variant="secondary" className="bg-primary/20 text-primary mb-1">
+                              +{attempt.pointsEarned} XP
+                            </Badge>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(attempt.createdAt), {
+                              addSuffix: true,
+                            })}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <Card className="glass-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4">
+                    <Activity className="h-8 w-8 text-primary" />
+                  </div>
+                  <p className="text-muted-foreground text-center mb-4">
+                    No activity yet. Start practicing to see your progress!
+                  </p>
+                  <Link href="/courses">
+                    <Button className="gradient-neon text-white">Start Learning</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
   return (
     <DashboardShell
       weeks={weeks}
@@ -189,7 +781,7 @@ export default function DashboardPage() {
           : undefined
       }
     >
-      <div className="p-4 md:p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
         {/* Welcome header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -221,245 +813,54 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {statsLoading ? (
-            <>
-              {[1, 2, 3, 4].map((i) => (
-                <Card key={i} className="glass-card">
-                  <CardHeader className="pb-2">
-                    <div className="skeleton h-4 w-20 rounded" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="skeleton h-8 w-16 rounded" />
-                  </CardContent>
-                </Card>
-              ))}
-            </>
-          ) : (
-            <>
-              <StatCard
-                title="Day Streak"
-                value={stats?.streak || 0}
-                icon={Flame}
-                iconColor="text-orange-500"
-                description="Keep it going!"
-                index={0}
-              />
-              <StatCard
-                title="Total XP"
-                value={stats?.totalPoints?.toLocaleString() || 0}
-                icon={Zap}
-                iconColor="text-yellow-500"
-                index={1}
-              />
-              <StatCard
-                title="Pass Rate"
-                value={`${stats?.passRate || 0}%`}
-                icon={Target}
-                iconColor="text-green-500"
-                description={`${stats?.passCount || 0} passed`}
-                index={2}
-              />
-              <StatCard
-                title="Achievements"
-                value={stats?.achievementsCount || 0}
-                icon={Trophy}
-                iconColor="text-purple-500"
-                index={3}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Main content grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Course progress */}
-          <div className="lg:col-span-2 space-y-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex items-center justify-between"
-            >
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                </div>
-                Course Progress
-              </h2>
-              {activeCourse && (
-                <Badge variant="outline" className="bg-accent/50">
-                  {activeCourse.name}
-                </Badge>
-              )}
-            </motion.div>
-
-            {coursesLoading ? (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <Card key={i} className="glass-card">
-                    <CardHeader>
-                      <div className="skeleton h-5 w-24 rounded" />
-                      <div className="skeleton h-4 w-32 rounded mt-2" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="skeleton h-2 w-full rounded mb-4" />
-                      <div className="skeleton h-4 w-40 rounded" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : weeks.length > 0 ? (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {weeks.slice(0, 6).map((week, index) => (
-                  <WeekProgress
-                    key={week.id}
-                    week={week}
-                    courseId={activeCourse?.id || ""}
-                    index={index}
-                  />
-                ))}
-              </div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+        {/* Tab navigation */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin"
+          role="tablist"
+          aria-label="Dashboard sections"
+        >
+          {dashboardTabs.map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`panel-${tab.id}`}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-300",
+                  isActive
+                    ? "bg-[#4F46E5] text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+                    : "bg-card/50 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50"
+                )}
               >
-                <Card className="glass-card">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4">
-                      <BookOpen className="h-8 w-8 text-primary" />
-                    </div>
-                    <p className="text-muted-foreground text-center mb-4">
-                      No course enrolled yet.
-                    </p>
-                    <Link href="/courses">
-                      <Button className="gradient-neon text-white">Browse Courses</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </div>
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </motion.div>
 
-          {/* Sidebar content */}
-          <div className="space-y-6">
-            {/* Weak topics */}
-            {stats?.weakTopics && stats.weakTopics.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Card className="glass-card overflow-hidden">
-                  <CardHeader className="border-b border-border/50">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-lg bg-warning/20 flex items-center justify-center">
-                        <AlertTriangle className="h-4 w-4 text-warning" />
-                      </div>
-                      Focus Areas
-                    </CardTitle>
-                    <CardDescription>
-                      Topics that need more practice
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2 pt-4">
-                    {stats.weakTopics.map((topic, index) => (
-                      <motion.div
-                        key={topic.topicId}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + index * 0.1 }}
-                      >
-                        <Link
-                          href={`/learn/${topic.topicId}/practice`}
-                          className="block"
-                        >
-                          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent/50 transition-colors group">
-                            <div>
-                              <p className="font-medium text-sm group-hover:text-primary transition-colors">
-                                {topic.topicTitle}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {topic.passRate}% pass rate
-                              </p>
-                            </div>
-                            <div className="w-16 h-2 bg-muted/50 rounded-full overflow-hidden">
-                              <div
-                                className="h-full gradient-neon rounded-full"
-                                style={{ width: `${topic.skillLevel}%` }}
-                              />
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* Recent activity */}
-            {stats?.recentAttempts && stats.recentAttempts.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Card className="glass-card overflow-hidden">
-                  <CardHeader className="border-b border-border/50">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Clock className="h-4 w-4 text-primary" />
-                      </div>
-                      Recent Activity
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pt-4">
-                    {stats.recentAttempts.map((attempt, index) => (
-                      <motion.div
-                        key={attempt.id}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.6 + index * 0.1 }}
-                        className="flex items-start gap-3 text-sm p-2 rounded-lg hover:bg-accent/30 transition-colors"
-                      >
-                        <div className={cn(
-                          "h-6 w-6 rounded-full flex items-center justify-center mt-0.5 shrink-0",
-                          attempt.status === "PASS" ? "bg-green-500/20" : "bg-red-500/20"
-                        )}>
-                          {attempt.status === "PASS" ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                          ) : (
-                            <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {attempt.questionTitle}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {attempt.topicTitle} •{" "}
-                            {formatDistanceToNow(new Date(attempt.createdAt), {
-                              addSuffix: true,
-                            })}
-                          </p>
-                        </div>
-                        {attempt.status === "PASS" && attempt.pointsEarned > 0 && (
-                          <Badge variant="secondary" className="shrink-0 bg-primary/20 text-primary">
-                            +{attempt.pointsEarned} XP
-                          </Badge>
-                        )}
-                      </motion.div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </div>
-        </div>
+        {/* Tab content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            id={`panel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderTabContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </DashboardShell>
   )
