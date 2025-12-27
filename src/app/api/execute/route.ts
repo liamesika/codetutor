@@ -16,6 +16,8 @@ import { checkExecutionRateLimit } from "@/lib/redis"
 import { processQuestionCompletion } from "@/lib/progression"
 import { updateNodeProgress } from "@/lib/skill-tree"
 import { completeDailyChallenge, getDailyChallenge } from "@/lib/daily-challenge"
+import { processfailedAttempt } from "@/lib/mentor/mistake-engine"
+import { updateProfileAfterAttempt } from "@/lib/mentor/cognitive-engine"
 
 // Force Node.js runtime - Edge runtime has issues with env vars
 export const runtime = "nodejs"
@@ -290,6 +292,18 @@ export async function POST(req: NextRequest) {
             passed: tr.passed,
             error: tr.message || null,
           })),
+        })
+      }
+
+      // Update cognitive profile after every attempt (PRO feature - non-blocking)
+      updateProfileAfterAttempt(userId, attempt.id).catch((err) => {
+        console.error("[Mentor] Failed to update cognitive profile:", err)
+      })
+
+      // Classify and log mistakes on failed attempts (PRO feature - non-blocking)
+      if (!result.passed) {
+        processfailedAttempt(userId, attempt.id, questionId).catch((err) => {
+          console.error("[Mentor] Failed to process mistake:", err)
         })
       }
     }

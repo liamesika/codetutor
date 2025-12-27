@@ -593,3 +593,30 @@ export async function deactivateAccessCode(codeId: string) {
     data: { isActive: false },
   })
 }
+
+/**
+ * Check if user has PRO or ELITE access
+ * Used for gating PRO-only features like Mentor Intelligence
+ */
+export async function checkProAccess(userId: string): Promise<boolean> {
+  const entitlement = await getUserEntitlement(userId)
+
+  if (!entitlement.hasAccess) {
+    return false
+  }
+
+  return entitlement.plan === "PRO" || entitlement.plan === "ELITE"
+}
+
+/**
+ * Check if user has ELITE access
+ */
+export async function checkEliteAccess(userId: string): Promise<boolean> {
+  const entitlement = await getUserEntitlement(userId)
+
+  if (!entitlement.hasAccess) {
+    return false
+  }
+
+  return entitlement.plan === "ELITE"
+}

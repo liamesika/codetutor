@@ -29,6 +29,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet"
 import {
   CodeEditor,
@@ -125,12 +126,13 @@ interface NextQuestionResponse {
   message?: string
   weekComplete?: boolean
   weekNumber?: number
+  error?: string
 }
 
 // Not found component - displayed when question doesn't exist
 function QuestionNotFound() {
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26] flex items-center justify-center p-4">
+    <div className="h-dvh bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26] flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-[#1E1B4B]/80 border-amber-500/30 backdrop-blur-xl">
         <CardContent className="p-8 text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-amber-500/20 flex items-center justify-center">
@@ -158,14 +160,14 @@ function QuestionNotFound() {
 // Loading skeleton component
 function LoadingSkeleton() {
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background">
-      <div className="p-4 border-b border-border/50">
+    <div className="h-dvh flex flex-col bg-background">
+      <div className="p-4 border-b border-border/50 shrink-0">
         <div className="flex items-center gap-4">
           <div className="skeleton h-8 w-8 rounded-lg bg-[#4F46E5]/20" />
           <div className="skeleton h-5 w-64 rounded bg-[#4F46E5]/20" />
         </div>
       </div>
-      <div className="flex-1 flex p-4 gap-4">
+      <div className="flex-1 flex p-4 gap-4 min-h-0">
         <div className="flex-1 glass-card p-4 flex flex-col">
           <div className="skeleton h-8 w-48 rounded mb-4 bg-[#4F46E5]/20" />
           <div className="flex-1 skeleton rounded-lg bg-[#4F46E5]/20" />
@@ -177,7 +179,7 @@ function LoadingSkeleton() {
           <div className="skeleton h-32 w-full rounded-lg mt-4 bg-[#4F46E5]/20" />
         </div>
       </div>
-      <div className="glass-card border-t-0 rounded-t-none p-4">
+      <div className="glass-card border-t-0 rounded-t-none p-4 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
             <div className="skeleton h-9 w-20 rounded-lg bg-[#4F46E5]/20" />
@@ -208,6 +210,8 @@ export default function PracticePage({
   const [activeTab, setActiveTab] = useState("question")
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
   const [resultsOpen, setResultsOpen] = useState(false)
+  const [nextError, setNextError] = useState<string | null>(null)
+  const [isLoadingNext, setIsLoadingNext] = useState(false)
 
   // Hooks
   const { status } = useSession()
@@ -415,41 +419,61 @@ export default function PracticePage({
     saveDraftMutation.mutate(code)
   }, [code, saveDraftMutation])
 
-  // FIXED: Navigate to next question in sequence instead of back to topic
+  // FIXED: Next button contract - NO fallback redirect, show error inline instead
   const handleNextQuestion = useCallback(async () => {
+    setNextError(null)
+    setIsLoadingNext(true)
+
     try {
       // Fetch next question from adaptive algorithm with current topic context
       const res = await fetch(`/api/next-question?topicId=${question?.topic?.id || ""}`)
-      if (!res.ok) throw new Error("Failed to get next question")
-
       const data: NextQuestionResponse = await res.json()
+
+      if (!res.ok) {
+        // API returned error - show inline, don't redirect
+        setNextError(data.error || "Failed to get next question")
+        setIsLoadingNext(false)
+        return
+      }
 
       if (data.questionId) {
         // Navigate to the next question
         router.push(routes.practice(data.questionId))
-      } else if (data.weekComplete) {
-        // Week complete - show completion and go to dashboard
-        toast.success(data.message || "Week complete! Great job!")
+      } else if (data.weekComplete || data.message?.includes("completed")) {
+        // Sequence is finished - show completion and go to dashboard
+        toast.success(data.message || "Great job! All questions completed!")
         router.push(routes.dashboard())
       } else {
-        // No more questions - go to dashboard
+        // No more questions - show completion
         toast.success(data.message || "All questions completed!")
         router.push(routes.dashboard())
       }
-    } catch {
-      // Fallback to topic page if API fails
-      if (question?.topic?.id) {
-        router.push(routes.learn(question.topic.id))
-      } else {
-        router.push(routes.dashboard())
-      }
+    } catch (err) {
+      // Network/unknown error - show inline, don't redirect
+      setNextError("Network error. Please try again.")
+      setIsLoadingNext(false)
     }
   }, [router, question?.topic?.id])
+
+  // Retry next question (used after error)
+  const handleRetryNext = useCallback(() => {
+    setNextError(null)
+    handleNextQuestion()
+  }, [handleNextQuestion])
 
   const handleRetry = useCallback(() => {
     setResult(null)
     setActiveTab("code")
   }, [])
+
+  // Back to week handler
+  const handleBackToWeek = useCallback(() => {
+    if (question?.topic?.id) {
+      router.push(routes.learn(question.topic.id))
+    } else {
+      router.push(routes.dashboard())
+    }
+  }, [router, question?.topic?.id])
 
   // RENDER CONDITIONS - after all hooks are called
 
@@ -476,7 +500,7 @@ export default function PracticePage({
   // Show subscription gate if locked
   if (isLocked) {
     return (
-      <div className="min-h-[100dvh] bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26]">
+      <div className="h-dvh bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26]">
         <SubscriptionGate isLocked={true} weekNumber={weekNumber}>
           <div className="h-screen" />
         </SubscriptionGate>
@@ -489,8 +513,8 @@ export default function PracticePage({
   const hintsAvailable = question.hints.length - hintsUsed
 
   return (
-    <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
-      {/* Header */}
+    <div className="h-dvh flex flex-col overflow-hidden bg-background">
+      {/* Header - shrink-0 to prevent flex growth */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -562,16 +586,16 @@ export default function PracticePage({
         </div>
       </motion.header>
 
-      {/* Desktop layout - FIXED: bounded viewport height with internal scroll */}
-      <div className="flex-1 hidden lg:flex overflow-hidden p-4 gap-4">
+      {/* Desktop layout - flex-1 with min-h-0 for proper overflow */}
+      <div className="flex-1 hidden lg:flex overflow-hidden p-4 gap-4 min-h-0">
         {/* Code editor panel */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="flex-1 flex flex-col min-w-0 glass-card overflow-hidden"
+          className="flex-1 flex flex-col min-w-0 min-h-0 glass-card overflow-hidden"
         >
-          <div className="flex-1 overflow-hidden rounded-t-2xl">
+          <div className="flex-1 overflow-hidden rounded-t-2xl min-h-0">
             <CodeEditor
               value={code}
               onChange={setCode}
@@ -593,13 +617,13 @@ export default function PracticePage({
           />
         </motion.div>
 
-        {/* Side panel - FIXED: bounded height with internal scroll */}
+        {/* Side panel - bounded height with internal scroll */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
           className={cn(
-            "glass-card flex flex-col transition-all duration-300 overflow-hidden",
+            "glass-card flex flex-col transition-all duration-300 overflow-hidden min-h-0",
             isPanelCollapsed ? "w-0 overflow-hidden opacity-0" : "w-[400px] xl:w-[480px]"
           )}
         >
@@ -639,6 +663,8 @@ export default function PracticePage({
                 Solution
               </TabsTrigger>
             </TabsList>
+
+            {/* Tab content with its own scroll container */}
             <TabsContent value="question" className="flex-1 mt-0 overflow-y-auto min-h-0">
               <QuestionPanel
                 question={{
@@ -658,7 +684,11 @@ export default function PracticePage({
                 result={result}
                 isLoading={executeMutation.isPending}
                 onNextQuestion={handleNextQuestion}
+                onRetryNext={handleRetryNext}
                 onRetry={handleRetry}
+                onBackToWeek={handleBackToWeek}
+                nextError={nextError}
+                isLoadingNext={isLoadingNext}
               />
             </TabsContent>
             <TabsContent value="solution" className="flex-1 mt-0 overflow-y-auto min-h-0">
@@ -679,8 +709,8 @@ export default function PracticePage({
         </motion.div>
       </div>
 
-      {/* Mobile layout - FIXED: proper tab-based scrolling with safe areas */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:hidden">
+      {/* Mobile layout - proper tab-based scrolling with safe areas */}
+      <div className="flex-1 flex flex-col overflow-hidden lg:hidden min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-2 shrink-0">
             <TabsTrigger
@@ -725,6 +755,7 @@ export default function PracticePage({
             </TabsTrigger>
           </TabsList>
 
+          {/* Each tab content has its own scroll container */}
           <TabsContent value="question" className="flex-1 mt-0 overflow-y-auto min-h-0">
             <QuestionPanel
               question={{
@@ -741,7 +772,7 @@ export default function PracticePage({
           </TabsContent>
 
           <TabsContent value="code" className="flex-1 mt-0 overflow-hidden flex flex-col min-h-0">
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden min-h-0">
               <CodeEditor
                 value={code}
                 onChange={setCode}
@@ -755,7 +786,11 @@ export default function PracticePage({
               result={result}
               isLoading={executeMutation.isPending}
               onNextQuestion={handleNextQuestion}
+              onRetryNext={handleRetryNext}
               onRetry={handleRetry}
+              onBackToWeek={handleBackToWeek}
+              nextError={nextError}
+              isLoadingNext={isLoadingNext}
             />
           </TabsContent>
 
@@ -775,7 +810,7 @@ export default function PracticePage({
           </TabsContent>
         </Tabs>
 
-        {/* Mobile action bar - FIXED: safe area padding */}
+        {/* Mobile action bar - shrink-0 with safe area padding */}
         <div className="shrink-0 pb-safe">
           <ActionBar
             onRun={handleRun}
@@ -792,11 +827,12 @@ export default function PracticePage({
           />
         </div>
 
-        {/* Mobile results drawer */}
+        {/* Mobile results drawer - with aria-describedby for a11y */}
         <Sheet open={resultsOpen} onOpenChange={setResultsOpen}>
           <SheetContent
             side="bottom"
             className="h-[70vh] glass-card border-t border-border/50 rounded-t-3xl p-0"
+            aria-describedby="results-sheet-description"
           >
             <SheetHeader className="px-4 pt-4 pb-2 border-b border-border/50">
               <div className="flex items-center justify-center mb-2">
@@ -817,16 +853,23 @@ export default function PracticePage({
                   </Badge>
                 )}
               </SheetTitle>
+              <SheetDescription id="results-sheet-description" className="sr-only">
+                View the results of your code execution including test cases and output
+              </SheetDescription>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto">
               <ResultsPanel
                 result={result}
                 isLoading={executeMutation.isPending}
                 onNextQuestion={handleNextQuestion}
+                onRetryNext={handleRetryNext}
                 onRetry={() => {
                   handleRetry()
                   setResultsOpen(false)
                 }}
+                onBackToWeek={handleBackToWeek}
+                nextError={nextError}
+                isLoadingNext={isLoadingNext}
               />
             </div>
           </SheetContent>

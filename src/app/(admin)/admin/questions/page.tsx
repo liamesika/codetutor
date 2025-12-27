@@ -40,9 +40,13 @@ import {
   Search,
   Edit,
   Trash2,
-  Play,
   Loader2,
+  Eye,
+  EyeOff,
+  Minus,
 } from "lucide-react"
+import { QuestionPreview, ValidationBadge } from "@/components/admin/question-preview"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface Question {
   id: string
@@ -141,7 +145,13 @@ export default function AdminQuestionsPage() {
               Add Question
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto" aria-describedby="create-question-description">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Create Question</DialogTitle>
+              <DialogDescription id="create-question-description">
+                Add a new practice question
+              </DialogDescription>
+            </DialogHeader>
             <QuestionForm
               topics={topics || []}
               onSuccess={() => {
@@ -258,7 +268,13 @@ export default function AdminQuestionsPage() {
 
       {/* Edit dialog */}
       <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto" aria-describedby="edit-question-description">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Edit Question</DialogTitle>
+            <DialogDescription id="edit-question-description">
+              Update the question details
+            </DialogDescription>
+          </DialogHeader>
           {editingQuestion && (
             <QuestionForm
               question={editingQuestion}
@@ -285,6 +301,7 @@ function QuestionForm({
   onSuccess: () => void
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit")
   const [formData, setFormData] = useState({
     topicId: question?.topic.id || "",
     type: question?.type || "FULL_PROGRAM",
@@ -332,240 +349,300 @@ function QuestionForm({
     }
   }
 
+  const removeHint = (index: number) => {
+    if (formData.hints.length <= 1) return
+    const newHints = formData.hints.filter((_, i) => i !== index)
+    setFormData({ ...formData, hints: newHints })
+  }
+
+  const removeTest = (index: number) => {
+    if (formData.tests.length <= 1) return
+    const newTests = formData.tests.filter((_, i) => i !== index)
+    setFormData({ ...formData, tests: newTests })
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader>
-        <DialogTitle>
-          {question ? "Edit Question" : "Create Question"}
-        </DialogTitle>
-        <DialogDescription>
-          {question
-            ? "Update the question details"
-            : "Add a new practice question"}
-        </DialogDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <DialogTitle>
+              {question ? "Edit Question" : "Create Question"}
+            </DialogTitle>
+            <DialogDescription>
+              {question
+                ? "Update the question details"
+                : "Add a new practice question"}
+            </DialogDescription>
+          </div>
+          <ValidationBadge data={formData} />
+        </div>
       </DialogHeader>
 
-      <ScrollArea className="max-h-[60vh] pr-4">
-        <div className="space-y-6 py-4">
-          {/* Basic info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Topic</Label>
-              <Select
-                value={formData.topicId}
-                onValueChange={(v) => setFormData({ ...formData, topicId: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select topic" />
-                </SelectTrigger>
-                <SelectContent>
-                  {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>
-                      W{topic.week.weekNumber}: {topic.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(v) => setFormData({ ...formData, type: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FULL_PROGRAM">Full Program</SelectItem>
-                  <SelectItem value="FUNCTION">Function</SelectItem>
-                  <SelectItem value="FIX_BUG">Fix Bug</SelectItem>
-                  <SelectItem value="PREDICT_OUTPUT">Predict Output</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "edit" | "preview")} className="mt-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="edit" className="gap-2">
+            <Edit className="size-4" />
+            Edit
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="gap-2">
+            <Eye className="size-4" />
+            Preview
+          </TabsTrigger>
+        </TabsList>
 
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Question title"
-              required
-            />
-          </div>
+        <TabsContent value="edit" className="mt-4">
+          <ScrollArea className="max-h-[55vh] pr-4">
+            <div className="space-y-6 py-2">
+              {/* Basic info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Topic</Label>
+                  <Select
+                    value={formData.topicId}
+                    onValueChange={(v) => setFormData({ ...formData, topicId: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select topic" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {topics.map((topic) => (
+                        <SelectItem key={topic.id} value={topic.id}>
+                          W{topic.week.weekNumber}: {topic.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(v) => setFormData({ ...formData, type: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FULL_PROGRAM">Full Program</SelectItem>
+                      <SelectItem value="FUNCTION">Function</SelectItem>
+                      <SelectItem value="FIX_BUG">Fix Bug</SelectItem>
+                      <SelectItem value="PREDICT_OUTPUT">Predict Output</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Prompt</Label>
-            <Textarea
-              value={formData.prompt}
-              onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
-              placeholder="Question prompt (supports markdown)"
-              rows={6}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Constraints (optional)</Label>
-            <Textarea
-              value={formData.constraints}
-              onChange={(e) => setFormData({ ...formData, constraints: e.target.value })}
-              placeholder="Any constraints or requirements"
-              rows={2}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Starter Code</Label>
-              <Textarea
-                value={formData.starterCode}
-                onChange={(e) => setFormData({ ...formData, starterCode: e.target.value })}
-                placeholder="public class Solution { ... }"
-                rows={8}
-                className="font-mono text-sm"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Solution Code</Label>
-              <Textarea
-                value={formData.solutionCode}
-                onChange={(e) => setFormData({ ...formData, solutionCode: e.target.value })}
-                placeholder="Correct solution"
-                rows={8}
-                className="font-mono text-sm"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Hints */}
-          <div className="space-y-2">
-            <Label>Hints</Label>
-            {formData.hints.map((hint, i) => (
-              <div key={i} className="flex gap-2">
+              <div className="space-y-2">
+                <Label>Title</Label>
                 <Input
-                  value={hint}
-                  onChange={(e) => {
-                    const newHints = [...formData.hints]
-                    newHints[i] = e.target.value
-                    setFormData({ ...formData, hints: newHints })
-                  }}
-                  placeholder={`Hint ${i + 1}`}
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Question title"
+                  required
                 />
-                {i === formData.hints.length - 1 && (
+              </div>
+
+              <div className="space-y-2">
+                <Label>Prompt</Label>
+                <Textarea
+                  value={formData.prompt}
+                  onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+                  placeholder="Goal: Write a program that...&#10;&#10;Input: The user will provide...&#10;Output: Your program should print...&#10;&#10;Example:&#10;Input: 5&#10;Output: 25"
+                  rows={8}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Tip: Use structured format with Goal:, Input:, Output:, Example: for best display
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Constraints (optional)</Label>
+                <Textarea
+                  value={formData.constraints}
+                  onChange={(e) => setFormData({ ...formData, constraints: e.target.value })}
+                  placeholder="Any constraints or requirements"
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Starter Code</Label>
+                  <Textarea
+                    value={formData.starterCode}
+                    onChange={(e) => setFormData({ ...formData, starterCode: e.target.value })}
+                    placeholder="public class Solution { ... }"
+                    rows={8}
+                    className="font-mono text-sm"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Solution Code</Label>
+                  <Textarea
+                    value={formData.solutionCode}
+                    onChange={(e) => setFormData({ ...formData, solutionCode: e.target.value })}
+                    placeholder="Correct solution"
+                    rows={8}
+                    className="font-mono text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Hints */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Hints ({formData.hints.filter(h => h.trim()).length})</Label>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() =>
-                      setFormData({ ...formData, hints: [...formData.hints, ""] })
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, hints: [...formData.hints, ""] })}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Hint
+                  </Button>
+                </div>
+                {formData.hints.map((hint, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input
+                      value={hint}
+                      onChange={(e) => {
+                        const newHints = [...formData.hints]
+                        newHints[i] = e.target.value
+                        setFormData({ ...formData, hints: newHints })
+                      }}
+                      placeholder={`Hint ${i + 1}`}
+                    />
+                    {formData.hints.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeHint(i)}
+                        className="shrink-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Test cases */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Test Cases ({formData.tests.filter(t => t.expected.trim()).length})</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, tests: [...formData.tests, { input: "", expected: "" }] })}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Test
+                  </Button>
+                </div>
+                {formData.tests.map((test, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <Input
+                      value={test.input}
+                      onChange={(e) => {
+                        const newTests = [...formData.tests]
+                        newTests[i].input = e.target.value
+                        setFormData({ ...formData, tests: newTests })
+                      }}
+                      placeholder="Input (space-separated)"
+                      className="flex-1"
+                    />
+                    <Input
+                      value={test.expected}
+                      onChange={(e) => {
+                        const newTests = [...formData.tests]
+                        newTests[i].expected = e.target.value
+                        setFormData({ ...formData, tests: newTests })
+                      }}
+                      placeholder="Expected output"
+                      className="flex-1"
+                    />
+                    {formData.tests.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeTest(i)}
+                        className="shrink-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Meta */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Difficulty (1-5)</Label>
+                  <Select
+                    value={formData.difficulty.toString()}
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, difficulty: parseInt(v) })
                     }
                   >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Test cases */}
-          <div className="space-y-2">
-            <Label>Test Cases</Label>
-            {formData.tests.map((test, i) => (
-              <div key={i} className="grid grid-cols-2 gap-2">
-                <Input
-                  value={test.input}
-                  onChange={(e) => {
-                    const newTests = [...formData.tests]
-                    newTests[i].input = e.target.value
-                    setFormData({ ...formData, tests: newTests })
-                  }}
-                  placeholder="Input (space-separated args)"
-                />
-                <div className="flex gap-2">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5].map((d) => (
+                        <SelectItem key={d} value={d.toString()}>
+                          Level {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Points</Label>
                   <Input
-                    value={test.expected}
-                    onChange={(e) => {
-                      const newTests = [...formData.tests]
-                      newTests[i].expected = e.target.value
-                      setFormData({ ...formData, tests: newTests })
-                    }}
-                    placeholder="Expected output"
+                    type="number"
+                    value={formData.points}
+                    onChange={(e) =>
+                      setFormData({ ...formData, points: parseInt(e.target.value) || 0 })
+                    }
+                    min={10}
+                    max={500}
                   />
-                  {i === formData.tests.length - 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          tests: [...formData.tests, { input: "", expected: "" }],
-                        })
-                      }
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Est. Minutes</Label>
+                  <Input
+                    type="number"
+                    value={formData.estimatedMinutes}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        estimatedMinutes: parseInt(e.target.value) || 5,
+                      })
+                    }
+                    min={1}
+                    max={60}
+                  />
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          </ScrollArea>
+        </TabsContent>
 
-          {/* Meta */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Difficulty (1-5)</Label>
-              <Select
-                value={formData.difficulty.toString()}
-                onValueChange={(v) =>
-                  setFormData({ ...formData, difficulty: parseInt(v) })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5].map((d) => (
-                    <SelectItem key={d} value={d.toString()}>
-                      Level {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Points</Label>
-              <Input
-                type="number"
-                value={formData.points}
-                onChange={(e) =>
-                  setFormData({ ...formData, points: parseInt(e.target.value) })
-                }
-                min={10}
-                max={500}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Est. Minutes</Label>
-              <Input
-                type="number"
-                value={formData.estimatedMinutes}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    estimatedMinutes: parseInt(e.target.value),
-                  })
-                }
-                min={1}
-                max={60}
-              />
-            </div>
-          </div>
-        </div>
-      </ScrollArea>
+        <TabsContent value="preview" className="mt-4">
+          <ScrollArea className="max-h-[55vh] pr-4">
+            <QuestionPreview data={formData} showValidation={true} />
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
 
       <DialogFooter className="mt-4">
         <Button type="submit" disabled={isSubmitting}>

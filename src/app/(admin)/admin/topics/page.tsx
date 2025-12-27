@@ -230,7 +230,13 @@ export default function AdminTopicsPage() {
 
       {/* Edit Topic Dialog */}
       <Dialog open={!!editingTopic} onOpenChange={() => setEditingTopic(null)}>
-        <DialogContent>
+        <DialogContent aria-describedby="topic-edit-description">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Edit Topic</DialogTitle>
+            <DialogDescription id="topic-edit-description">
+              Update topic details
+            </DialogDescription>
+          </DialogHeader>
           {editingTopic && (
             <TopicEditForm
               topic={editingTopic}

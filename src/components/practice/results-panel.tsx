@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import {
   CheckCircle2,
@@ -22,6 +21,9 @@ import {
   ChevronRight,
   MemoryStick,
   AlertCircle,
+  Loader2,
+  Home,
+  RefreshCw,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -55,8 +57,12 @@ interface ResultsPanelProps {
   result: ExecutionResult | null
   isLoading?: boolean
   onNextQuestion?: () => void
+  onRetryNext?: () => void
   onRetry?: () => void
   onViewHint?: () => void
+  onBackToWeek?: () => void
+  nextError?: string | null
+  isLoadingNext?: boolean
 }
 
 // Derive state from result - SINGLE SOURCE OF TRUTH
@@ -83,8 +89,12 @@ export function ResultsPanel({
   result,
   isLoading,
   onNextQuestion,
+  onRetryNext,
   onRetry,
   onViewHint,
+  onBackToWeek,
+  nextError,
+  isLoadingNext,
 }: ResultsPanelProps) {
   const nextButtonRef = useRef<HTMLButtonElement>(null)
   const state = deriveResultState(result, isLoading)
@@ -92,18 +102,17 @@ export function ResultsPanel({
   // Derive test counts from actual test results
   const totalTests = result?.testResults?.length ?? 0
   const passedTests = result?.testResults?.filter(t => t.passed).length ?? 0
-  const allPassed = totalTests > 0 && passedTests === totalTests
 
   // Focus Next Question button on success for keyboard users
   useEffect(() => {
-    if (state === "SUCCESS" && nextButtonRef.current) {
+    if (state === "SUCCESS" && nextButtonRef.current && !nextError && !isLoadingNext) {
       // Small delay to ensure animation completes
       const timer = setTimeout(() => {
         nextButtonRef.current?.focus()
       }, 300)
       return () => clearTimeout(timer)
     }
-  }, [state])
+  }, [state, nextError, isLoadingNext])
 
   // ============================================
   // STATE: LOADING
@@ -221,11 +230,11 @@ export function ResultsPanel({
           )}
           <Button
             variant="outline"
-            onClick={onRetry}
+            onClick={onBackToWeek}
             className="gap-2"
           >
-            <RotateCcw className="h-4 w-4" />
-            Back to Dashboard
+            <Home className="h-4 w-4" />
+            Back to Week
           </Button>
         </motion.div>
       </div>
@@ -407,24 +416,69 @@ export function ResultsPanel({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="pt-4 sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 -mb-4"
+            className="pt-4 sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 -mb-4 space-y-3"
           >
+            {/* Error state for Next button */}
+            {nextError && (
+              <Card className="border-destructive/50 bg-destructive/10">
+                <CardContent className="p-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+                    <span className="text-sm text-destructive">{nextError}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onRetryNext}
+                    className="shrink-0 gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             <motion.button
               ref={nextButtonRef}
               onClick={onNextQuestion}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              disabled={isLoadingNext}
+              whileHover={{ scale: isLoadingNext ? 1 : 1.02 }}
+              whileTap={{ scale: isLoadingNext ? 1 : 0.98 }}
               className={cn(
                 "w-full flex items-center justify-center gap-2",
                 "px-6 py-4 rounded-xl font-semibold text-white",
                 "gradient-neon shadow-lg",
                 "hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all duration-300",
-                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background",
+                "disabled:opacity-70 disabled:cursor-not-allowed"
               )}
             >
-              Next Question
-              <ArrowRight className="h-5 w-5" />
+              {isLoadingNext ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading Next...
+                </>
+              ) : (
+                <>
+                  Next Question
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
             </motion.button>
+
+            {/* Secondary: Back to Week (only show if no error) */}
+            {!nextError && onBackToWeek && (
+              <Button
+                variant="ghost"
+                onClick={onBackToWeek}
+                className="w-full gap-2 text-muted-foreground"
+                size="sm"
+              >
+                <Home className="h-4 w-4" />
+                Back to Week
+              </Button>
+            )}
           </motion.div>
         </div>
       </ScrollArea>

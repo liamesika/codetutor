@@ -40,6 +40,13 @@ model User {
   createdAccessCodes        AccessCode[]              @relation("AccessCodeCreatedBy")
   accessCodeRedemptions     AccessCodeRedemption[]
   accessRequests            AccessRequest[]
+  dailyMissions             UserDailyMission[]
+  proProfile                ProProfile?
+  activities                UserActivity[]
+  sharedAchievements        SharedAchievement[]
+  cognitiveProfile          CognitiveProfile?
+  mistakeLogs               MistakeLog[]
+  proMissions               ProMission[]
 
   @@index([email])
 }
@@ -228,6 +235,7 @@ model Question {
   drafts          CodeDraft[]
   contentVersions ContentVersion[]
   dailyChallenges DailyChallenge[]
+  mistakeLogs     MistakeLog[]
 
   @@unique([topicId, slug])
   @@index([topicId])
@@ -316,6 +324,7 @@ model Attempt {
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   question    Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
   testResults AttemptTestResult[]
+  mistakeLogs MistakeLog[]
 
   @@index([userId])
   @@index([questionId])
@@ -810,4 +819,295 @@ enum AccessRequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// ==================== DAILY MISSION SYSTEM ====================
+
+model DailyMission {
+  id            String          @id @default(cuid())
+  title         String
+  description   String
+  xpReward      Int             @default(50)
+  type          MissionType
+  targetValue   Int             @default(1)
+  isPremiumOnly Boolean         @default(false)
+  difficulty    MissionDifficulty @default(NORMAL)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  userMissions UserDailyMission[]
+
+  @@index([type])
+  @@index([isPremiumOnly])
+  @@index([isActive])
+}
+
+model UserDailyMission {
+  id          String    @id @default(cuid())
+  userId      String
+  missionId   String
+  date        DateTime  @db.Date
+  progress    Int       @default(0)
+  completedAt DateTime?
+  xpEarned    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission DailyMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId, date])
+  @@index([userId])
+  @@index([missionId])
+  @@index([date])
+  @@index([completedAt])
+}
+
+enum MissionType {
+  SOLVE          // Solve X questions
+  STREAK         // Maintain/extend streak
+  TIME           // Practice for X minutes
+  ACCURACY       // Achieve X% accuracy
+  PERFECT        // Complete without hints
+  TOPIC          // Complete topic questions
+  REVIEW         // Review previous solutions
+}
+
+enum MissionDifficulty {
+  EASY
+  NORMAL
+  CHALLENGE
+}
+
+// ==================== PRO PROFILE ====================
+
+model ProProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  aiCreditsRemaining  Int      @default(50)
+  aiCreditsUsedMonth  Int      @default(0)
+  shieldUsedThisMonth Boolean  @default(false)
+  shieldLastUsed      DateTime?
+  xpBoostActive       Boolean  @default(true)
+  unlockedProNodes    String[] @default([])
+  profileHighlight    String   @default("gold")
+  customBadge         String?
+  lastResetAt         DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ==================== ACTIVITY TRACKING (for Drop-Off Recovery) ====================
+
+model UserActivity {
+  id            String   @id @default(cuid())
+  userId        String
+  activityType  ActivityType
+  metadata      Json?
+  sessionId     String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([activityType])
+  @@index([createdAt])
+  @@index([sessionId])
+}
+
+enum ActivityType {
+  LOGIN
+  QUESTION_START
+  QUESTION_SUBMIT
+  HINT_VIEW
+  SOLUTION_VIEW
+  LESSON_VIEW
+  SESSION_START
+  SESSION_END
+}
+
+// ==================== ACHIEVEMENT SHARING ====================
+
+model SharedAchievement {
+  id             String   @id @default(cuid())
+  shareCode      String   @unique
+  userId         String
+  achievementId  String?
+  shareType      ShareType
+  title          String
+  description    String
+  imageData      Json?
+  metadata       Json?
+  viewCount      Int      @default(0)
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([shareCode])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum ShareType {
+  ACHIEVEMENT
+  RANK
+  STREAK
+  LEVEL
+  MILESTONE
+}
+
+// ==================== MENTOR INTELLIGENCE ENGINE ====================
+
+model CognitiveProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+
+  // Accuracy & Performance
+  accuracyRate          Float    @default(0)        // 0-1 overall success rate
+  retryRate             Float    @default(0)        // avg retries per question
+  avgSolveTime          Int      @default(0)        // seconds
+  avgSolveTimeByDifficulty Json? @default("{}")    // {"EASY": 60, "MEDIUM": 180, ...}
+
+  // Topic Analysis
+  topicWeaknessMap      Json     @default("{}")     // {"topicId": weaknessScore}
+  topicStrengthMap      Json     @default("{}")     // {"topicId": strengthScore}
+  mistakeTypeFrequency  Json     @default("{}")     // {"LOGIC": 5, "SYNTAX": 3, ...}
+
+  // Behavioral Scores (0-100)
+  streakStabilityScore  Int      @default(50)       // how stable is their streak
+  momentumScore         Int      @default(50)       // current learning momentum
+  burnoutRiskScore      Int      @default(0)        // risk of burnout/dropout
+  confidenceIndex       Int      @default(50)       // self-efficacy estimate
+  engagementScore       Int      @default(50)       // how engaged they are
+
+  // Learning Patterns
+  preferredSessionLength Int     @default(30)       // minutes
+  peakPerformanceHour   Int      @default(14)       // 0-23 hour of day
+  consistencyScore      Int      @default(50)       // how consistent daily
+  learningVelocity      Float    @default(1.0)      // XP/day trend
+
+  // Historical Tracking
+  totalQuestionsAttempted Int    @default(0)
+  totalQuestionsPassed    Int    @default(0)
+  totalMistakes          Int     @default(0)
+  currentWinStreak       Int     @default(0)
+  currentLoseStreak      Int     @default(0)
+
+  lastProfileUpdate     DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([momentumScore])
+  @@index([burnoutRiskScore])
+}
+
+model MistakeLog {
+  id            String      @id @default(cuid())
+  userId        String
+  questionId    String
+  attemptId     String?
+
+  mistakeType   MistakeType
+  severity      Int         @default(1)          // 1-5 severity
+  description   String?     @db.Text
+  codeContext   String?     @db.Text             // relevant code snippet
+  errorMessage  String?     @db.Text
+
+  // Classification metadata
+  isRecurring   Boolean     @default(false)      // same mistake pattern
+  topicId       String?
+  skillArea     String?                          // e.g., "loops", "arrays"
+
+  // Learning outcome
+  wasResolved   Boolean     @default(false)
+  resolvedAt    DateTime?
+  lessonsLearned String?    @db.Text
+
+  createdAt     DateTime    @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempt  Attempt?  @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([mistakeType])
+  @@index([createdAt])
+  @@index([topicId])
+}
+
+enum MistakeType {
+  LOGIC              // Wrong algorithm/approach
+  SYNTAX             // Java syntax errors
+  TIMEOUT            // Took too long / infinite loop
+  MISUNDERSTANDING   // Didn't understand the problem
+  CARELESS           // Typos, off-by-one, simple errors
+  MEMORY             // Forgot syntax/method they knew
+  EDGE_CASE          // Missed edge cases
+  TYPE_ERROR         // Wrong data types
+}
+
+model ProMission {
+  id            String          @id @default(cuid())
+  userId        String
+
+  // Mission details
+  title         String
+  description   String          @db.Text
+  missionType   ProMissionType
+  targetValue   Int             @default(1)
+  xpReward      Int             @default(50)
+
+  // Targeting
+  targetTopicId String?
+  targetSkillArea String?
+  targetMistakeType MistakeType?
+
+  // Adaptive metadata
+  generatedReason String?       @db.Text          // why this mission was created
+  difficultyLevel Int           @default(2)       // 1-5
+  priorityScore   Int           @default(50)      // 0-100 how important
+
+  // Progress
+  progress      Int             @default(0)
+  completedAt   DateTime?
+  xpEarned      Int             @default(0)
+
+  // Scheduling
+  scheduledFor  DateTime        @db.Date
+  expiresAt     DateTime?
+  isActive      Boolean         @default(true)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([scheduledFor])
+  @@index([missionType])
+  @@index([isActive])
+  @@index([completedAt])
+}
+
+enum ProMissionType {
+  WEAKNESS_TRAINING     // Practice weak topics
+  MISTAKE_RECOVERY      // Fix recurring mistake patterns
+  CONFIDENCE_BOOST      // Easy wins to rebuild confidence
+  MOMENTUM_PUSH         // Maintain or increase momentum
+  STREAK_PROTECTION     // Ensure daily activity
+  SKILL_UNLOCK          // Work toward skill tree unlock
+  REVIEW_SESSION        // Review past mistakes
+  SPEED_CHALLENGE       // Improve solve time
+  ACCURACY_FOCUS        // Focus on accuracy not speed
+  BURNOUT_PREVENTION    // Light/fun tasks when at risk
 }

@@ -1,11 +1,25 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from "next-auth/react"
 import { useQuery } from "@tanstack/react-query"
-import { usePathname } from "next/navigation"
-import { Flame, Trophy, User, Zap } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import {
+  Flame,
+  Trophy,
+  Zap,
+  Target,
+  ChevronRight,
+  Play,
+  CheckCircle2,
+  BookOpen,
+  Code2,
+  Sparkles,
+  TrendingUp,
+  Clock,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface ProgressionData {
   xp: number
@@ -36,191 +50,229 @@ interface CourseProgress {
   totalTopics: number
   completedTopics: number
   percentComplete: number
+  nextQuestion?: {
+    id: string
+    title: string
+    topicTitle: string
+  }
 }
 
-const RANK_COLORS: Record<string, { primary: string; glow: string }> = {
-  BRONZE: { primary: "#CD7F32", glow: "rgba(205, 127, 50, 0.4)" },
-  SILVER: { primary: "#C0C0C0", glow: "rgba(192, 192, 192, 0.4)" },
-  GOLD: { primary: "#FFD700", glow: "rgba(255, 215, 0, 0.4)" },
-  PLATINUM: { primary: "#E5E4E2", glow: "rgba(229, 228, 226, 0.5)" },
-  DIAMOND: { primary: "#B9F2FF", glow: "rgba(185, 242, 255, 0.5)" },
+const RANK_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  BRONZE: { bg: "bg-amber-900/30", text: "text-amber-400", border: "border-amber-600/40" },
+  SILVER: { bg: "bg-slate-500/30", text: "text-slate-300", border: "border-slate-400/40" },
+  GOLD: { bg: "bg-yellow-600/30", text: "text-yellow-400", border: "border-yellow-500/40" },
+  PLATINUM: { bg: "bg-cyan-600/30", text: "text-cyan-300", border: "border-cyan-400/40" },
+  DIAMOND: { bg: "bg-purple-500/30", text: "text-purple-300", border: "border-purple-400/40" },
 }
 
-const MENTOR_MESSAGES = [
-  { key: "ahead", template: "You're ahead of {percent}% of students" },
-  { key: "rankup", template: "{count} challenges to rank up" },
-  { key: "streak", template: "Don't lose your streak today" },
-  { key: "unlock", template: "This step unlocks your next rank" },
-  { key: "pace", template: "Great pace, {name}!" },
-  { key: "close", template: "You're close to {nextRank}" },
-  { key: "level", template: "Level {level} unlocked new content" },
-  { key: "weekly", template: "{xp} XP earned this week" },
-]
-
-function CircularProgress({
-  percent,
-  size = 32,
-  strokeWidth = 3
+// VS Code-style status bar segment
+function StatusSegment({
+  icon: Icon,
+  label,
+  value,
+  onClick,
+  className,
+  pulse = false,
+  highlight = false,
+  children,
 }: {
-  percent: number
-  size?: number
-  strokeWidth?: number
+  icon?: React.ComponentType<{ className?: string }>
+  label?: string
+  value?: string | number
+  onClick?: () => void
+  className?: string
+  pulse?: boolean
+  highlight?: boolean
+  children?: React.ReactNode
 }) {
-  const radius = (size - strokeWidth) / 2
-  const circumference = radius * 2 * Math.PI
-  const offset = circumference - (percent / 100) * circumference
+  const Wrapper = onClick ? motion.button : motion.div
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg className="transform -rotate-90" width={size} height={size}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="rgba(79, 70, 229, 0.2)"
-          strokeWidth={strokeWidth}
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="#4F46E5"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          style={{
-            filter: "drop-shadow(0 0 4px rgba(79, 70, 229, 0.5))",
-          }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[10px] font-bold text-white">{Math.round(percent)}%</span>
-      </div>
-    </div>
-  )
-}
-
-function RankBadge({ rank }: { rank: string }) {
-  const colors = RANK_COLORS[rank] || RANK_COLORS.BRONZE
-
-  return (
-    <motion.div
-      className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold"
-      style={{
-        background: `${colors.primary}20`,
-        color: colors.primary,
-        boxShadow: `0 0 8px ${colors.glow}`,
-      }}
-      animate={{
-        boxShadow: [
-          `0 0 8px ${colors.glow}`,
-          `0 0 12px ${colors.glow}`,
-          `0 0 8px ${colors.glow}`,
-        ],
-      }}
-      transition={{ duration: 2, repeat: Infinity }}
+    <Wrapper
+      className={cn(
+        "flex items-center gap-1.5 px-2 py-1 text-xs font-medium transition-colors",
+        onClick && "hover:bg-white/10 cursor-pointer",
+        highlight && "bg-primary/20 text-primary",
+        className
+      )}
+      whileHover={onClick ? { scale: 1.02 } : undefined}
+      whileTap={onClick ? { scale: 0.98 } : undefined}
+      onClick={onClick}
     >
-      <Trophy className="size-3" />
-      {rank}
-    </motion.div>
+      {Icon && (
+        <motion.div
+          animate={pulse ? { scale: [1, 1.15, 1] } : undefined}
+          transition={pulse ? { duration: 1.5, repeat: Infinity } : undefined}
+        >
+          <Icon className="size-3.5" />
+        </motion.div>
+      )}
+      {label && <span className="text-muted-foreground">{label}</span>}
+      {value !== undefined && <span>{value}</span>}
+      {children}
+    </Wrapper>
   )
 }
 
-function StreakCounter({ streak }: { streak: number }) {
+// Animated XP counter
+function XPCounter({ xp }: { xp: number }) {
+  const [displayXp, setDisplayXp] = useState(xp)
+
+  useEffect(() => {
+    if (displayXp !== xp) {
+      const diff = xp - displayXp
+      const step = Math.max(1, Math.abs(diff) / 20)
+      const interval = setInterval(() => {
+        setDisplayXp((prev) => {
+          const next = prev + (diff > 0 ? step : -step)
+          if ((diff > 0 && next >= xp) || (diff < 0 && next <= xp)) {
+            clearInterval(interval)
+            return xp
+          }
+          return Math.round(next)
+        })
+      }, 50)
+      return () => clearInterval(interval)
+    }
+  }, [xp, displayXp])
+
+  return (
+    <span className="font-mono tabular-nums">{Math.round(displayXp).toLocaleString()}</span>
+  )
+}
+
+// Streak flame with intensity
+function StreakFlame({ streak }: { streak: number }) {
+  const intensity = Math.min(streak / 7, 1) // Max intensity at 7-day streak
   const isActive = streak > 0
 
   return (
     <motion.div
-      className="flex items-center gap-1"
-      animate={isActive ? {
-        scale: [1, 1.05, 1],
-      } : {}}
+      className={cn(
+        "flex items-center gap-1",
+        isActive ? "text-orange-400" : "text-muted-foreground"
+      )}
+      animate={isActive ? { scale: [1, 1.05, 1] } : undefined}
       transition={{ duration: 2, repeat: Infinity }}
     >
       <motion.div
         animate={isActive ? {
           filter: [
-            "drop-shadow(0 0 4px rgba(251, 146, 60, 0.5))",
-            "drop-shadow(0 0 8px rgba(251, 146, 60, 0.8))",
-            "drop-shadow(0 0 4px rgba(251, 146, 60, 0.5))",
+            `drop-shadow(0 0 ${2 + intensity * 4}px rgba(251, 146, 60, ${0.3 + intensity * 0.4}))`,
+            `drop-shadow(0 0 ${4 + intensity * 6}px rgba(251, 146, 60, ${0.5 + intensity * 0.4}))`,
+            `drop-shadow(0 0 ${2 + intensity * 4}px rgba(251, 146, 60, ${0.3 + intensity * 0.4}))`,
           ],
-        } : {}}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        } : undefined}
+        transition={{ duration: 1.2, repeat: Infinity }}
       >
-        <Flame className={`size-4 ${isActive ? "text-orange-400" : "text-gray-500"}`} />
+        <Flame className="size-3.5" />
       </motion.div>
-      <span className={`text-sm font-bold ${isActive ? "text-orange-400" : "text-gray-500"}`}>
-        {streak}
-      </span>
+      <span className="font-bold">{streak}</span>
     </motion.div>
   )
 }
 
-function MentorMessage({
-  name,
+// Next objective with action
+function NextObjective({
+  title,
+  topicTitle,
+  questionId,
+  onNavigate,
+}: {
+  title: string
+  topicTitle: string
+  questionId: string
+  onNavigate: () => void
+}) {
+  return (
+    <motion.button
+      className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all group"
+      onClick={onNavigate}
+      whileHover={{ scale: 1.02, x: 4 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <Target className="size-3.5 text-primary shrink-0" />
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-xs text-muted-foreground shrink-0">Next:</span>
+        <span className="text-xs font-medium text-foreground truncate max-w-[200px]">
+          {title}
+        </span>
+      </div>
+      <ChevronRight className="size-3.5 text-primary shrink-0 group-hover:translate-x-0.5 transition-transform" />
+    </motion.button>
+  )
+}
+
+// Motivational messages that rotate
+function StatusMessage({
+  userName,
   rank,
-  nextRank,
+  streak,
   level,
   weeklyXp,
-  challengesToRankUp,
+  percentComplete,
 }: {
-  name: string
+  userName: string
   rank: string
-  nextRank: string | null
+  streak: number
   level: number
   weeklyXp: number
-  challengesToRankUp: number
+  percentComplete: number
 }) {
   const [messageIndex, setMessageIndex] = useState(0)
 
   const messages = useMemo(() => {
-    const available: string[] = []
+    const msgs: { icon: React.ComponentType<{ className?: string }>; text: string; type: "info" | "success" | "warning" }[] = []
 
-    // Randomize percent
-    const percent = 60 + Math.floor(Math.random() * 30)
-    available.push(`You're ahead of ${percent}% of students`)
-
-    if (challengesToRankUp > 0 && challengesToRankUp <= 5) {
-      available.push(`${challengesToRankUp} challenge${challengesToRankUp > 1 ? 's' : ''} to rank up`)
+    // Context-aware messages
+    if (streak >= 7) {
+      msgs.push({ icon: Flame, text: `🔥 ${streak}-day streak! You're on fire!`, type: "success" })
+    } else if (streak > 0) {
+      msgs.push({ icon: Clock, text: `Keep it up! ${7 - streak} more days to 7-day streak`, type: "info" })
+    } else {
+      msgs.push({ icon: Flame, text: "Start your streak today!", type: "warning" })
     }
 
-    available.push("Don't lose your streak today")
+    msgs.push({ icon: TrendingUp, text: `${weeklyXp.toLocaleString()} XP this week`, type: "info" })
+    msgs.push({ icon: Sparkles, text: `Level ${level} • ${rank} League`, type: "info" })
 
-    if (nextRank) {
-      available.push(`You're close to ${nextRank}`)
+    if (percentComplete >= 90) {
+      msgs.push({ icon: CheckCircle2, text: `Almost there! ${percentComplete}% complete`, type: "success" })
+    } else if (percentComplete >= 50) {
+      msgs.push({ icon: BookOpen, text: `${percentComplete}% of course completed`, type: "info" })
     }
 
-    available.push(`Great pace, ${name.split(' ')[0]}!`)
-    available.push(`${weeklyXp} XP earned this week`)
-    available.push(`Level ${level} unlocked new content`)
+    msgs.push({ icon: Code2, text: `Great progress, ${userName.split(' ')[0]}!`, type: "success" })
 
-    return available
-  }, [name, nextRank, level, weeklyXp, challengesToRankUp])
+    return msgs
+  }, [userName, rank, streak, level, weeklyXp, percentComplete])
 
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % messages.length)
-    }, 5000)
+    }, 4000)
     return () => clearInterval(interval)
   }, [messages.length])
 
+  const currentMessage = messages[messageIndex]
+
   return (
     <AnimatePresence mode="wait">
-      <motion.p
+      <motion.div
         key={messageIndex}
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.3 }}
-        className="text-xs text-[#9CA3AF] italic"
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.2 }}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground"
       >
-        {messages[messageIndex]}
-      </motion.p>
+        <currentMessage.icon className={cn(
+          "size-3",
+          currentMessage.type === "success" && "text-green-400",
+          currentMessage.type === "warning" && "text-amber-400"
+        )} />
+        <span>{currentMessage.text}</span>
+      </motion.div>
     </AnimatePresence>
   )
 }
@@ -228,12 +280,13 @@ function MentorMessage({
 export function MentorHUD() {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
   const [isVisible, setIsVisible] = useState(false)
 
   // Animate in on route change
   useEffect(() => {
     setIsVisible(false)
-    const timer = setTimeout(() => setIsVisible(true), 100)
+    const timer = setTimeout(() => setIsVisible(true), 150)
     return () => clearTimeout(timer)
   }, [pathname])
 
@@ -266,9 +319,17 @@ export function MentorHUD() {
       if (!res.ok) throw new Error("Failed to fetch")
       const data = await res.json()
 
-      // Calculate progress from courses data
       const enrolled = data.find((c: any) => c.isEnrolled)
-      if (!enrolled) return { totalWeeks: 9, completedWeeks: 0, currentWeek: 1, totalTopics: 0, completedTopics: 0, percentComplete: 0 }
+      if (!enrolled) {
+        return {
+          totalWeeks: 9,
+          completedWeeks: 0,
+          currentWeek: 1,
+          totalTopics: 0,
+          completedTopics: 0,
+          percentComplete: 0,
+        }
+      }
 
       const totalTopics = enrolled.weeks?.reduce((acc: number, w: any) => acc + (w.topics?.length || 0), 0) || 0
       const completedTopics = enrolled.weeks?.reduce((acc: number, w: any) => {
@@ -288,81 +349,196 @@ export function MentorHUD() {
     refetchInterval: 60000,
   })
 
-  // Don't show on auth pages
+  // Fetch next question to practice
+  const { data: nextQuestion } = useQuery<{ questionId?: string; title?: string; topicTitle?: string }>({
+    queryKey: ["nextQuestionHUD"],
+    queryFn: async () => {
+      const res = await fetch("/api/next-question")
+      if (!res.ok) return {}
+      return res.json()
+    },
+    enabled: !!session?.user && !pathname?.startsWith("/practice"),
+    refetchInterval: 60000,
+  })
+
+  const handleNavigateToQuestion = useCallback(() => {
+    if (nextQuestion?.questionId) {
+      router.push(`/practice/${nextQuestion.questionId}`)
+    }
+  }, [router, nextQuestion])
+
+  // Don't show on auth pages or during practice (use minimal mode there)
   if (!session?.user || pathname?.startsWith("/login") || pathname?.startsWith("/signup")) {
     return null
   }
 
   const userName = session.user.name || session.user.email?.split("@")[0] || "Coder"
   const streak = progression?.currentStreak || 0
-  const rank = rankData?.currentRank || "BRONZE"
-  const nextRank = rankData?.nextRank || null
+  const xp = progression?.xp || 0
   const level = progression?.level || 1
+  const rank = rankData?.currentRank || "BRONZE"
   const weeklyXp = rankData?.weeklyXp || 0
-  const currentWeek = courses?.currentWeek || 1
   const percentComplete = courses?.percentComplete || 0
-  const challengesToRankUp = Math.ceil((rankData?.xpToNextRank || 100) / 100)
+  const currentWeek = courses?.currentWeek || 1
+  const rankColors = RANK_COLORS[rank] || RANK_COLORS.BRONZE
+
+  // Compact mode for practice pages
+  const isPracticePage = pathname?.startsWith("/practice")
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed top-0 left-0 right-0 z-[60] pointer-events-none"
-          style={{
-            paddingTop: "env(safe-area-inset-top)",
-          }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <div
-            className="pointer-events-auto mx-auto max-w-4xl px-4 py-2"
-          >
+          <div className="pointer-events-auto">
+            {/* VS Code-style status bar */}
             <div
-              className="rounded-xl px-4 py-2 flex items-center justify-between gap-4"
+              className="flex items-center justify-between h-6 px-2 text-[11px] border-t"
               style={{
-                background: "linear-gradient(135deg, rgba(15, 14, 38, 0.95) 0%, rgba(30, 27, 75, 0.9) 100%)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid rgba(79, 70, 229, 0.2)",
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(79, 70, 229, 0.1)",
+                background: "linear-gradient(180deg, rgba(30, 27, 45, 0.98) 0%, rgba(20, 18, 35, 0.99) 100%)",
+                borderColor: "rgba(79, 70, 229, 0.2)",
               }}
             >
-              {/* Left: User */}
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="size-7 rounded-full bg-[#4F46E5]/20 flex items-center justify-center shrink-0">
-                  <User className="size-4 text-[#4F46E5]" />
+              {/* Left section */}
+              <div className="flex items-center gap-0.5">
+                {/* Rank badge */}
+                <StatusSegment
+                  icon={Trophy}
+                  value={rank}
+                  className={cn(rankColors.text)}
+                />
+
+                <div className="w-px h-3 bg-border/50 mx-1" />
+
+                {/* Level */}
+                <StatusSegment
+                  icon={Sparkles}
+                  label="Lv"
+                  value={level}
+                  className="text-purple-400"
+                />
+
+                <div className="w-px h-3 bg-border/50 mx-1" />
+
+                {/* XP */}
+                <StatusSegment
+                  icon={Zap}
+                  className="text-yellow-400"
+                >
+                  <XPCounter xp={xp} />
+                  <span className="text-muted-foreground ml-0.5">XP</span>
+                </StatusSegment>
+
+                <div className="w-px h-3 bg-border/50 mx-1" />
+
+                {/* Streak */}
+                <div className="flex items-center px-2 py-1">
+                  <StreakFlame streak={streak} />
                 </div>
-                <span className="text-sm font-medium text-white truncate hidden sm:block">
-                  {userName.split(' ')[0]}
-                </span>
               </div>
 
-              {/* Center: Week & Progress */}
-              <div className="flex flex-col items-center gap-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-[#9CA3AF]">Week {currentWeek}</span>
-                  <CircularProgress percent={percentComplete} size={28} strokeWidth={2.5} />
-                </div>
-                <MentorMessage
-                  name={userName}
+              {/* Center - rotating status message */}
+              <div className="flex-1 flex justify-center items-center min-w-0 px-4">
+                <StatusMessage
+                  userName={userName}
                   rank={rank}
-                  nextRank={nextRank}
+                  streak={streak}
                   level={level}
                   weeklyXp={weeklyXp}
-                  challengesToRankUp={challengesToRankUp}
+                  percentComplete={percentComplete}
                 />
               </div>
 
-              {/* Right: Streak & Rank */}
-              <div className="flex items-center gap-3">
-                <StreakCounter streak={streak} />
-                <RankBadge rank={rank} />
+              {/* Right section */}
+              <div className="flex items-center gap-0.5">
+                {/* Week progress */}
+                <StatusSegment
+                  icon={BookOpen}
+                  label="Week"
+                  value={currentWeek}
+                  className="text-blue-400"
+                />
+
+                <div className="w-px h-3 bg-border/50 mx-1" />
+
+                {/* Course completion */}
+                <StatusSegment
+                  icon={CheckCircle2}
+                  value={`${percentComplete}%`}
+                  className={cn(
+                    percentComplete >= 80 ? "text-green-400" :
+                    percentComplete >= 50 ? "text-blue-400" :
+                    "text-muted-foreground"
+                  )}
+                />
+
+                {/* Next question button - only show when not on practice page */}
+                {!isPracticePage && nextQuestion?.questionId && (
+                  <>
+                    <div className="w-px h-3 bg-border/50 mx-1" />
+                    <motion.button
+                      className="flex items-center gap-1 px-2 py-1 rounded-sm bg-primary/20 hover:bg-primary/30 text-primary transition-colors"
+                      onClick={handleNavigateToQuestion}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Play className="size-3 fill-current" />
+                      <span className="font-medium">Practice</span>
+                    </motion.button>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
+  )
+}
+
+// Simplified floating status for mobile
+export function MentorHUDMobile() {
+  const { data: session } = useSession()
+  const pathname = usePathname()
+
+  const { data: progression } = useQuery<ProgressionData>({
+    queryKey: ["progression"],
+    enabled: !!session?.user,
+  })
+
+  if (!session?.user || pathname?.startsWith("/login") || pathname?.startsWith("/signup")) {
+    return null
+  }
+
+  const streak = progression?.currentStreak || 0
+  const xp = progression?.xp || 0
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="fixed bottom-4 right-4 z-[60] sm:hidden"
+    >
+      <div
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full shadow-lg"
+        style={{
+          background: "linear-gradient(135deg, rgba(30, 27, 45, 0.95) 0%, rgba(20, 18, 35, 0.98) 100%)",
+          border: "1px solid rgba(79, 70, 229, 0.3)",
+        }}
+      >
+        <StreakFlame streak={streak} />
+        <div className="w-px h-4 bg-border/50" />
+        <div className="flex items-center gap-1 text-yellow-400">
+          <Zap className="size-3.5" />
+          <span className="text-xs font-bold">{xp.toLocaleString()}</span>
+        </div>
+      </div>
+    </motion.div>
   )
 }
