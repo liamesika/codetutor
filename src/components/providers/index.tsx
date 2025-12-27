@@ -6,6 +6,9 @@ import { ThemeProvider } from "./theme-provider"
 import { LevelUpProvider } from "./level-up-provider"
 import { SkillUnlockProvider } from "./skill-unlock-provider"
 import { AppSplashProvider } from "./app-splash-provider"
+import { DailyLoginProvider } from "./daily-login-provider"
+import { RankProvider } from "./rank-provider"
+import { DopamineProvider } from "./dopamine-provider"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -21,11 +24,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
             disableTransitionOnChange
           >
             <AppSplashProvider>
-              <LevelUpProvider>
-                <SkillUnlockProvider>
-                  {children}
-                </SkillUnlockProvider>
-              </LevelUpProvider>
+              <DopamineProvider>
+                <LevelUpProvider>
+                  <RankProvider>
+                    <SkillUnlockProvider>
+                      <DailyLoginProvider>
+                        {children}
+                      </DailyLoginProvider>
+                    </SkillUnlockProvider>
+                  </RankProvider>
+                </LevelUpProvider>
+              </DopamineProvider>
             </AppSplashProvider>
             <Toaster position="top-right" richColors />
           </ThemeProvider>
