@@ -10,9 +10,15 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+// CRITICAL: Railway provides PORT dynamically - must use it
 const PORT = process.env.PORT || 3001;
 const EXECUTOR_SECRET = process.env.EXECUTOR_SECRET || 'dev-secret';
 const WORK_DIR = path.join(os.tmpdir(), 'codetutor-executor');
+
+// Immediate boot log (before any async operations)
+console.log('[BOOT] CodeTutor Executor starting...');
+console.log('[BOOT] PORT=' + PORT + ' (from env: ' + (process.env.PORT ? 'yes' : 'no, using default 3001') + ')');
+console.log('[BOOT] NODE=' + process.version);
 
 // Version info (cached at startup)
 let nodeVersion = process.version;
@@ -390,10 +396,13 @@ function startup() {
 
   console.log('========================================');
 
-  // Start server
+  // Start server - MUST bind to 0.0.0.0 for Railway
   app.listen(PORT, '0.0.0.0', function() {
-    console.log('CodeTutor Executor listening on port ' + PORT);
-    console.log('Health check: http://localhost:' + PORT + '/health');
+    console.log('========================================');
+    console.log('SERVER READY');
+    console.log('Listening on 0.0.0.0:' + PORT);
+    console.log('Node: ' + process.version);
+    console.log('Health: http://0.0.0.0:' + PORT + '/health');
     console.log('========================================');
   });
 }
