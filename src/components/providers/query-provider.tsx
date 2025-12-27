@@ -9,8 +9,17 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            // Safe cache configuration - prevent hydration issues
+            staleTime: 0, // Data is immediately stale on mount
+            gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
             refetchOnWindowFocus: false,
+            refetchOnMount: true,
+            retry: 1,
+            // Return undefined instead of throwing during SSR/hydration
+            networkMode: "offlineFirst",
+          },
+          mutations: {
+            retry: 1,
           },
         },
       })
