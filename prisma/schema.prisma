@@ -34,6 +34,7 @@ model User {
   dailyChallengeCompletions DailyChallengeCompletion[]
   dailyLogin                DailyLogin?
   leaguePlacements          LeaguePlacement[]
+  subscription              Subscription?
 
   @@index([email])
 }
@@ -650,4 +651,45 @@ enum PremiumType {
   CHALLENGE
   REWARD
   FEATURE
+}
+
+// ==================== SUBSCRIPTION SYSTEM ====================
+
+model Plan {
+  id          String   @id
+  name        String
+  price       Int
+  currency    String   @default("ILS")
+  features    String[] @default([])
+  isActive    Boolean  @default(true)
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([isActive])
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String             @unique
+  planId    String
+  status    SubscriptionStatus @default(FREE)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  EXPIRED
+  CANCELED
 }

@@ -10,6 +10,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+type PlanTier = "basic" | "pro" | "elite"
+
 interface PremiumLockProps {
   children: React.ReactNode
   isLocked?: boolean
@@ -17,6 +19,13 @@ interface PremiumLockProps {
   className?: string
   tooltipSide?: "top" | "right" | "bottom" | "left"
   showBadge?: boolean
+  requiredPlan?: PlanTier
+}
+
+const PLAN_LABELS: Record<PlanTier, { label: string; color: string }> = {
+  basic: { label: "BASIC", color: "#4F46E5" },
+  pro: { label: "PRO", color: "#F59E0B" },
+  elite: { label: "ELITE", color: "#EC4899" },
 }
 
 export function PremiumLock({
@@ -26,7 +35,9 @@ export function PremiumLock({
   className,
   tooltipSide = "top",
   showBadge = true,
+  requiredPlan = "pro",
 }: PremiumLockProps) {
+  const planConfig = PLAN_LABELS[requiredPlan]
   if (!isLocked) {
     return <>{children}</>
   }
@@ -44,17 +55,31 @@ export function PremiumLock({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
               >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F59E0B]/20 to-[#EF4444]/20 flex items-center justify-center border border-[#F59E0B]/30">
-                  <Lock className="size-5 text-[#F59E0B]" />
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: `linear-gradient(135deg, ${planConfig.color}20 0%, ${planConfig.color}10 100%)`,
+                    border: `1px solid ${planConfig.color}30`,
+                  }}
+                >
+                  <Lock className="size-5" style={{ color: planConfig.color }} />
                 </div>
               </motion.div>
             </div>
 
             {/* Premium badge */}
             {showBadge && (
-              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#F59E0B]/20 to-[#EF4444]/20 border border-[#F59E0B]/30">
-                <Crown className="size-3 text-[#F59E0B]" />
-                <span className="text-xs font-medium text-[#F59E0B]">PRO</span>
+              <div
+                className="absolute top-2 right-2 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full"
+                style={{
+                  background: `linear-gradient(135deg, ${planConfig.color}20 0%, ${planConfig.color}10 100%)`,
+                  border: `1px solid ${planConfig.color}30`,
+                }}
+              >
+                <Crown className="size-3" style={{ color: planConfig.color }} />
+                <span className="text-xs font-medium" style={{ color: planConfig.color }}>
+                  {planConfig.label}
+                </span>
               </div>
             )}
 
@@ -69,10 +94,12 @@ export function PremiumLock({
           className="bg-[#1E1B4B] border-[#4F46E5]/30 px-3 py-2"
         >
           <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-[#F59E0B]" />
+            <Sparkles className="size-4" style={{ color: planConfig.color }} />
             <div>
               <p className="font-medium text-white text-sm">{featureName}</p>
-              <p className="text-xs text-[#9CA3AF]">Unlocks with Premium</p>
+              <p className="text-xs text-[#9CA3AF]">
+                Unlocks in {planConfig.label}
+              </p>
             </div>
           </div>
         </TooltipContent>
@@ -84,9 +111,12 @@ export function PremiumLock({
 interface PremiumBadgeProps {
   size?: "sm" | "md" | "lg"
   className?: string
+  plan?: PlanTier
 }
 
-export function PremiumBadge({ size = "md", className }: PremiumBadgeProps) {
+export function PremiumBadge({ size = "md", className, plan = "pro" }: PremiumBadgeProps) {
+  const planConfig = PLAN_LABELS[plan]
+
   const sizes = {
     sm: "px-1.5 py-0.5 text-xs gap-0.5",
     md: "px-2 py-1 text-sm gap-1",
@@ -103,25 +133,32 @@ export function PremiumBadge({ size = "md", className }: PremiumBadgeProps) {
     <motion.div
       className={cn(
         "inline-flex items-center rounded-full",
-        "bg-gradient-to-r from-[#F59E0B]/20 to-[#EF4444]/20",
-        "border border-[#F59E0B]/30",
         sizes[size],
         className
       )}
+      style={{
+        background: `linear-gradient(135deg, ${planConfig.color}20 0%, ${planConfig.color}10 100%)`,
+        border: `1px solid ${planConfig.color}30`,
+      }}
       whileHover={{ scale: 1.05 }}
       transition={{ type: "spring", stiffness: 400 }}
     >
-      <Crown className={cn(iconSizes[size], "text-[#F59E0B]")} />
-      <span className="font-semibold text-[#F59E0B]">PRO</span>
+      <Crown className={iconSizes[size]} style={{ color: planConfig.color }} />
+      <span className="font-semibold" style={{ color: planConfig.color }}>
+        {planConfig.label}
+      </span>
     </motion.div>
   )
 }
 
 interface PremiumCardOverlayProps {
   className?: string
+  plan?: PlanTier
 }
 
-export function PremiumCardOverlay({ className }: PremiumCardOverlayProps) {
+export function PremiumCardOverlay({ className, plan = "pro" }: PremiumCardOverlayProps) {
+  const planConfig = PLAN_LABELS[plan]
+
   return (
     <div
       className={cn(
@@ -136,14 +173,20 @@ export function PremiumCardOverlay({ className }: PremiumCardOverlayProps) {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center gap-3 p-6 text-center"
       >
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F59E0B]/20 to-[#EF4444]/20 flex items-center justify-center border border-[#F59E0B]/30">
-          <Lock className="size-7 text-[#F59E0B]" />
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{
+            background: `linear-gradient(135deg, ${planConfig.color}20 0%, ${planConfig.color}10 100%)`,
+            border: `1px solid ${planConfig.color}30`,
+          }}
+        >
+          <Lock className="size-7" style={{ color: planConfig.color }} />
         </div>
         <div>
           <p className="font-bold text-white mb-1">Premium Content</p>
-          <p className="text-sm text-[#9CA3AF]">Upgrade to unlock</p>
+          <p className="text-sm text-[#9CA3AF]">Unlocks in {planConfig.label}</p>
         </div>
-        <PremiumBadge size="md" />
+        <PremiumBadge size="md" plan={plan} />
       </motion.div>
     </div>
   )

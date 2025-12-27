@@ -49,6 +49,13 @@ import {
   Home,
 } from "lucide-react"
 import Link from "next/link"
+import { SubscriptionGate } from "@/components/subscription/subscription-gate"
+
+interface SubscriptionCheck {
+  isLocked: boolean
+  weekNumber?: number
+  message?: string
+}
 
 interface Question {
   id: string
@@ -222,6 +229,21 @@ export default function PracticePage({
     },
     enabled: !!questionId && status === "authenticated",
     retry: false, // Don't retry on 404
+  })
+
+  // Check subscription access
+  const { data: subscriptionCheck } = useQuery<SubscriptionCheck>({
+    queryKey: ["subscriptionCheck", "question", questionId],
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId }),
+      })
+      if (!res.ok) return { isLocked: false }
+      return res.json()
+    },
+    enabled: !!questionId && status === "authenticated",
   })
 
   // Initialize code from draft or starter
@@ -409,6 +431,21 @@ export default function PracticePage({
   // Show not found if question doesn't exist or error occurred
   if (isError || !question) {
     return <QuestionNotFound />
+  }
+
+  // Check if content is locked
+  const isLocked = subscriptionCheck?.isLocked ?? false
+  const weekNumber = subscriptionCheck?.weekNumber ?? question.topic?.week?.weekNumber
+
+  // Show subscription gate if locked
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26]">
+        <SubscriptionGate isLocked={true} weekNumber={weekNumber}>
+          <div className="h-screen" />
+        </SubscriptionGate>
+      </div>
+    )
   }
 
   // Computed values

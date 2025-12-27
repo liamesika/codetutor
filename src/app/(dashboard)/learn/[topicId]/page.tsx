@@ -31,6 +31,13 @@ import {
   Target,
   BookOpen,
 } from "lucide-react"
+import { SubscriptionGate } from "@/components/subscription/subscription-gate"
+
+interface SubscriptionCheck {
+  isLocked: boolean
+  weekNumber?: number
+  message?: string
+}
 
 interface TopicDetails {
   id: string
@@ -94,6 +101,21 @@ export default function TopicPage({
     enabled: status === "authenticated",
   })
 
+  // Check subscription access
+  const { data: subscriptionCheck } = useQuery<SubscriptionCheck>({
+    queryKey: ["subscriptionCheck", "topic", topicId],
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicId }),
+      })
+      if (!res.ok) return { isLocked: false }
+      return res.json()
+    },
+    enabled: status === "authenticated",
+  })
+
   // Get next question adaptively
   const { data: nextQuestion } = useQuery({
     queryKey: ["nextQuestion", topicId],
@@ -139,11 +161,14 @@ export default function TopicPage({
   const activeCourse = courses?.find((c) => c.isEnrolled && !c.isLocked)
   const weeks = activeCourse?.weeks || []
 
+  const isLocked = subscriptionCheck?.isLocked ?? false
+
   return (
     <DashboardShell weeks={weeks} currentCourse={activeCourse?.name}>
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
-        {/* Breadcrumb */}
-        <Breadcrumb>
+      <SubscriptionGate isLocked={isLocked} weekNumber={topic.week.weekNumber}>
+        <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
+          {/* Breadcrumb */}
+          <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
@@ -295,9 +320,10 @@ export default function TopicPage({
                 </Link>
               )
             })}
+            </div>
           </div>
         </div>
-      </div>
+      </SubscriptionGate>
     </DashboardShell>
   )
 }
