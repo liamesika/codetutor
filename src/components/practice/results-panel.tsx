@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import {
   CheckCircle2,
@@ -19,8 +20,10 @@ import {
   Terminal,
   ChevronRight,
   MemoryStick,
+  type LucideIcon,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { getSafeIcon } from "@/lib/ui-contract"
 
 interface TestResult {
   testIndex: number
@@ -49,7 +52,19 @@ interface ResultsPanelProps {
   onRetry?: () => void
 }
 
-const statusConfig = {
+type StatusType = "PASS" | "FAIL" | "COMPILE_ERROR" | "RUNTIME_ERROR" | "TIMEOUT" | "MEMORY_EXCEEDED"
+
+interface StatusConfig {
+  label: string
+  color: string
+  icon: LucideIcon
+  bgColor: string
+  borderColor: string
+  glowClass: string
+  iconBg: string
+}
+
+const statusConfig: Record<StatusType, StatusConfig> = {
   PASS: {
     label: "All Tests Passed!",
     color: "text-green-500",
@@ -57,6 +72,7 @@ const statusConfig = {
     bgColor: "bg-green-500/10",
     borderColor: "border-green-500/40",
     glowClass: "success-glow",
+    iconBg: "bg-green-500",
   },
   FAIL: {
     label: "Some Tests Failed",
@@ -65,6 +81,7 @@ const statusConfig = {
     bgColor: "bg-red-500/10",
     borderColor: "border-red-500/40",
     glowClass: "error-glow",
+    iconBg: "bg-red-500/20",
   },
   COMPILE_ERROR: {
     label: "Compilation Error",
@@ -73,6 +90,7 @@ const statusConfig = {
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/40",
     glowClass: "",
+    iconBg: "bg-amber-500/20",
   },
   RUNTIME_ERROR: {
     label: "Runtime Error",
@@ -81,6 +99,7 @@ const statusConfig = {
     bgColor: "bg-orange-500/10",
     borderColor: "border-orange-500/40",
     glowClass: "",
+    iconBg: "bg-orange-500/20",
   },
   TIMEOUT: {
     label: "Time Limit Exceeded",
@@ -89,6 +108,7 @@ const statusConfig = {
     bgColor: "bg-yellow-500/10",
     borderColor: "border-yellow-500/40",
     glowClass: "",
+    iconBg: "bg-yellow-500/20",
   },
   MEMORY_EXCEEDED: {
     label: "Memory Limit Exceeded",
@@ -97,7 +117,34 @@ const statusConfig = {
     bgColor: "bg-purple-500/10",
     borderColor: "border-purple-500/40",
     glowClass: "",
+    iconBg: "bg-purple-500/20",
   },
+}
+
+// Skeleton loader for results
+function ResultsSkeleton() {
+  return (
+    <div className="p-4 md:p-6 space-y-6 animate-pulse">
+      <div className="p-5 rounded-2xl border-2 border-border/50 bg-muted/20">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-14 w-14 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-6 w-40" />
+            <div className="flex gap-2">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-24" />
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function ResultsPanel({
@@ -170,41 +217,70 @@ export function ResultsPanel({
     )
   }
 
-  const config = statusConfig[result.status]
-  const StatusIcon = config.icon
+  // Use safe icon with fallback
+  const config = statusConfig[result.status] || statusConfig.FAIL
+  const StatusIcon = getSafeIcon(config?.icon, result.status?.toLowerCase())
   const passedTests = result.testResults?.filter((t) => t.passed).length || 0
   const totalTests = result.testResults?.length || 0
+  const isSuccess = result.status === "PASS"
 
   return (
     <ScrollArea className="h-full scrollbar-thin">
-      <div className="p-4 md:p-6 space-y-6">
-        {/* Status header */}
+      <div className="p-4 md:p-6 space-y-6 pb-safe">
+        {/* Status header with glow effect */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className={cn(
-            "p-5 rounded-2xl border-2",
+            "relative p-5 rounded-2xl border-2 overflow-hidden",
             config.bgColor,
             config.borderColor,
             config.glowClass
           )}
         >
-          <div className="flex items-center gap-4">
+          {/* Animated glow for success */}
+          {isSuccess && (
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+              className="absolute inset-0 bg-gradient-to-r from-green-500/20 via-emerald-500/10 to-green-500/20"
+              animate={{
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          )}
+
+          <div className="relative flex items-center gap-4">
+            {/* Icon with bounce animation on success */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
               className={cn(
-                "h-14 w-14 rounded-xl flex items-center justify-center",
-                result.status === "PASS" ? "bg-green-500" : "bg-muted/50"
+                "h-14 w-14 rounded-xl flex items-center justify-center shrink-0",
+                config.iconBg
               )}
             >
-              <StatusIcon
-                className={cn(
-                  "h-7 w-7",
-                  result.status === "PASS" ? "text-white" : config.color
-                )}
-              />
+              <motion.div
+                animate={isSuccess ? {
+                  scale: [1, 1.1, 1],
+                } : {}}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.5,
+                  ease: "easeOut",
+                }}
+              >
+                <StatusIcon
+                  className={cn(
+                    "h-7 w-7",
+                    isSuccess ? "text-white" : config.color
+                  )}
+                />
+              </motion.div>
             </motion.div>
             <div className="flex-1">
               <h2 className={cn("text-xl font-bold", config.color)}>

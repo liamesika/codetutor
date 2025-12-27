@@ -15,16 +15,12 @@ import { cn } from "@/lib/utils"
 import {
   Trophy,
   Lock,
-  Star,
-  CheckCircle2,
-  Flame,
-  Target,
-  Calendar,
-  Zap,
-  Award,
   Sparkles,
   RefreshCw,
+  Zap,
+  Star,
 } from "lucide-react"
+import { getIconByName } from "@/lib/ui-contract"
 
 interface Achievement {
   id: string
@@ -45,17 +41,6 @@ interface AchievementsData {
   totalPoints: number
 }
 
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Trophy,
-  Star,
-  CheckCircle2,
-  Flame,
-  Target,
-  Calendar,
-  Zap,
-  Award,
-}
-
 const rarityColors: Record<string, string> = {
   common: "from-gray-400 to-gray-600",
   uncommon: "from-green-400 to-green-600",
@@ -65,7 +50,7 @@ const rarityColors: Record<string, string> = {
 }
 
 function AchievementCard({ achievement, index }: { achievement: Achievement; index: number }) {
-  const Icon = iconMap[achievement.icon] || Trophy
+  const Icon = getIconByName(achievement.icon)
   const rarityGradient = rarityColors[achievement.rarity] || rarityColors.common
 
   return (

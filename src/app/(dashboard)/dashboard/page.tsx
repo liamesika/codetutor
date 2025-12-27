@@ -30,7 +30,9 @@ import {
   Lock,
   Star,
   GitBranch,
+  type LucideIcon,
 } from "lucide-react"
+import { getSafeIcon } from "@/lib/ui-contract"
 import { formatDistanceToNow } from "date-fns"
 import { ProgressHeader } from "@/components/progression/progress-header"
 import { DailyChallengeCard } from "@/components/progression/daily-challenge-card"
@@ -210,18 +212,21 @@ function WeekProgress({
 function AchievementCard({
   title,
   description,
-  icon: Icon,
+  icon,
   unlocked,
   progress,
   index = 0,
 }: {
   title: string
   description: string
-  icon: React.ComponentType<{ className?: string }>
+  icon?: LucideIcon | string | null
   unlocked: boolean
   progress?: number
   index?: number
 }) {
+  // Use safe icon with fallback
+  const Icon = getSafeIcon(icon, "achievement")
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -233,18 +238,22 @@ function AchievementCard({
         unlocked ? "glass-card-hover" : "opacity-60"
       )}>
         <CardContent className="p-4 flex items-center gap-4">
-          <div className={cn(
-            "h-12 w-12 rounded-xl flex items-center justify-center shrink-0",
-            unlocked
-              ? "bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] shadow-[0_0_20px_rgba(79,70,229,0.3)]"
-              : "bg-muted"
-          )}>
+          <motion.div
+            className={cn(
+              "h-12 w-12 rounded-xl flex items-center justify-center shrink-0",
+              unlocked
+                ? "bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+                : "bg-muted"
+            )}
+            whileHover={unlocked ? { scale: 1.05 } : {}}
+            whileTap={unlocked ? { scale: 0.95 } : {}}
+          >
             {unlocked ? (
               <Icon className="h-6 w-6 text-white" />
             ) : (
               <Lock className="h-5 w-5 text-muted-foreground" />
             )}
-          </div>
+          </motion.div>
           <div className="flex-1 min-w-0">
             <p className={cn(
               "font-medium",
@@ -255,15 +264,23 @@ function AchievementCard({
             <p className="text-xs text-muted-foreground">{description}</p>
             {!unlocked && progress !== undefined && (
               <div className="mt-2 h-1.5 bg-muted/50 rounded-full overflow-hidden">
-                <div
+                <motion.div
                   className="h-full gradient-neon rounded-full"
-                  style={{ width: `${progress}%` }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
                 />
               </div>
             )}
           </div>
           {unlocked && (
-            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, delay: 0.3 }}
+            >
+              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+            </motion.div>
           )}
         </CardContent>
       </Card>
@@ -566,20 +583,24 @@ export default function DashboardPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4 space-y-3">
-                      {sampleAchievements.filter(a => a.unlocked).slice(0, 3).map((achievement, index) => (
-                        <div
-                          key={achievement.id}
-                          className="flex items-center gap-3 p-2 rounded-lg"
-                        >
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center">
-                            <achievement.icon className="h-4 w-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{achievement.title}</p>
-                            <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                          </div>
-                        </div>
-                      ))}
+                      {sampleAchievements.filter(a => a.unlocked).slice(0, 3).map((achievement) => {
+                        const AchIcon = getSafeIcon(achievement.icon, "achievement")
+                        return (
+                          <motion.div
+                            key={achievement.id}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/30 transition-colors"
+                            whileHover={{ x: 4 }}
+                          >
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center shadow-[0_0_12px_rgba(79,70,229,0.3)]">
+                              <AchIcon className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{achievement.title}</p>
+                              <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                            </div>
+                          </motion.div>
+                        )
+                      })}
                       <Button
                         variant="ghost"
                         size="sm"
