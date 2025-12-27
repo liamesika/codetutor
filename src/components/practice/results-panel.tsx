@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,10 +21,9 @@ import {
   Terminal,
   ChevronRight,
   MemoryStick,
-  type LucideIcon,
+  AlertCircle,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { getSafeIcon } from "@/lib/ui-contract"
 
 interface TestResult {
   testIndex: number
@@ -43,6 +43,12 @@ interface ExecutionResult {
   executionMs: number | null
   testResults: TestResult[]
   pointsEarned: number
+  summary?: {
+    totalTests: number
+    passedTests: number
+    allPassed: boolean
+    anyFailed: boolean
+  }
 }
 
 interface ResultsPanelProps {
@@ -50,101 +56,27 @@ interface ResultsPanelProps {
   isLoading?: boolean
   onNextQuestion?: () => void
   onRetry?: () => void
+  onViewHint?: () => void
 }
 
-type StatusType = "PASS" | "FAIL" | "COMPILE_ERROR" | "RUNTIME_ERROR" | "TIMEOUT" | "MEMORY_EXCEEDED"
+// Derive state from result - SINGLE SOURCE OF TRUTH
+type ResultState = "SUCCESS" | "FAILURE" | "NO_TESTS" | "LOADING" | "EMPTY"
 
-interface StatusConfig {
-  label: string
-  color: string
-  icon: LucideIcon
-  bgColor: string
-  borderColor: string
-  glowClass: string
-  iconBg: string
-}
+function deriveResultState(result: ExecutionResult | null, isLoading?: boolean): ResultState {
+  if (isLoading) return "LOADING"
+  if (!result) return "EMPTY"
 
-const statusConfig: Record<StatusType, StatusConfig> = {
-  PASS: {
-    label: "All Tests Passed!",
-    color: "text-green-500",
-    icon: CheckCircle2,
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/40",
-    glowClass: "success-glow",
-    iconBg: "bg-green-500",
-  },
-  FAIL: {
-    label: "Some Tests Failed",
-    color: "text-red-500",
-    icon: XCircle,
-    bgColor: "bg-red-500/10",
-    borderColor: "border-red-500/40",
-    glowClass: "error-glow",
-    iconBg: "bg-red-500/20",
-  },
-  COMPILE_ERROR: {
-    label: "Compilation Error",
-    color: "text-amber-500",
-    icon: Code2,
-    bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/40",
-    glowClass: "",
-    iconBg: "bg-amber-500/20",
-  },
-  RUNTIME_ERROR: {
-    label: "Runtime Error",
-    color: "text-orange-500",
-    icon: AlertTriangle,
-    bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/40",
-    glowClass: "",
-    iconBg: "bg-orange-500/20",
-  },
-  TIMEOUT: {
-    label: "Time Limit Exceeded",
-    color: "text-yellow-500",
-    icon: Clock,
-    bgColor: "bg-yellow-500/10",
-    borderColor: "border-yellow-500/40",
-    glowClass: "",
-    iconBg: "bg-yellow-500/20",
-  },
-  MEMORY_EXCEEDED: {
-    label: "Memory Limit Exceeded",
-    color: "text-purple-500",
-    icon: MemoryStick,
-    bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-500/40",
-    glowClass: "",
-    iconBg: "bg-purple-500/20",
-  },
-}
+  const totalTests = result.testResults?.length ?? 0
+  const passedTests = result.testResults?.filter(t => t.passed).length ?? 0
 
-// Skeleton loader for results
-function ResultsSkeleton() {
-  return (
-    <div className="p-4 md:p-6 space-y-6 animate-pulse">
-      <div className="p-5 rounded-2xl border-2 border-border/50 bg-muted/20">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-14 w-14 rounded-xl" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-6 w-40" />
-            <div className="flex gap-2">
-              <Skeleton className="h-5 w-20 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="space-y-3">
-        <Skeleton className="h-4 w-24" />
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-xl" />
-        ))}
-      </div>
-    </div>
-  )
+  // No tests available
+  if (totalTests === 0) return "NO_TESTS"
+
+  // All tests passed = SUCCESS (regardless of status field)
+  if (passedTests === totalTests) return "SUCCESS"
+
+  // Any test failed or error = FAILURE
+  return "FAILURE"
 }
 
 export function ResultsPanel({
@@ -152,8 +84,31 @@ export function ResultsPanel({
   isLoading,
   onNextQuestion,
   onRetry,
+  onViewHint,
 }: ResultsPanelProps) {
-  if (isLoading) {
+  const nextButtonRef = useRef<HTMLButtonElement>(null)
+  const state = deriveResultState(result, isLoading)
+
+  // Derive test counts from actual test results
+  const totalTests = result?.testResults?.length ?? 0
+  const passedTests = result?.testResults?.filter(t => t.passed).length ?? 0
+  const allPassed = totalTests > 0 && passedTests === totalTests
+
+  // Focus Next Question button on success for keyboard users
+  useEffect(() => {
+    if (state === "SUCCESS" && nextButtonRef.current) {
+      // Small delay to ensure animation completes
+      const timer = setTimeout(() => {
+        nextButtonRef.current?.focus()
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [state])
+
+  // ============================================
+  // STATE: LOADING
+  // ============================================
+  if (state === "LOADING") {
     return (
       <div className="h-full flex items-center justify-center p-8">
         <motion.div
@@ -193,7 +148,10 @@ export function ResultsPanel({
     )
   }
 
-  if (!result) {
+  // ============================================
+  // STATE: EMPTY (no result yet)
+  // ============================================
+  if (state === "EMPTY") {
     return (
       <div className="h-full flex items-center justify-center p-8">
         <motion.div
@@ -217,356 +175,609 @@ export function ResultsPanel({
     )
   }
 
-  // Use safe icon with fallback
-  const config = statusConfig[result.status] || statusConfig.FAIL
-  const StatusIcon = getSafeIcon(config?.icon, result.status?.toLowerCase())
-  const passedTests = result.testResults?.filter((t) => t.passed).length || 0
-  const totalTests = result.testResults?.length || 0
-  const isSuccess = result.status === "PASS"
-
-  return (
-    <ScrollArea className="h-full scrollbar-thin">
-      <div className="p-4 md:p-6 space-y-6 pb-safe">
-        {/* Status header with glow effect */}
+  // ============================================
+  // STATE: NO_TESTS (degraded state)
+  // ============================================
+  if (state === "NO_TESTS") {
+    return (
+      <div className="h-full flex items-center justify-center p-8">
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={cn(
-            "relative p-5 rounded-2xl border-2 overflow-hidden",
-            config.bgColor,
-            config.borderColor,
-            config.glowClass
-          )}
+          className="text-center space-y-4 max-w-sm"
         >
-          {/* Animated glow for success */}
-          {isSuccess && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-green-500/20 via-emerald-500/10 to-green-500/20"
-              animate={{
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          )}
-
-          <div className="relative flex items-center gap-4">
-            {/* Icon with bounce animation on success */}
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-              className={cn(
-                "h-14 w-14 rounded-xl flex items-center justify-center shrink-0",
-                config.iconBg
-              )}
-            >
-              <motion.div
-                animate={isSuccess ? {
-                  scale: [1, 1.1, 1],
-                } : {}}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.5,
-                  ease: "easeOut",
-                }}
-              >
-                <StatusIcon
-                  className={cn(
-                    "h-7 w-7",
-                    isSuccess ? "text-white" : config.color
-                  )}
-                />
-              </motion.div>
-            </motion.div>
-            <div className="flex-1">
-              <h2 className={cn("text-xl font-bold", config.color)}>
-                {config.label}
-              </h2>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge variant="secondary" className="gap-1 bg-background/50">
-                  <CheckCircle2 className="h-3 w-3" />
-                  {passedTests}/{totalTests} tests
-                </Badge>
-                {result.executionMs !== null && (
-                  <Badge variant="outline" className="gap-1 border-border/50">
-                    <Clock className="h-3 w-3" />
-                    {result.executionMs}ms
-                  </Badge>
-                )}
-                {result.status === "PASS" && result.pointsEarned > 0 && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
-                  >
-                    <Badge className="gap-1 gradient-neon text-white">
-                      <Zap className="h-3 w-3" />
-                      +{result.pointsEarned} XP
-                    </Badge>
-                  </motion.div>
-                )}
-              </div>
-            </div>
+          <div className="w-20 h-20 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto">
+            <AlertCircle className="h-10 w-10 text-amber-500" />
           </div>
-        </motion.div>
-
-        {/* Compile error with helpful info */}
-        {result.compileError && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <Card className="border-amber-500/30">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-amber-500 flex items-center gap-2">
-                  <Code2 className="h-4 w-4" />
-                  Compilation Error
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-sm overflow-x-auto p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg whitespace-pre-wrap font-mono text-amber-200">
-                  {result.compileError}
-                </pre>
-              </CardContent>
-            </Card>
-
-            {/* How to fix section */}
-            <Card className="border-muted">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Lightbulb className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-sm">How to Fix</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Check the error message for the line number and error type.
-                  Common issues include:
-                </p>
-                <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary">•</span>
-                    Missing semicolons at the end of statements
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary">•</span>
-                    Unmatched brackets or parentheses
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary">•</span>
-                    Typos in variable or method names
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Runtime output */}
-        {(result.stdout || result.stderr) && !result.compileError && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Card>
+          <div>
+            <h3 className="font-semibold text-lg text-amber-500">No Tests Available</h3>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              This question doesn&apos;t have test cases configured.
+              Please report this issue or go back to the dashboard.
+            </p>
+          </div>
+          {/* Output section if available */}
+          {(result?.stdout || result?.stderr) && (
+            <Card className="text-left mt-4">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Terminal className="h-4 w-4" />
                   Output
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {result.stdout && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">stdout:</p>
-                    <pre className="text-sm overflow-x-auto p-3 bg-muted rounded-lg whitespace-pre-wrap font-mono">
-                      {result.stdout}
-                    </pre>
-                  </div>
+              <CardContent className="space-y-2">
+                {result?.stdout && (
+                  <pre className="text-sm overflow-x-auto p-3 bg-muted rounded-lg whitespace-pre-wrap font-mono">
+                    {result.stdout}
+                  </pre>
                 )}
-                {result.stderr && (
-                  <div>
-                    <p className="text-xs text-destructive mb-1">stderr:</p>
-                    <pre className="text-sm overflow-x-auto p-3 bg-destructive/10 rounded-lg text-destructive whitespace-pre-wrap font-mono">
-                      {result.stderr}
-                    </pre>
-                  </div>
+                {result?.stderr && (
+                  <pre className="text-sm overflow-x-auto p-3 bg-destructive/10 rounded-lg text-destructive whitespace-pre-wrap font-mono">
+                    {result.stderr}
+                  </pre>
                 )}
               </CardContent>
             </Card>
-          </motion.div>
-        )}
-
-        {/* Test results */}
-        {result.testResults && result.testResults.length > 0 && !result.compileError && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          )}
+          <Button
+            variant="outline"
+            onClick={onRetry}
+            className="gap-2"
           >
-            <Separator className="my-4" />
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Terminal className="h-4 w-4 text-muted-foreground" />
-                  Test Results
-                </h3>
-                <Badge
-                  variant={passedTests === totalTests ? "default" : "secondary"}
-                >
-                  {passedTests}/{totalTests} passed
-                </Badge>
-              </div>
+            <RotateCcw className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </motion.div>
+      </div>
+    )
+  }
 
-              <div className="space-y-2">
-                <AnimatePresence mode="popLayout">
-                  {result.testResults.map((test, index) => (
+  // ============================================
+  // STATE: SUCCESS (all tests passed)
+  // ============================================
+  if (state === "SUCCESS" && result) {
+    return (
+      <ScrollArea className="h-full scrollbar-thin">
+        <div className="p-4 md:p-6 space-y-6 pb-safe">
+          {/* Success Header with glow effect */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative p-5 rounded-2xl border-2 overflow-hidden bg-green-500/10 border-green-500/40"
+          >
+            {/* Animated success glow */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-green-500/20 via-emerald-500/10 to-green-500/20"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Success pulse effect */}
+            <motion.div
+              className="absolute inset-0 bg-green-500/10 rounded-2xl"
+              initial={{ scale: 1, opacity: 0.5 }}
+              animate={{ scale: 1.05, opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            />
+
+            <div className="relative flex items-center gap-4">
+              {/* Success icon with bounce */}
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+                className="h-14 w-14 rounded-xl flex items-center justify-center shrink-0 bg-green-500"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
+                >
+                  <CheckCircle2 className="h-7 w-7 text-white" />
+                </motion.div>
+              </motion.div>
+
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-green-500">
+                  All Tests Passed!
+                </h2>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <Badge variant="secondary" className="gap-1 bg-green-500/20 text-green-500 border-green-500/30">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {passedTests}/{totalTests} tests
+                  </Badge>
+                  {result.executionMs !== null && (
+                    <Badge variant="outline" className="gap-1 border-border/50">
+                      <Clock className="h-3 w-3" />
+                      {result.executionMs}ms
+                    </Badge>
+                  )}
+                  {result.pointsEarned > 0 && (
                     <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
                     >
-                      <Card
-                        className={cn(
-                          "border",
-                          test.passed
-                            ? "border-green-500/30 bg-green-500/5"
-                            : "border-red-500/30 bg-red-500/5"
-                        )}
-                      >
-                        <CardHeader className="py-3 pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm font-medium flex items-center gap-2">
-                              {test.passed ? (
-                                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-red-500" />
-                              )}
-                              Test Case {index + 1}
-                              {test.isHidden && (
-                                <Badge variant="outline" className="text-xs">
-                                  Hidden
-                                </Badge>
-                              )}
-                            </CardTitle>
-                            <Badge
-                              variant={test.passed ? "default" : "destructive"}
-                              className="text-xs"
-                            >
-                              {test.passed ? "PASSED" : "FAILED"}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        {!test.isHidden && (
-                          <CardContent className="py-2 space-y-2 text-sm">
-                            {test.input && (
-                              <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
-                                <span className="text-muted-foreground">Input:</span>
-                                <code className="bg-muted px-2 py-1 rounded font-mono text-xs">
-                                  {test.input || "(none)"}
-                                </code>
-                              </div>
-                            )}
-                            <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
-                              <span className="text-muted-foreground">Expected:</span>
-                              <code className="bg-muted px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
-                                {test.expected}
-                              </code>
-                            </div>
-                            {!test.passed && test.actual !== null && (
-                              <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
-                                <span className="text-red-500">Actual:</span>
-                                <code className="bg-red-500/10 text-red-400 px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
-                                  {test.actual || "(empty)"}
-                                </code>
-                              </div>
-                            )}
-                            {test.error && (
-                              <div className="text-red-400 text-xs mt-2 flex items-start gap-2">
-                                <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
-                                {test.error}
-                              </div>
-                            )}
-                          </CardContent>
-                        )}
-                      </Card>
+                      <Badge className="gap-1 gradient-neon text-white">
+                        <Zap className="h-3 w-3" />
+                        +{result.pointsEarned} XP
+                      </Badge>
                     </motion.div>
-                  ))}
-                </AnimatePresence>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
-        )}
 
-        {/* Action buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="pt-4 space-y-4"
-        >
-          {result.status === "PASS" ? (
+          {/* Output section (stdout only, no stderr emphasis on success) */}
+          {result.stdout && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Terminal className="h-4 w-4" />
+                    Output
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="text-sm overflow-x-auto p-3 bg-muted rounded-lg whitespace-pre-wrap font-mono">
+                    {result.stdout}
+                  </pre>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Test Results (collapsed view for success) */}
+          {result.testResults && result.testResults.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Separator className="my-4" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Terminal className="h-4 w-4 text-muted-foreground" />
+                    Test Results
+                  </h3>
+                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+                    {passedTests}/{totalTests} passed
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {result.testResults.map((test, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <Card className="border border-green-500/30 bg-green-500/5">
+                          <CardHeader className="py-3 pb-2">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                Test Case {index + 1}
+                                {test.isHidden && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Hidden
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <Badge className="text-xs bg-green-500/20 text-green-500">
+                                PASSED
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          {!test.isHidden && (
+                            <CardContent className="py-2 space-y-2 text-sm">
+                              {test.input && (
+                                <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                  <span className="text-muted-foreground">Input:</span>
+                                  <code className="bg-muted px-2 py-1 rounded font-mono text-xs">
+                                    {test.input || "(none)"}
+                                  </code>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                <span className="text-muted-foreground">Expected:</span>
+                                <code className="bg-muted px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
+                                  {test.expected}
+                                </code>
+                              </div>
+                            </CardContent>
+                          )}
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Primary CTA: Next Question - STICKY on mobile */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="pt-4 sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 -mb-4"
+          >
             <motion.button
+              ref={nextButtonRef}
               onClick={onNextQuestion}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={cn(
                 "w-full flex items-center justify-center gap-2",
-                "px-6 py-3 rounded-xl font-semibold text-white",
+                "px-6 py-4 rounded-xl font-semibold text-white",
                 "gradient-neon shadow-lg",
-                "hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all duration-300"
+                "hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all duration-300",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
               )}
             >
               Next Question
               <ArrowRight className="h-5 w-5" />
             </motion.button>
-          ) : (
-            <>
-              {/* Next steps guidance */}
-              <Card className="border-border/50 bg-accent/30">
+          </motion.div>
+        </div>
+      </ScrollArea>
+    )
+  }
+
+  // ============================================
+  // STATE: FAILURE (any test failed or error)
+  // ============================================
+  if (state === "FAILURE" && result) {
+    const isCompileError = result.status === "COMPILE_ERROR" || !!result.compileError
+    const isRuntimeError = result.status === "RUNTIME_ERROR"
+    const isTimeout = result.status === "TIMEOUT"
+    const isMemoryExceeded = result.status === "MEMORY_EXCEEDED"
+
+    // Determine header config based on error type
+    let headerLabel = "Some Tests Failed"
+    let headerColor = "text-red-500"
+    let headerBg = "bg-red-500/10"
+    let headerBorder = "border-red-500/40"
+    let HeaderIcon = XCircle
+    let iconBg = "bg-red-500/20"
+
+    if (isCompileError) {
+      headerLabel = "Compilation Error"
+      headerColor = "text-amber-500"
+      headerBg = "bg-amber-500/10"
+      headerBorder = "border-amber-500/40"
+      HeaderIcon = Code2
+      iconBg = "bg-amber-500/20"
+    } else if (isRuntimeError) {
+      headerLabel = "Runtime Error"
+      headerColor = "text-orange-500"
+      headerBg = "bg-orange-500/10"
+      headerBorder = "border-orange-500/40"
+      HeaderIcon = AlertTriangle
+      iconBg = "bg-orange-500/20"
+    } else if (isTimeout) {
+      headerLabel = "Time Limit Exceeded"
+      headerColor = "text-yellow-500"
+      headerBg = "bg-yellow-500/10"
+      headerBorder = "border-yellow-500/40"
+      HeaderIcon = Clock
+      iconBg = "bg-yellow-500/20"
+    } else if (isMemoryExceeded) {
+      headerLabel = "Memory Limit Exceeded"
+      headerColor = "text-purple-500"
+      headerBg = "bg-purple-500/10"
+      headerBorder = "border-purple-500/40"
+      HeaderIcon = MemoryStick
+      iconBg = "bg-purple-500/20"
+    }
+
+    // Sort tests: failed first
+    const sortedTests = [...(result.testResults || [])].sort((a, b) => {
+      if (a.passed === b.passed) return 0
+      return a.passed ? 1 : -1
+    })
+
+    return (
+      <ScrollArea className="h-full scrollbar-thin">
+        <div className="p-4 md:p-6 space-y-6 pb-safe">
+          {/* Failure Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "relative p-5 rounded-2xl border-2 overflow-hidden",
+              headerBg,
+              headerBorder
+            )}
+          >
+            <div className="relative flex items-center gap-4">
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+                className={cn("h-14 w-14 rounded-xl flex items-center justify-center shrink-0", iconBg)}
+              >
+                <HeaderIcon className={cn("h-7 w-7", headerColor)} />
+              </motion.div>
+
+              <div className="flex-1">
+                <h2 className={cn("text-xl font-bold", headerColor)}>
+                  {headerLabel}
+                </h2>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <Badge variant="secondary" className="gap-1 bg-background/50">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {passedTests}/{totalTests} tests
+                  </Badge>
+                  {result.executionMs !== null && (
+                    <Badge variant="outline" className="gap-1 border-border/50">
+                      <Clock className="h-3 w-3" />
+                      {result.executionMs}ms
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Compile error with helpful info */}
+          {result.compileError && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <Card className="border-amber-500/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-amber-500 flex items-center gap-2">
+                    <Code2 className="h-4 w-4" />
+                    Compilation Error
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="text-sm overflow-x-auto p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg whitespace-pre-wrap font-mono text-amber-200">
+                    {result.compileError}
+                  </pre>
+                </CardContent>
+              </Card>
+
+              {/* How to fix section */}
+              <Card className="border-muted">
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                      <ChevronRight className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium text-sm">Next Steps</span>
+                    <Lightbulb className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-sm">How to Fix</span>
                   </div>
-                  <ul className="text-sm text-muted-foreground space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Check the error message for the line number and error type.
+                    Common issues include:
+                  </p>
+                  <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                     <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">1</span>
-                      Review the failing test cases above
+                      <span className="text-primary">•</span>
+                      Missing semicolons at the end of statements
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">2</span>
-                      Compare expected vs actual output
+                      <span className="text-primary">•</span>
+                      Unmatched brackets or parentheses
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">3</span>
-                      Check for edge cases and off-by-one errors
+                      <span className="text-primary">•</span>
+                      Typos in variable or method names
                     </li>
                   </ul>
                 </CardContent>
               </Card>
-
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  onClick={onRetry}
-                  variant="outline"
-                  className="w-full gap-2 neon-border hover:neon-glow transition-all duration-300"
-                  size="lg"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Try Again
-                </Button>
-              </motion.div>
-            </>
+            </motion.div>
           )}
-        </motion.div>
-      </div>
-    </ScrollArea>
-  )
+
+          {/* Runtime output - stderr prominently displayed */}
+          {(result.stdout || result.stderr) && !result.compileError && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Terminal className="h-4 w-4" />
+                    Output
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Show stderr first (prominently) on failure */}
+                  {result.stderr && (
+                    <div>
+                      <p className="text-xs text-destructive mb-1 font-medium">stderr:</p>
+                      <pre className="text-sm overflow-x-auto p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive whitespace-pre-wrap font-mono">
+                        {result.stderr}
+                      </pre>
+                    </div>
+                  )}
+                  {result.stdout && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">stdout:</p>
+                      <pre className="text-sm overflow-x-auto p-3 bg-muted rounded-lg whitespace-pre-wrap font-mono">
+                        {result.stdout}
+                      </pre>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Test results - failed tests first */}
+          {sortedTests.length > 0 && !result.compileError && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Separator className="my-4" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Terminal className="h-4 w-4 text-muted-foreground" />
+                    Test Results
+                  </h3>
+                  <Badge variant="secondary">
+                    {passedTests}/{totalTests} passed
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {sortedTests.map((test, index) => (
+                      <motion.div
+                        key={test.testIndex}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <Card
+                          className={cn(
+                            "border",
+                            test.passed
+                              ? "border-green-500/30 bg-green-500/5"
+                              : "border-red-500/30 bg-red-500/5"
+                          )}
+                        >
+                          <CardHeader className="py-3 pb-2">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                {test.passed ? (
+                                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-red-500" />
+                                )}
+                                Test Case {test.testIndex + 1}
+                                {test.isHidden && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Hidden
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <Badge
+                                variant={test.passed ? "default" : "destructive"}
+                                className="text-xs"
+                              >
+                                {test.passed ? "PASSED" : "FAILED"}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          {!test.isHidden && (
+                            <CardContent className="py-2 space-y-2 text-sm">
+                              {test.input && (
+                                <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                  <span className="text-muted-foreground">Input:</span>
+                                  <code className="bg-muted px-2 py-1 rounded font-mono text-xs">
+                                    {test.input || "(none)"}
+                                  </code>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                <span className="text-muted-foreground">Expected:</span>
+                                <code className="bg-muted px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
+                                  {test.expected}
+                                </code>
+                              </div>
+                              {!test.passed && test.actual !== null && (
+                                <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                  <span className="text-red-500">Actual:</span>
+                                  <code className="bg-red-500/10 text-red-400 px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
+                                    {test.actual || "(empty)"}
+                                  </code>
+                                </div>
+                              )}
+                              {test.error && (
+                                <div className="text-red-400 text-xs mt-2 flex items-start gap-2">
+                                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+                                  {test.error}
+                                </div>
+                              )}
+                            </CardContent>
+                          )}
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Action buttons - sticky on mobile */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="pt-4 space-y-4 sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 -mb-4"
+          >
+            {/* Next steps guidance */}
+            <Card className="border-border/50 bg-accent/30">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                    <ChevronRight className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="font-medium text-sm">Next Steps</span>
+                </div>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">1</span>
+                    Review the failing test cases above
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">2</span>
+                    Compare expected vs actual output
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">3</span>
+                    Check for edge cases and off-by-one errors
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Primary CTA: Try Again */}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onClick={onRetry}
+                variant="outline"
+                className="w-full gap-2 neon-border hover:neon-glow transition-all duration-300 py-6"
+                size="lg"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Try Again
+              </Button>
+            </motion.div>
+
+            {/* Secondary CTA: View Hint */}
+            {onViewHint && (
+              <Button
+                onClick={onViewHint}
+                variant="ghost"
+                className="w-full gap-2 text-muted-foreground"
+                size="sm"
+              >
+                <Lightbulb className="h-4 w-4" />
+                View Hint
+              </Button>
+            )}
+          </motion.div>
+        </div>
+      </ScrollArea>
+    )
+  }
+
+  // Fallback (should never reach)
+  return null
 }

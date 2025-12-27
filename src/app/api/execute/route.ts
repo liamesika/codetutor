@@ -319,11 +319,59 @@ export async function POST(req: NextRequest) {
       durationMs: processingMs,
     })
 
-    // Return standardized response
+    // Derive canonical status from test results (SINGLE SOURCE OF TRUTH)
+    // This prevents UI showing "Some Tests Failed" when all tests actually passed
+    const testResults = result.tests.map((t, i) => ({
+      testIndex: i,
+      input: t.isHidden ? "[hidden]" : (testCases[i]?.input || ""),
+      expected: t.expected || "",
+      actual: t.received || "",
+      passed: t.passed,
+      error: t.message || null,
+      isHidden: t.isHidden || false,
+    }))
+
+    const totalTests = testResults.length
+    const passedTests = testResults.filter(t => t.passed).length
+    const allPassed = totalTests > 0 && passedTests === totalTests
+
+    // Derive status: prioritize test results over executor status
+    let derivedStatus: "PASS" | "FAIL" | "COMPILE_ERROR" | "RUNTIME_ERROR" | "TIMEOUT" | "MEMORY_EXCEEDED"
+    if (allPassed) {
+      derivedStatus = "PASS"
+    } else if (result.compileError) {
+      derivedStatus = "COMPILE_ERROR"
+    } else if (result.runtimeError?.toLowerCase().includes("timeout")) {
+      derivedStatus = "TIMEOUT"
+    } else if (result.runtimeError?.toLowerCase().includes("memory")) {
+      derivedStatus = "MEMORY_EXCEEDED"
+    } else if (result.runtimeError) {
+      derivedStatus = "RUNTIME_ERROR"
+    } else {
+      derivedStatus = "FAIL"
+    }
+
+    // CONTRACT ASSERTION: Log if there's a mismatch for debugging
+    if (allPassed && derivedStatus !== "PASS") {
+      console.error("[RESULTS CONTRACT VIOLATION] allPassed=true but derivedStatus=", derivedStatus)
+    }
+    if (!allPassed && derivedStatus === "PASS") {
+      console.error("[RESULTS CONTRACT VIOLATION] allPassed=false but derivedStatus=PASS")
+    }
+
+    // Return standardized response with derived status
     return NextResponse.json(
       {
-        status: result.status,
-        passed: result.passed,
+        // Use derived status, not executor's raw status
+        status: derivedStatus,
+        passed: allPassed,
+        // Test summary for UI consumption
+        summary: {
+          totalTests,
+          passedTests,
+          allPassed,
+          anyFailed: totalTests > 0 && passedTests < totalTests,
+        },
         tests: result.tests,
         stdout: result.stdout,
         stderr: result.stderr,
@@ -344,16 +392,8 @@ export async function POST(req: NextRequest) {
           streak: progressionResult.progress.currentStreak,
           dailyChallengeBonus,
         } : null,
-        // Legacy fields for backwards compatibility
-        testResults: result.tests.map((t, i) => ({
-          testIndex: i,
-          input: t.isHidden ? "[hidden]" : (testCases[i]?.input || ""),
-          expected: t.expected || "",
-          actual: t.received || "",
-          passed: t.passed,
-          error: t.message || null,
-          isHidden: t.isHidden || false,
-        })),
+        // Test results with canonical shape
+        testResults,
         executionMs: result.durationMs,
       },
       {
