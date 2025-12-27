@@ -35,6 +35,11 @@ model User {
   dailyLogin                DailyLogin?
   leaguePlacements          LeaguePlacement[]
   subscription              Subscription?
+  entitlement               Entitlement?
+  grantedEntitlements       Entitlement[]             @relation("EntitlementGrantedBy")
+  createdAccessCodes        AccessCode[]              @relation("AccessCodeCreatedBy")
+  accessCodeRedemptions     AccessCodeRedemption[]
+  accessRequests            AccessRequest[]
 
   @@index([email])
 }
@@ -704,4 +709,105 @@ enum SubscriptionStatus {
   ACTIVE
   EXPIRED
   CANCELED
+}
+
+// ==================== ENTITLEMENT SYSTEM ====================
+
+model Entitlement {
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  plan            EntitlementPlan   @default(BASIC)
+  status          EntitlementStatus @default(ACTIVE)
+  grantedByUserId String?
+  grantedReason   String?
+  grantedAt       DateTime          @default(now())
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  revokedReason   String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User? @relation("EntitlementGrantedBy", fields: [grantedByUserId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([plan])
+}
+
+enum EntitlementPlan {
+  BASIC
+  PRO
+  ELITE
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+// ==================== ACCESS CODE SYSTEM ====================
+
+model AccessCode {
+  id             String   @id @default(cuid())
+  codeHash       String   @unique
+  plan           EntitlementPlan @default(BASIC)
+  maxRedemptions Int      @default(1)
+  redeemedCount  Int      @default(0)
+  expiresAt      DateTime?
+  isActive       Boolean  @default(true)
+  createdByUserId String?
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  createdBy   User?                 @relation("AccessCodeCreatedBy", fields: [createdByUserId], references: [id])
+  redemptions AccessCodeRedemption[]
+
+  @@index([codeHash])
+  @@index([isActive])
+}
+
+model AccessCodeRedemption {
+  id           String   @id @default(cuid())
+  accessCodeId String
+  userId       String
+  ip           String?
+  userAgent    String?
+  redeemedAt   DateTime @default(now())
+
+  accessCode AccessCode @relation(fields: [accessCodeId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([accessCodeId, userId])
+  @@index([accessCodeId])
+  @@index([userId])
+}
+
+// ==================== ACCESS REQUEST SYSTEM ====================
+
+model AccessRequest {
+  id          String              @id @default(cuid())
+  userId      String
+  fullName    String
+  email       String
+  message     String?             @db.Text
+  status      AccessRequestStatus @default(PENDING)
+  processedAt DateTime?
+  processedBy String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

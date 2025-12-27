@@ -107,7 +107,7 @@ export function SubscriptionOverlay({ weekNumber }: SubscriptionOverlayProps) {
 
           {/* Subtitle */}
           <p className="text-[#9CA3AF] mb-6 leading-relaxed">
-            Continue your journey with full access — <span className="text-[#22D3EE] font-semibold">₪30/month</span>
+            Continue your journey with full access to all content
           </p>
 
           {/* Features */}
@@ -145,7 +145,7 @@ export function SubscriptionOverlay({ weekNumber }: SubscriptionOverlayProps) {
 
           {/* Free tier note */}
           <p className="text-xs text-[#6B7280] mt-4">
-            Week 1 is always free. No credit card required.
+            Week 1 is always free. Request access or redeem a code.
           </p>
         </div>
       </motion.div>
