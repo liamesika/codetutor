@@ -47,6 +47,7 @@ import {
   Clock,
   AlertTriangle,
   Home,
+  Eye,
 } from "lucide-react"
 import Link from "next/link"
 import { SubscriptionGate } from "@/components/subscription/subscription-gate"
@@ -114,10 +115,22 @@ interface ExecutionResult {
   } | null
 }
 
+interface NextQuestionResponse {
+  questionId: string | null
+  topicId?: string
+  topicTitle?: string
+  questionTitle?: string
+  difficulty?: number
+  reason?: string
+  message?: string
+  weekComplete?: boolean
+  weekNumber?: number
+}
+
 // Not found component - displayed when question doesn't exist
 function QuestionNotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26] flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26] flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-[#1E1B4B]/80 border-amber-500/30 backdrop-blur-xl">
         <CardContent className="p-8 text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-amber-500/20 flex items-center justify-center">
@@ -145,7 +158,7 @@ function QuestionNotFound() {
 // Loading skeleton component
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-[100dvh] flex flex-col bg-background">
       <div className="p-4 border-b border-border/50">
         <div className="flex items-center gap-4">
           <div className="skeleton h-8 w-8 rounded-lg bg-[#4F46E5]/20" />
@@ -216,7 +229,6 @@ export default function PracticePage({
     data: question,
     isLoading,
     isError,
-    error,
   } = useQuery<Question>({
     queryKey: ["question", questionId],
     queryFn: async () => {
@@ -403,11 +415,34 @@ export default function PracticePage({
     saveDraftMutation.mutate(code)
   }, [code, saveDraftMutation])
 
-  const handleNextQuestion = useCallback(() => {
-    if (question?.topic?.id) {
-      router.push(routes.learn(question.topic.id))
-    } else {
-      router.push(routes.dashboard())
+  // FIXED: Navigate to next question in sequence instead of back to topic
+  const handleNextQuestion = useCallback(async () => {
+    try {
+      // Fetch next question from adaptive algorithm with current topic context
+      const res = await fetch(`/api/next-question?topicId=${question?.topic?.id || ""}`)
+      if (!res.ok) throw new Error("Failed to get next question")
+
+      const data: NextQuestionResponse = await res.json()
+
+      if (data.questionId) {
+        // Navigate to the next question
+        router.push(routes.practice(data.questionId))
+      } else if (data.weekComplete) {
+        // Week complete - show completion and go to dashboard
+        toast.success(data.message || "Week complete! Great job!")
+        router.push(routes.dashboard())
+      } else {
+        // No more questions - go to dashboard
+        toast.success(data.message || "All questions completed!")
+        router.push(routes.dashboard())
+      }
+    } catch {
+      // Fallback to topic page if API fails
+      if (question?.topic?.id) {
+        router.push(routes.learn(question.topic.id))
+      } else {
+        router.push(routes.dashboard())
+      }
     }
   }, [router, question?.topic?.id])
 
@@ -441,7 +476,7 @@ export default function PracticePage({
   // Show subscription gate if locked
   if (isLocked) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26]">
+      <div className="min-h-[100dvh] bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26]">
         <SubscriptionGate isLocked={true} weekNumber={weekNumber}>
           <div className="h-screen" />
         </SubscriptionGate>
@@ -454,7 +489,7 @@ export default function PracticePage({
   const hintsAvailable = question.hints.length - hintsUsed
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-background">
+    <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
       {/* Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -527,8 +562,8 @@ export default function PracticePage({
         </div>
       </motion.header>
 
-      {/* Desktop layout */}
-      <div className="flex-1 flex overflow-hidden hidden lg:flex p-4 gap-4">
+      {/* Desktop layout - FIXED: bounded viewport height with internal scroll */}
+      <div className="flex-1 hidden lg:flex overflow-hidden p-4 gap-4">
         {/* Code editor panel */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -558,18 +593,18 @@ export default function PracticePage({
           />
         </motion.div>
 
-        {/* Side panel */}
+        {/* Side panel - FIXED: bounded height with internal scroll */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
           className={cn(
-            "glass-card flex flex-col transition-all duration-300",
+            "glass-card flex flex-col transition-all duration-300 overflow-hidden",
             isPanelCollapsed ? "w-0 overflow-hidden opacity-0" : "w-[400px] xl:w-[480px]"
           )}
         >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-4 pt-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-4 pt-2 shrink-0">
               <TabsTrigger
                 value="question"
                 className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
@@ -596,8 +631,15 @@ export default function PracticePage({
                   </Badge>
                 )}
               </TabsTrigger>
+              <TabsTrigger
+                value="solution"
+                className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
+              >
+                <Eye className="h-4 w-4" />
+                Solution
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="question" className="flex-1 mt-0 overflow-hidden">
+            <TabsContent value="question" className="flex-1 mt-0 overflow-y-auto min-h-0">
               <QuestionPanel
                 question={{
                   ...question,
@@ -608,9 +650,10 @@ export default function PracticePage({
                 onRevealSolution={() => revealMutation.mutate()}
                 solutionRevealed={solutionRevealed}
                 solutionCode={solutionCode}
+                hideSolution={true}
               />
             </TabsContent>
-            <TabsContent value="feedback" className="flex-1 mt-0 overflow-hidden">
+            <TabsContent value="feedback" className="flex-1 mt-0 overflow-y-auto min-h-0">
               <ResultsPanel
                 result={result}
                 isLoading={executeMutation.isPending}
@@ -618,38 +661,52 @@ export default function PracticePage({
                 onRetry={handleRetry}
               />
             </TabsContent>
+            <TabsContent value="solution" className="flex-1 mt-0 overflow-y-auto min-h-0">
+              <QuestionPanel
+                question={{
+                  ...question,
+                  hints: question.hints,
+                }}
+                hintsUsed={hintsUsed}
+                onUseHint={handleHint}
+                onRevealSolution={() => revealMutation.mutate()}
+                solutionRevealed={solutionRevealed}
+                solutionCode={solutionCode}
+                showOnlySolution={true}
+              />
+            </TabsContent>
           </Tabs>
         </motion.div>
       </div>
 
-      {/* Mobile layout */}
+      {/* Mobile layout - FIXED: proper tab-based scrolling with safe areas */}
       <div className="flex-1 flex flex-col overflow-hidden lg:hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-4 shrink-0">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent px-2 shrink-0">
             <TabsTrigger
               value="question"
-              className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
+              className="gap-1 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg text-xs px-2"
             >
-              <FileQuestion className="h-4 w-4" />
-              <span className="hidden sm:inline">Question</span>
+              <FileQuestion className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Question</span>
             </TabsTrigger>
             <TabsTrigger
               value="code"
-              className="gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg"
+              className="gap-1 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg text-xs px-2"
             >
-              <Code2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Code</span>
+              <Code2 className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Code</span>
             </TabsTrigger>
             <TabsTrigger
               value="feedback"
               className={cn(
-                "gap-2 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg",
+                "gap-1 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg text-xs px-2",
                 result?.status === "PASS" && "data-[state=active]:bg-green-500/20",
                 result?.status === "FAIL" && "data-[state=active]:bg-red-500/20"
               )}
             >
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Results</span>
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Results</span>
               {result && (
                 <span
                   className={cn(
@@ -659,9 +716,16 @@ export default function PracticePage({
                 />
               )}
             </TabsTrigger>
+            <TabsTrigger
+              value="solution"
+              className="gap-1 data-[state=active]:bg-accent/50 data-[state=active]:shadow-none rounded-lg text-xs px-2"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Solution</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="question" className="flex-1 mt-0 overflow-hidden">
+          <TabsContent value="question" className="flex-1 mt-0 overflow-y-auto min-h-0">
             <QuestionPanel
               question={{
                 ...question,
@@ -672,10 +736,11 @@ export default function PracticePage({
               onRevealSolution={() => revealMutation.mutate()}
               solutionRevealed={solutionRevealed}
               solutionCode={solutionCode}
+              hideSolution={true}
             />
           </TabsContent>
 
-          <TabsContent value="code" className="flex-1 mt-0 overflow-hidden flex flex-col">
+          <TabsContent value="code" className="flex-1 mt-0 overflow-hidden flex flex-col min-h-0">
             <div className="flex-1 overflow-hidden">
               <CodeEditor
                 value={code}
@@ -685,7 +750,7 @@ export default function PracticePage({
             </div>
           </TabsContent>
 
-          <TabsContent value="feedback" className="flex-1 mt-0 overflow-hidden">
+          <TabsContent value="feedback" className="flex-1 mt-0 overflow-y-auto min-h-0">
             <ResultsPanel
               result={result}
               isLoading={executeMutation.isPending}
@@ -693,22 +758,39 @@ export default function PracticePage({
               onRetry={handleRetry}
             />
           </TabsContent>
+
+          <TabsContent value="solution" className="flex-1 mt-0 overflow-y-auto min-h-0">
+            <QuestionPanel
+              question={{
+                ...question,
+                hints: question.hints,
+              }}
+              hintsUsed={hintsUsed}
+              onUseHint={handleHint}
+              onRevealSolution={() => revealMutation.mutate()}
+              solutionRevealed={solutionRevealed}
+              solutionCode={solutionCode}
+              showOnlySolution={true}
+            />
+          </TabsContent>
         </Tabs>
 
-        {/* Mobile action bar */}
-        <ActionBar
-          onRun={handleRun}
-          onCheck={handleCheck}
-          onHint={handleHint}
-          onReset={handleReset}
-          onSave={handleSave}
-          isRunning={executeMutation.isPending && executeMutation.variables?.runOnly}
-          isChecking={executeMutation.isPending && !executeMutation.variables?.runOnly}
-          isSaving={saveDraftMutation.isPending}
-          hintsAvailable={hintsAvailable}
-          hasChanges={hasChanges}
-          executorAvailable={isExecutorAvailable}
-        />
+        {/* Mobile action bar - FIXED: safe area padding */}
+        <div className="shrink-0 pb-safe">
+          <ActionBar
+            onRun={handleRun}
+            onCheck={handleCheck}
+            onHint={handleHint}
+            onReset={handleReset}
+            onSave={handleSave}
+            isRunning={executeMutation.isPending && executeMutation.variables?.runOnly}
+            isChecking={executeMutation.isPending && !executeMutation.variables?.runOnly}
+            isSaving={saveDraftMutation.isPending}
+            hintsAvailable={hintsAvailable}
+            hasChanges={hasChanges}
+            executorAvailable={isExecutorAvailable}
+          />
+        </div>
 
         {/* Mobile results drawer */}
         <Sheet open={resultsOpen} onOpenChange={setResultsOpen}>
@@ -736,7 +818,7 @@ export default function PracticePage({
                 )}
               </SheetTitle>
             </SheetHeader>
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-y-auto">
               <ResultsPanel
                 result={result}
                 isLoading={executeMutation.isPending}
