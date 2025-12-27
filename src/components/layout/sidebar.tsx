@@ -21,6 +21,7 @@ import {
   Settings,
   Trophy,
   GitBranch,
+  User,
 } from "lucide-react"
 
 interface Topic {
@@ -127,6 +128,15 @@ export function Sidebar({ weeks, currentCourse, isLoading }: SidebarProps) {
           >
             <Trophy className="mr-2 h-4 w-4" />
             Achievements
+          </Button>
+        </Link>
+        <Link href="/profile">
+          <Button
+            variant={pathname === "/profile" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+          >
+            <User className="mr-2 h-4 w-4" />
+            Profile
           </Button>
         </Link>
       </div>

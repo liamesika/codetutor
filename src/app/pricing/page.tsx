@@ -49,7 +49,9 @@ const plans = [
     name: "PRO",
     description: "Full access to everything",
     price: "$9.99",
+    originalPrice: "$20",
     period: "/month",
+    promoLabel: "Semester A Launch Offer",
     icon: Crown,
     color: "#F59E0B",
     bgGradient: "from-[#F59E0B]/15 to-[#EF4444]/5",
@@ -203,9 +205,9 @@ export default function PublicPricingPage() {
         </section>
 
         {/* Plans */}
-        <section className="pb-16 px-4">
+        <section className="pb-16 px-4 pt-8">
           <div className="container mx-auto max-w-5xl">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 mt-8">
               {plans.map((plan, index) => (
                 <motion.div
                   key={plan.id}
@@ -214,11 +216,27 @@ export default function PublicPricingPage() {
                   transition={{ delay: 0.2 + index * 0.1 }}
                   className="relative"
                 >
+                  {/* Coffee micro-banner for PRO */}
+                  {plan.id === "pro" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="absolute -top-14 left-1/2 -translate-x-1/2 z-20 w-full max-w-[280px] sm:max-w-xs"
+                    >
+                      <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#F59E0B]/20 to-[#EF4444]/20 border border-[#F59E0B]/30 backdrop-blur-sm text-center">
+                        <span className="text-sm text-[#F59E0B] font-medium">
+                          Only $9.99/month — basically the price of 2 coffees <span className="inline-block">☕☕</span>
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Popular badge */}
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                       <div className="px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#F59E0B] to-[#EF4444] text-white shadow-[0_0_20px_rgba(245,158,11,0.4)]">
-                        RECOMMENDED
+                        MOST POPULAR
                       </div>
                     </div>
                   )}
@@ -243,10 +261,20 @@ export default function PublicPricingPage() {
                     <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                     <p className="text-[#9CA3AF] mb-6">{plan.description}</p>
 
-                    {/* Price */}
+                    {/* Price with promo label */}
                     <div className="mb-8">
-                      <span className="text-4xl font-bold text-white">{plan.price}</span>
-                      <span className="text-[#6B7280] ml-1">{plan.period}</span>
+                      {"promoLabel" in plan && plan.promoLabel && (
+                        <div className="inline-block px-3 py-1 rounded-full bg-[#F59E0B]/20 border border-[#F59E0B]/30 mb-3">
+                          <span className="text-xs font-semibold text-[#F59E0B]">{plan.promoLabel}</span>
+                        </div>
+                      )}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold text-white">{plan.price}</span>
+                        {"originalPrice" in plan && plan.originalPrice && (
+                          <span className="text-lg text-[#6B7280] line-through">{plan.originalPrice}</span>
+                        )}
+                        <span className="text-[#6B7280]">{plan.period}</span>
+                      </div>
                     </div>
 
                     {/* Features */}
