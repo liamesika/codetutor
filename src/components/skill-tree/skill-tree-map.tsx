@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import {
   Lock,
   Check,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NeonButton } from "@/components/ui/neon-button"
+import { useSkillUnlockContext } from "@/components/providers/skill-unlock-provider"
 import type { SkillNodeData } from "@/lib/skill-tree"
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -308,10 +310,25 @@ function NodeDetailSheet({ node, onClose, onUnlock, onPractice }: NodeDetailShee
   )
 }
 
+interface UnlockResponse {
+  success: boolean
+  alreadyUnlocked: boolean
+  skillUnlocked?: boolean
+  node?: {
+    id: string
+    title: string
+    description: string
+    icon: string
+    color: string
+    branchPath: string[]
+  }
+}
+
 export function SkillTreeMap() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [selectedNode, setSelectedNode] = useState<SkillNodeData | null>(null)
+  const { triggerSkillUnlock } = useSkillUnlockContext()
 
   const { data: tree, isLoading } = useQuery<SkillNodeData[]>({
     queryKey: ["skill-tree"],
@@ -323,7 +340,7 @@ export function SkillTreeMap() {
   })
 
   const unlockMutation = useMutation({
-    mutationFn: async (nodeId: string) => {
+    mutationFn: async (nodeId: string): Promise<UnlockResponse> => {
       const res = await fetch("/api/skill-tree/unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -332,9 +349,22 @@ export function SkillTreeMap() {
       if (!res.ok) throw new Error("Failed to unlock node")
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["skill-tree"] })
       setSelectedNode(null)
+
+      // Trigger skill unlock ceremony if new unlock
+      if (data.skillUnlocked && data.node) {
+        // Small delay to let the sheet close
+        setTimeout(() => {
+          triggerSkillUnlock(data.node!)
+        }, 300)
+      } else if (!data.alreadyUnlocked) {
+        toast.success("Skill unlocked!")
+      }
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to unlock skill")
     },
   })
 

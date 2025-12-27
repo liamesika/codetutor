@@ -4,6 +4,7 @@ import { SessionProvider } from "./session-provider"
 import { QueryProvider } from "./query-provider"
 import { ThemeProvider } from "./theme-provider"
 import { LevelUpProvider } from "./level-up-provider"
+import { SkillUnlockProvider } from "./skill-unlock-provider"
 import { Toaster } from "@/components/ui/sonner"
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -17,7 +18,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           disableTransitionOnChange
         >
           <LevelUpProvider>
-            {children}
+            <SkillUnlockProvider>
+              {children}
+            </SkillUnlockProvider>
           </LevelUpProvider>
           <Toaster position="top-right" richColors />
         </ThemeProvider>

@@ -132,6 +132,27 @@ export async function getSkillTree(userId: string): Promise<SkillNodeData[]> {
 }
 
 /**
+ * Build branch path for a node (ancestor chain)
+ */
+async function buildBranchPath(nodeId: string): Promise<string[]> {
+  const path: string[] = []
+  let currentId: string | null = nodeId
+
+  while (currentId) {
+    const result: { title: string; parentId: string | null } | null = await db.skillNode.findUnique({
+      where: { id: currentId },
+      select: { title: true, parentId: true },
+    })
+
+    if (!result) break
+    path.unshift(result.title)
+    currentId = result.parentId
+  }
+
+  return path
+}
+
+/**
  * Unlock a skill node
  */
 export async function unlockSkillNode(userId: string, nodeId: string) {
@@ -149,7 +170,7 @@ export async function unlockSkillNode(userId: string, nodeId: string) {
   })
 
   if (existing) {
-    return { success: true, alreadyUnlocked: true }
+    return { success: true, alreadyUnlocked: true, skillUnlocked: false }
   }
 
   // Check requirements
@@ -187,7 +208,22 @@ export async function unlockSkillNode(userId: string, nodeId: string) {
     },
   })
 
-  return { success: true, alreadyUnlocked: false }
+  // Build branch path for ceremony
+  const branchPath = await buildBranchPath(nodeId)
+
+  return {
+    success: true,
+    alreadyUnlocked: false,
+    skillUnlocked: true,
+    node: {
+      id: node.id,
+      title: node.title,
+      description: node.description,
+      icon: node.icon,
+      color: node.color,
+      branchPath,
+    },
+  }
 }
 
 /**
