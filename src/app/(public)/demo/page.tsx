@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { CodeEditor } from "@/components/practice/code-editor"
 import { NeonButton } from "@/components/ui/neon-button"
+import { LegalFooter } from "@/components/shared/legal-footer"
 import {
   Play,
   Code2,
@@ -477,15 +478,7 @@ export default function DemoPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/5 py-6 px-4">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#6B7280]">
-          <div className="flex items-center gap-2">
-            <Code2 className="h-4 w-4 text-[#4F46E5]" />
-            <span>CodeTutor</span>
-          </div>
-          <p>Java Mastery for CS Students</p>
-        </div>
-      </footer>
+      <LegalFooter variant="compact" />
     </div>
   )
 }

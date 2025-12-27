@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { NeonButton } from "@/components/ui/neon-button"
+import { LegalFooter } from "@/components/shared/legal-footer"
 import { cn } from "@/lib/utils"
 import {
   Code2,
@@ -645,21 +646,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.3)]">
-                <Code2 className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-semibold gradient-neon-text">CodeTutor</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Built for CS students. Made with care.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <LegalFooter />
     </div>
   )
 }
