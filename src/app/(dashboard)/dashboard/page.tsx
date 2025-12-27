@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useQueryClient } from "@tanstack/react-query"
 import { useCourses, useUserStats } from "@/lib/hooks"
 import { DashboardShell } from "@/components/layout"
+import { PurchaseSuccessOverlay } from "@/components/overlays/purchase-success-overlay"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -303,9 +305,32 @@ const sampleAchievements = [
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const { data: courses, isLoading: coursesLoading } = useCourses()
   const { data: stats, isLoading: statsLoading } = useUserStats()
   const [activeTab, setActiveTab] = useState("overview")
+  const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false)
+
+  // Check for purchase success
+  const purchaseSuccess = searchParams.get("purchase") === "success"
+
+  useEffect(() => {
+    if (purchaseSuccess) {
+      // Show success overlay
+      setShowPurchaseSuccess(true)
+
+      // Invalidate all subscription-related queries
+      queryClient.invalidateQueries({ queryKey: ["subscription"] })
+      queryClient.invalidateQueries({ queryKey: ["subscriptionCheck"] })
+      queryClient.invalidateQueries({ queryKey: ["courses"] })
+
+      // Remove the query param from URL without reload
+      const url = new URL(window.location.href)
+      url.searchParams.delete("purchase")
+      window.history.replaceState({}, "", url.pathname)
+    }
+  }, [purchaseSuccess, queryClient])
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -883,6 +908,12 @@ export default function DashboardPage() {
           </motion.div>
         </AnimatePresence>
       </div>
+      {/* Purchase success overlay */}
+      <PurchaseSuccessOverlay
+        isVisible={showPurchaseSuccess}
+        onClose={() => setShowPurchaseSuccess(false)}
+        planName="Basic"
+      />
     </DashboardShell>
   )
 }

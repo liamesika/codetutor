@@ -1,6 +1,8 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect } from "react"
+import { usePathname } from "next/navigation"
+import { motion } from "framer-motion"
 import { Lock, Sparkles, ChevronRight, Crown, Zap } from "lucide-react"
 import { NeonButton } from "@/components/ui/neon-button"
 import Link from "next/link"
@@ -16,6 +18,15 @@ export function SubscriptionGate({
   weekNumber,
   children,
 }: SubscriptionGateProps) {
+  const pathname = usePathname()
+
+  // Store the blocked path for redirect after purchase
+  useEffect(() => {
+    if (isLocked && pathname) {
+      localStorage.setItem("lastBlockedPath", pathname)
+    }
+  }, [isLocked, pathname])
+
   if (!isLocked) {
     return <>{children}</>
   }

@@ -672,12 +672,22 @@ model Plan {
 }
 
 model Subscription {
-  id        String             @id @default(cuid())
-  userId    String             @unique
-  planId    String
-  status    SubscriptionStatus @default(FREE)
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  planId                 String
+  status                 SubscriptionStatus @default(FREE)
+
+  // Stripe integration fields
+  stripeCustomerId       String?            @unique
+  stripeSubscriptionId   String?            @unique
+  stripePriceId          String?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  lastPaymentStatus      String?
+  lastWebhookAt          DateTime?
+
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan Plan @relation(fields: [planId], references: [id])
@@ -685,6 +695,8 @@ model Subscription {
   @@index([userId])
   @@index([planId])
   @@index([status])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 }
 
 enum SubscriptionStatus {

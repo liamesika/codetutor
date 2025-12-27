@@ -1,9 +1,10 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { DashboardShell } from "@/components/layout"
 import { useCourses } from "@/lib/hooks"
 import { NeonButton } from "@/components/ui/neon-button"
@@ -19,6 +20,9 @@ import {
   Flame,
   Trophy,
   Target,
+  Loader2,
+  Settings,
+  AlertCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -36,6 +40,8 @@ interface SubscriptionData {
     status: string
     planId: string
     hasAccess: boolean
+    currentPeriodEnd?: string
+    cancelAtPeriodEnd?: boolean
   }
   plans: Plan[]
 }
@@ -69,15 +75,34 @@ function PlanCard({
   isCurrentPlan,
   isRecommended,
   index,
+  onPurchase,
+  isPurchasing,
+  hasAccess,
 }: {
   plan: Plan
   isCurrentPlan: boolean
   isRecommended: boolean
   index: number
+  onPurchase: (planId: string) => void
+  isPurchasing: boolean
+  hasAccess: boolean
 }) {
+  const router = useRouter()
   const Icon = PLAN_ICONS[plan.id] || Zap
   const colors = PLAN_COLORS[plan.id] || PLAN_COLORS.basic
   const isLocked = plan.id !== "basic"
+
+  const handleClick = () => {
+    if (plan.id === "basic") {
+      if (hasAccess) {
+        // Already active - go to billing
+        router.push("/billing")
+      } else {
+        // Start purchase
+        onPurchase(plan.id)
+      }
+    }
+  }
 
   return (
     <motion.div
@@ -172,10 +197,23 @@ function PlanCard({
       {plan.id === "basic" ? (
         <NeonButton
           className="w-full py-4"
-          rightIcon={<ChevronRight className="size-5" />}
-          disabled={isCurrentPlan}
+          rightIcon={
+            isPurchasing ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : hasAccess ? (
+              <Settings className="size-5" />
+            ) : (
+              <ChevronRight className="size-5" />
+            )
+          }
+          disabled={isPurchasing}
+          onClick={handleClick}
         >
-          {isCurrentPlan ? "Current Plan" : "Unlock Full Course"}
+          {isPurchasing
+            ? "Redirecting..."
+            : hasAccess
+              ? "Manage Subscription"
+              : "Unlock Full Course"}
         </NeonButton>
       ) : (
         <button
@@ -208,9 +246,22 @@ function PricingLoadingSkeleton() {
 export default function PricingPage() {
   const { status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const { data: courses } = useCourses()
+  const [isPurchasing, setIsPurchasing] = useState(false)
+  const [purchaseError, setPurchaseError] = useState<string | null>(null)
 
-  const { data, isLoading } = useQuery<SubscriptionData>({
+  // Check for canceled state
+  const wasCanceled = searchParams.get("canceled") === "true"
+
+  // Invalidate subscription cache on mount (in case user just returned)
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["subscription"] })
+    queryClient.invalidateQueries({ queryKey: ["subscriptionCheck"] })
+  }, [queryClient])
+
+  const { data, isLoading, refetch } = useQuery<SubscriptionData>({
     queryKey: ["subscription"],
     queryFn: async () => {
       const res = await fetch("/api/subscription")
@@ -218,7 +269,49 @@ export default function PricingPage() {
       return res.json()
     },
     enabled: status === "authenticated",
+    refetchOnMount: "always",
   })
+
+  const handlePurchase = async (planId: string) => {
+    if (planId !== "basic") return
+
+    setIsPurchasing(true)
+    setPurchaseError(null)
+
+    try {
+      // Store last blocked path for redirect after purchase
+      const lastBlockedPath = localStorage.getItem("lastBlockedPath")
+      if (!lastBlockedPath) {
+        // Default to week 2 topic
+        localStorage.setItem("lastBlockedPath", "/dashboard")
+      }
+
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create checkout session")
+      }
+
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error("No checkout URL returned")
+      }
+    } catch (error) {
+      console.error("Purchase error:", error)
+      setPurchaseError(
+        error instanceof Error ? error.message : "Failed to start checkout"
+      )
+      setIsPurchasing(false)
+    }
+  }
 
   const activeCourse = courses?.find((c) => c.isEnrolled && !c.isLocked)
   const weeks = activeCourse?.weeks || []
@@ -243,6 +336,32 @@ export default function PricingPage() {
   return (
     <DashboardShell weeks={weeks} currentCourse={activeCourse?.name}>
       <div className="p-6 md:p-8 lg:p-12 max-w-6xl mx-auto">
+        {/* Canceled banner */}
+        {wasCanceled && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center gap-3"
+          >
+            <AlertCircle className="size-5 text-[#F59E0B] flex-shrink-0" />
+            <p className="text-sm text-[#F59E0B]">
+              Checkout was canceled. No charges were made.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Purchase error */}
+        {purchaseError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3"
+          >
+            <AlertCircle className="size-5 text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-400">{purchaseError}</p>
+          </motion.div>
+        )}
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -311,6 +430,9 @@ export default function PricingPage() {
               isCurrentPlan={hasAccess && currentPlanId === plan.id}
               isRecommended={plan.id === "basic"}
               index={index}
+              onPurchase={handlePurchase}
+              isPurchasing={isPurchasing}
+              hasAccess={hasAccess}
             />
           ))}
         </div>
@@ -327,7 +449,7 @@ export default function PricingPage() {
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: Target, label: "All 5 Weeks", desc: "Complete curriculum" },
+              { icon: Target, label: "All 9 Weeks", desc: "Complete curriculum" },
               { icon: Flame, label: "Daily Streak", desc: "Track your progress" },
               { icon: Trophy, label: "Leagues", desc: "Weekly competitions" },
               { icon: Star, label: "Achievements", desc: "Earn badges & XP" },
@@ -347,15 +469,21 @@ export default function PricingPage() {
           </div>
         </motion.div>
 
-        {/* Payment notice */}
-        <motion.p
+        {/* Secure payment notice */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="text-center text-sm text-[#6B7280] mt-12"
+          className="text-center mt-12 flex flex-col items-center gap-2"
         >
-          Payment processing coming soon. For now, enjoy Week 1 completely free!
-        </motion.p>
+          <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+            <Lock className="size-4" />
+            <span>Secure payment powered by Stripe</span>
+          </div>
+          <p className="text-xs text-[#6B7280]">
+            Cancel anytime. Instant access after payment.
+          </p>
+        </motion.div>
       </div>
     </DashboardShell>
   )

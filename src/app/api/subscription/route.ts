@@ -21,6 +21,9 @@ export async function GET() {
         status: subscription.status,
         planId: subscription.planId,
         hasAccess: subscription.hasAccess,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+        lastPaymentStatus: subscription.lastPaymentStatus,
       },
       plans,
     })

@@ -73,6 +73,9 @@ export async function getUserSubscription(userId: string) {
       planId: "basic",
       plan: PLANS.basic,
       hasAccess: false,
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      lastPaymentStatus: null,
     }
   }
 
@@ -81,6 +84,9 @@ export async function getUserSubscription(userId: string) {
     planId: subscription.planId,
     plan: subscription.plan,
     hasAccess: subscription.status === SubscriptionStatus.ACTIVE,
+    currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() || null,
+    cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+    lastPaymentStatus: subscription.lastPaymentStatus,
   }
 }
 
