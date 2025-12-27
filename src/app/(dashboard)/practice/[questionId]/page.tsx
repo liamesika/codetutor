@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { routes } from "@/lib/routes"
 import { useInvalidateStats, useIsExecutorAvailable, useInvalidateProgression } from "@/lib/hooks"
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { ExecutorStatusBadge } from "@/components/executor-status-banner"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,7 +28,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet"
 import {
   CodeEditor,
@@ -44,7 +44,8 @@ import {
   MessageSquare,
   Zap,
   Clock,
-  GripVertical,
+  AlertTriangle,
+  Home,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -104,20 +105,78 @@ interface ExecutionResult {
   } | null
 }
 
+// Not found component - displayed when question doesn't exist
+function QuestionNotFound() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#0F0E26] via-[#1E1B4B]/50 to-[#0F0E26] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-[#1E1B4B]/80 border-amber-500/30 backdrop-blur-xl">
+        <CardContent className="p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-amber-500/20 flex items-center justify-center">
+            <AlertTriangle className="size-10 text-amber-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Question Not Found
+          </h1>
+          <p className="text-[#9CA3AF] mb-6">
+            This question doesn&apos;t exist or may have been removed.
+            Please go back to the dashboard to find another challenge.
+          </p>
+          <Link href={routes.dashboard()}>
+            <Button className="gap-2 bg-[#4F46E5] hover:bg-[#4F46E5]/80">
+              <Home className="size-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Loading skeleton component
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="p-4 border-b border-border/50">
+        <div className="flex items-center gap-4">
+          <div className="skeleton h-8 w-8 rounded-lg bg-[#4F46E5]/20" />
+          <div className="skeleton h-5 w-64 rounded bg-[#4F46E5]/20" />
+        </div>
+      </div>
+      <div className="flex-1 flex p-4 gap-4">
+        <div className="flex-1 glass-card p-4 flex flex-col">
+          <div className="skeleton h-8 w-48 rounded mb-4 bg-[#4F46E5]/20" />
+          <div className="flex-1 skeleton rounded-lg bg-[#4F46E5]/20" />
+        </div>
+        <div className="w-[400px] glass-card p-4 hidden lg:flex flex-col gap-4">
+          <div className="skeleton h-6 w-32 rounded bg-[#4F46E5]/20" />
+          <div className="skeleton h-4 w-full rounded bg-[#4F46E5]/20" />
+          <div className="skeleton h-4 w-3/4 rounded bg-[#4F46E5]/20" />
+          <div className="skeleton h-32 w-full rounded-lg mt-4 bg-[#4F46E5]/20" />
+        </div>
+      </div>
+      <div className="glass-card border-t-0 rounded-t-none p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <div className="skeleton h-9 w-20 rounded-lg bg-[#4F46E5]/20" />
+            <div className="skeleton h-9 w-20 rounded-lg bg-[#4F46E5]/20" />
+          </div>
+          <div className="skeleton h-10 w-36 rounded-xl bg-[#4F46E5]/20" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function PracticePage({
   params,
 }: {
-  params: Promise<{ topicId: string; questionId: string }>
+  params: Promise<{ questionId: string }>
 }) {
+  // Unwrap params first (React 19 async params)
   const { questionId } = use(params)
-  const { status } = useSession()
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const isExecutorAvailable = useIsExecutorAvailable()
-  const invalidateStats = useInvalidateStats()
-  const invalidateProgression = useInvalidateProgression()
-  const { triggerLevelUp } = useLevelUpContext()
 
+  // ALL useState calls MUST be at the top level, before any conditions
   const [code, setCode] = useState("")
   const [originalCode, setOriginalCode] = useState("")
   const [hintsUsed, setHintsUsed] = useState(0)
@@ -126,16 +185,36 @@ export default function PracticePage({
   const [result, setResult] = useState<ExecutionResult | null>(null)
   const [activeTab, setActiveTab] = useState("question")
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
+  const [resultsOpen, setResultsOpen] = useState(false)
 
-  // Fetch question data
-  const { data: question, isLoading } = useQuery<Question>({
+  // Hooks
+  const { status } = useSession()
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const isExecutorAvailable = useIsExecutorAvailable()
+  const invalidateStats = useInvalidateStats()
+  const invalidateProgression = useInvalidateProgression()
+  const { triggerLevelUp } = useLevelUpContext()
+
+  // Fetch question data - with proper error handling
+  const {
+    data: question,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<Question>({
     queryKey: ["question", questionId],
     queryFn: async () => {
-      const res = await fetch(`/api/questions/${questionId}`)
-      if (!res.ok) throw new Error("Failed to fetch question")
+      if (!questionId) throw new Error("No question ID provided")
+      const res = await fetch(routes.api.questions(questionId))
+      if (!res.ok) {
+        if (res.status === 404) throw new Error("Question not found")
+        throw new Error("Failed to fetch question")
+      }
       return res.json()
     },
     enabled: !!questionId && status === "authenticated",
+    retry: false, // Don't retry on 404
   })
 
   // Initialize code from draft or starter
@@ -148,13 +227,20 @@ export default function PracticePage({
     }
   }, [question])
 
+  // Open results drawer when result changes
+  useEffect(() => {
+    if (result) {
+      setResultsOpen(true)
+    }
+  }, [result])
+
   // Save draft mutation
   const saveDraftMutation = useMutation({
-    mutationFn: async (code: string) => {
-      const res = await fetch("/api/drafts", {
+    mutationFn: async (draftCode: string) => {
+      const res = await fetch(routes.api.drafts(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId, code }),
+        body: JSON.stringify({ questionId, code: draftCode }),
       })
       if (!res.ok) throw new Error("Failed to save draft")
     },
@@ -166,14 +252,14 @@ export default function PracticePage({
   // Execute code mutation
   const executeMutation = useMutation({
     mutationFn: async ({ runOnly }: { runOnly: boolean }) => {
-      const res = await fetch("/api/execute", {
+      const res = await fetch(routes.api.execute(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questionId, code, runOnly }),
       })
       if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || "Failed to execute")
+        const errorData = await res.json()
+        throw new Error(errorData.error || "Failed to execute")
       }
       return res.json() as Promise<ExecutionResult>
     },
@@ -188,22 +274,21 @@ export default function PracticePage({
 
         // Check for level up and trigger ceremony
         if (data.progression?.leveledUp && data.progression.previousLevel && data.progression.newLevel) {
-          // Small delay to let the success toast show first
           setTimeout(() => {
             triggerLevelUp(data.progression!.previousLevel, data.progression!.newLevel)
           }, 500)
         }
       }
     },
-    onError: (error) => {
-      toast.error(error.message)
+    onError: (err) => {
+      toast.error(err.message)
     },
   })
 
   // Use hint mutation
   const hintMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/questions/${questionId}/hint`, {
+      const res = await fetch(routes.api.hint(questionId), {
         method: "POST",
       })
       if (!res.ok) throw new Error("Failed to get hint")
@@ -214,15 +299,15 @@ export default function PracticePage({
       toast.info(`Hint ${data.hintIndex + 1}: -${data.pointsDeducted} XP`)
       queryClient.invalidateQueries({ queryKey: ["question", questionId] })
     },
-    onError: (error) => {
-      toast.error(error.message)
+    onError: (err) => {
+      toast.error(err.message)
     },
   })
 
   // Reveal solution mutation
   const revealMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/questions/${questionId}/solution`, {
+      const res = await fetch(routes.api.solution(questionId), {
         method: "POST",
       })
       if (!res.ok) throw new Error("Failed to reveal solution")
@@ -233,8 +318,8 @@ export default function PracticePage({
       setSolutionCode(data.solutionCode)
       toast.info(`Solution revealed: -${data.pointsDeducted} XP`)
     },
-    onError: (error) => {
-      toast.error(error.message)
+    onError: (err) => {
+      toast.error(err.message)
     },
   })
 
@@ -263,6 +348,7 @@ export default function PracticePage({
     return () => clearInterval(interval)
   }, [code, question, saveDraftMutation])
 
+  // Action handlers
   const handleRun = useCallback(() => {
     executeMutation.mutate({ runOnly: true })
   }, [executeMutation])
@@ -300,66 +386,27 @@ export default function PracticePage({
     setActiveTab("code")
   }, [])
 
+  // RENDER CONDITIONS - after all hooks are called
+
+  // Show loading state
   if (status === "loading" || isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        {/* Header skeleton */}
-        <div className="p-4 border-b border-border/50">
-          <div className="flex items-center gap-4">
-            <div className="skeleton h-8 w-8 rounded-lg" />
-            <div className="skeleton h-5 w-64 rounded" />
-          </div>
-        </div>
-        {/* Content skeleton */}
-        <div className="flex-1 flex p-4 gap-4">
-          <div className="flex-1 glass-card p-4 flex flex-col">
-            <div className="skeleton h-8 w-48 rounded mb-4" />
-            <div className="flex-1 skeleton rounded-lg" />
-          </div>
-          <div className="w-[400px] glass-card p-4 hidden lg:flex flex-col gap-4">
-            <div className="skeleton h-6 w-32 rounded" />
-            <div className="skeleton h-4 w-full rounded" />
-            <div className="skeleton h-4 w-3/4 rounded" />
-            <div className="skeleton h-32 w-full rounded-lg mt-4" />
-          </div>
-        </div>
-        {/* Action bar skeleton */}
-        <div className="glass-card border-t-0 rounded-t-none p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              <div className="skeleton h-9 w-20 rounded-lg" />
-              <div className="skeleton h-9 w-20 rounded-lg" />
-            </div>
-            <div className="skeleton h-10 w-36 rounded-xl" />
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingSkeleton />
   }
 
+  // Redirect to login if not authenticated
   if (status === "unauthenticated") {
-    router.push("/login")
-    return null
+    router.push(routes.login())
+    return <LoadingSkeleton />
   }
 
-  if (!question) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Question not found</p>
-      </div>
-    )
+  // Show not found if question doesn't exist or error occurred
+  if (isError || !question) {
+    return <QuestionNotFound />
   }
 
+  // Computed values
   const hasChanges = code !== originalCode && code !== (question.draft || "")
   const hintsAvailable = question.hints.length - hintsUsed
-  const [resultsOpen, setResultsOpen] = useState(false)
-
-  // Open results drawer when result changes
-  useEffect(() => {
-    if (result) {
-      setResultsOpen(true)
-    }
-  }, [result])
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -371,7 +418,7 @@ export default function PracticePage({
         className="border-b border-border/50 bg-background/80 backdrop-blur-sm px-4 py-3 flex items-center justify-between shrink-0"
       >
         <div className="flex items-center gap-4">
-          <Link href={`/learn/${question.topic.id}`}>
+          <Link href={question.topic?.id ? routes.learn(question.topic.id) : routes.dashboard()}>
             <Button variant="ghost" size="sm" className="gap-2 hover:bg-accent/50">
               <ChevronLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back</span>
@@ -380,17 +427,24 @@ export default function PracticePage({
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard" className="text-muted-foreground hover:text-foreground">
+                <BreadcrumbLink href={routes.dashboard()} className="text-muted-foreground hover:text-foreground">
                   Dashboard
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/learn/${question.topic.id}`} className="text-muted-foreground hover:text-foreground">
-                  Week {question.topic.week.weekNumber}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
+              {question.topic && (
+                <>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink
+                      href={routes.learn(question.topic.id)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Week {question.topic.week?.weekNumber || "?"}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                </>
+              )}
               <BreadcrumbItem>
                 <BreadcrumbPage className="font-medium">{question.title}</BreadcrumbPage>
               </BreadcrumbItem>
@@ -401,9 +455,7 @@ export default function PracticePage({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {/* Executor status badge */}
           <ExecutorStatusBadge />
-          {/* Quick stats */}
           <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Zap className="h-4 w-4 text-primary" />

@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { DashboardShell } from "@/components/layout"
 import { useCourses } from "@/lib/hooks"
+import { routes } from "@/lib/routes"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -121,7 +122,7 @@ export default function TopicPage({
   }
 
   if (status === "unauthenticated") {
-    router.push("/login")
+    router.push(routes.login())
     return null
   }
 
@@ -198,7 +199,7 @@ export default function TopicPage({
 
           {/* Start practice button */}
           {nextQuestion?.questionId && (
-            <Link href={`/learn/${topicId}/practice/${nextQuestion.questionId}`}>
+            <Link href={routes.practice(nextQuestion.questionId)}>
               <Button size="lg" className="w-full md:w-auto gap-2">
                 <Play className="h-4 w-4" />
                 {topic.stats.passedQuestions === 0
@@ -244,7 +245,7 @@ export default function TopicPage({
               return (
                 <Link
                   key={question.id}
-                  href={`/learn/${topicId}/practice/${question.id}`}
+                  href={routes.practice(question.id)}
                 >
                   <Card
                     className={`hover:border-primary/50 transition-colors cursor-pointer ${

@@ -523,7 +523,7 @@ export default function DashboardPage() {
                             transition={{ delay: 0.5 + index * 0.1 }}
                           >
                             <Link
-                              href={`/learn/${topic.topicId}/practice`}
+                              href={`/learn/${topic.topicId}`}
                               className="block"
                             >
                               <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent/50 transition-colors group">
@@ -803,7 +803,7 @@ export default function DashboardPage() {
           </div>
           {stats?.weakTopics && stats.weakTopics.length > 0 && (
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link href={`/learn/${stats.weakTopics[0].topicId}/practice`}>
+              <Link href={`/learn/${stats.weakTopics[0].topicId}`}>
                 <Button className="gap-2 gradient-neon text-white shadow-lg hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all">
                   <Play className="h-4 w-4" />
                   Practice Weak Areas

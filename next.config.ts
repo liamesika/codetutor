@@ -24,6 +24,18 @@ const nextConfig: NextConfig = {
     },
   },
 
+  // Redirects for canonical routes
+  async redirects() {
+    return [
+      // Legacy practice route -> canonical practice route
+      {
+        source: "/learn/:topicId/practice/:questionId",
+        destination: "/practice/:questionId",
+        permanent: true, // 308 redirect
+      },
+    ]
+  },
+
   // Headers for security
   async headers() {
     return [

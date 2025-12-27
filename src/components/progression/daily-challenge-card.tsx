@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { routes } from "@/lib/routes"
 import { NeonButton } from "@/components/ui/neon-button"
 import { Badge } from "@/components/ui/badge"
 
@@ -118,7 +119,7 @@ export function DailyChallengeCard({ className, compact = false }: DailyChalleng
           ) : (
             <NeonButton
               size="sm"
-              onClick={() => router.push(`/learn/${challenge.question.topic.id}/practice?q=${challenge.question.id}`)}
+              onClick={() => router.push(routes.practice(challenge.question.id))}
             >
               Start
             </NeonButton>
@@ -239,7 +240,7 @@ export function DailyChallengeCard({ className, compact = false }: DailyChalleng
             <NeonButton
               variant="secondary"
               size="sm"
-              onClick={() => router.push(`/learn/${challenge.question.topic.id}/practice?q=${challenge.question.id}`)}
+              onClick={() => router.push(routes.practice(challenge.question.id))}
             >
               Review
             </NeonButton>
@@ -247,7 +248,7 @@ export function DailyChallengeCard({ className, compact = false }: DailyChalleng
         ) : (
           <NeonButton
             className="w-full"
-            onClick={() => router.push(`/learn/${challenge.question.topic.id}/practice?q=${challenge.question.id}`)}
+            onClick={() => router.push(routes.practice(challenge.question.id))}
             rightIcon={<ArrowRight className="size-4" />}
           >
             Start Challenge
