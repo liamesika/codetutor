@@ -92,6 +92,7 @@ export async function getUserSubscription(userId: string) {
 
 /**
  * Check if user can access specific week content
+ * IMPORTANT: This checks BOTH subscription AND entitlement for access
  */
 export async function canAccessWeek(
   userId: string,
@@ -102,9 +103,26 @@ export async function canAccessWeek(
     return { allowed: true }
   }
 
+  // Check subscription first
   const subscription = await getUserSubscription(userId)
-
   if (subscription.hasAccess) {
+    return { allowed: true }
+  }
+
+  // CRITICAL: Also check entitlement table (PRO access granted via admin)
+  // Import is done dynamically to avoid circular dependency
+  const { getUserEntitlement } = await import("@/lib/entitlement")
+  const entitlement = await getUserEntitlement(userId)
+
+  console.log("[SUBSCRIPTION] Access check for week", weekNumber, {
+    userId,
+    subscriptionHasAccess: subscription.hasAccess,
+    entitlementHasAccess: entitlement.hasAccess,
+    entitlementPlan: entitlement.plan,
+    entitlementStatus: entitlement.status,
+  })
+
+  if (entitlement.hasAccess) {
     return { allowed: true }
   }
 
