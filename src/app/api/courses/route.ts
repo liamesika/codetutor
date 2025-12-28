@@ -4,15 +4,29 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { getUserEntitlement, FREE_ACCESS } from "@/lib/entitlement"
 
+// Force dynamic to ensure entitlement is always fresh (no caching)
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
     // Get user's entitlement to determine access
     let userHasAccess = false
+    let entitlementDebug = null
     if (session?.user?.id) {
       const entitlement = await getUserEntitlement(session.user.id)
       userHasAccess = entitlement.hasAccess
+      entitlementDebug = entitlement
+
+      // Debug logging for entitlement issues
+      console.log("[COURSES API] User entitlement check:", {
+        userId: session.user.id,
+        email: session.user.email,
+        entitlement,
+        userHasAccess,
+      })
     }
 
     const courses = await db.course.findMany({

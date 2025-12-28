@@ -34,15 +34,21 @@ interface Course {
   weeks: Week[]
 }
 
-// Cache configuration - courses data is relatively stable
-const COURSES_STALE_TIME = 5 * 60 * 1000 // 5 minutes
-const COURSES_GC_TIME = 30 * 60 * 1000 // 30 minutes
+// Cache configuration - courses data must be fresh to reflect entitlement changes
+const COURSES_STALE_TIME = 0 // Always refetch - entitlement can change
+const COURSES_GC_TIME = 5 * 60 * 1000 // 5 minutes garbage collection
 
 export function useCourses() {
   return useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: async () => {
-      const response = await fetch("/api/courses")
+      // Add cache buster to bypass any HTTP caching
+      const response = await fetch("/api/courses", {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      })
       if (!response.ok) {
         throw new Error("Failed to fetch courses")
       }
@@ -50,8 +56,8 @@ export function useCourses() {
     },
     staleTime: COURSES_STALE_TIME,
     gcTime: COURSES_GC_TIME,
-    refetchOnWindowFocus: false, // Prevent refetch loops
-    refetchOnMount: false, // Use cache on mount if available
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchOnMount: true, // Always refetch on mount to get fresh entitlement data
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   })
