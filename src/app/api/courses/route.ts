@@ -33,7 +33,7 @@ export async function GET() {
       orderBy: { orderIndex: "asc" },
       include: {
         weeks: {
-          orderBy: { orderIndex: "asc" },
+          orderBy: { weekNumber: "asc" },
           include: {
             topics: {
               orderBy: { orderIndex: "asc" },
@@ -129,7 +129,15 @@ export async function GET() {
       })
     })
 
-    return NextResponse.json(coursesWithProgress)
+    // Add debug header to help troubleshoot entitlement issues in production
+    const response = NextResponse.json(coursesWithProgress)
+    response.headers.set("X-Entitlement-Debug", JSON.stringify({
+      userId: session?.user?.id || "anonymous",
+      email: session?.user?.email || "anonymous",
+      hasAccess: userHasAccess,
+      weekCount: coursesWithProgress[0]?.weeks?.length || 0,
+    }))
+    return response
   } catch (error) {
     console.error("Error fetching courses:", error)
     return NextResponse.json(

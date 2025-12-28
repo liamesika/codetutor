@@ -42,11 +42,13 @@ export function useCourses() {
   return useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: async () => {
-      // Add cache buster to bypass any HTTP caching
+      // Add cache buster and credentials to bypass HTTP caching and send auth cookies
       const response = await fetch("/api/courses", {
         cache: "no-store",
+        credentials: "include", // Ensure cookies are sent for authentication
         headers: {
           "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
         },
       })
       if (!response.ok) {
