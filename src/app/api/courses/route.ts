@@ -12,9 +12,26 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
+    // CRITICAL DEBUG: Log session state for troubleshooting auth issues
+    console.log("[COURSES API] Session state:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id || "MISSING",
+      email: session?.user?.email || "MISSING",
+      sessionKeys: session ? Object.keys(session) : [],
+      userKeys: session?.user ? Object.keys(session.user) : [],
+    })
+
     // Get user's entitlement to determine access
     let userHasAccess = false
-    let entitlementDebug = null
+    let entitlementDebug: {
+      status: string | null
+      plan: string | null
+      hasAccess: boolean
+      expiresAt: string | null
+      grantedAt: string | null
+    } | null = null
+
     if (session?.user?.id) {
       const entitlement = await getUserEntitlement(session.user.id)
       userHasAccess = entitlement.hasAccess
@@ -26,6 +43,13 @@ export async function GET() {
         email: session.user.email,
         entitlement,
         userHasAccess,
+      })
+    } else {
+      // Log why we're treating user as anonymous
+      console.log("[COURSES API] No authenticated user - treating as anonymous:", {
+        sessionExists: !!session,
+        userExists: !!session?.user,
+        userIdExists: !!session?.user?.id,
       })
     }
 
@@ -135,7 +159,11 @@ export async function GET() {
       userId: session?.user?.id || "anonymous",
       email: session?.user?.email || "anonymous",
       hasAccess: userHasAccess,
+      plan: entitlementDebug?.plan || "none",
+      status: entitlementDebug?.status || "none",
       weekCount: coursesWithProgress[0]?.weeks?.length || 0,
+      lockedWeeks: coursesWithProgress[0]?.weeks?.filter(w => w.isLocked).length || 0,
+      sessionValid: !!session?.user?.id,
     }))
     return response
   } catch (error) {
