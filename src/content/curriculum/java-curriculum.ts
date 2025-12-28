@@ -1332,1284 +1332,853 @@ public class Solution {
         }
       ]
     },
-    // Week 6 - Object-Oriented Programming Basics
+    // Week 6 - Recursion Fundamentals
     {
       weekNumber: 6,
-      title: "OOP Fundamentals",
-      description: "Classes, objects, constructors, and encapsulation",
+      title: "Recursion — Fundamentals",
+      description: "Master recursive thinking with numbers and strings",
       topics: [
         {
-          slug: "classes-basics",
-          title: "Classes & Objects",
-          description: "Creating classes and instantiating objects",
+          slug: "recursion-fundamentals",
+          title: "Recursion — Numbers & Strings",
+          description: "Learn base cases, recursion steps, and apply to numbers and strings",
           questions: [
             {
-              slug: "simple-class",
+              slug: "factorial-basic",
               type: "FULL_PROGRAM",
-              title: "Simple Class",
-              prompt: "Create a class Person with name field. Create object and print name.",
-              starterCode: `class Person {
-    // Add name field
+              title: "Factorial (Basic Recursion)",
+              prompt: `Write a recursive method that calculates the factorial of a non-negative integer n.
 
-}
+**Definition:** n! = n × (n-1) × (n-2) × ... × 1, and 0! = 1
 
-public class Solution {
+**Examples:**
+- factorial(0) → 1
+- factorial(1) → 1
+- factorial(5) → 120 (5 × 4 × 3 × 2 × 1)
+
+**Requirements:**
+- Must use recursion (no loops allowed)
+- Return -1 for negative inputs`,
+              constraints: "Do NOT use loops. Your solution MUST be recursive. Handle negative inputs by returning -1.",
+              starterCode: `public class Solution {
+    public static long factorial(int n) {
+        // Your recursive implementation here
+        // Base case: What's the simplest case?
+        // Recursive case: How does factorial(n) relate to factorial(n-1)?
+
+        return 0; // Replace this
+    }
+
     public static void main(String[] args) {
-        // Create Person and print name
-
+        System.out.println(factorial(0));  // Expected: 1
+        System.out.println(factorial(5));  // Expected: 120
+        System.out.println(factorial(-1)); // Expected: -1
     }
 }`,
-              solutionCode: `class Person {
-    String name;
-}
+              solutionCode: `public class Solution {
+    public static long factorial(int n) {
+        // Handle invalid input
+        if (n < 0) {
+            return -1;
+        }
+        // Base case: 0! = 1 and 1! = 1
+        if (n <= 1) {
+            return 1;
+        }
+        // Recursive case: n! = n * (n-1)!
+        return n * factorial(n - 1);
+    }
 
-public class Solution {
     public static void main(String[] args) {
-        Person p = new Person();
-        p.name = "Alice";
-        System.out.println(p.name);
+        System.out.println(factorial(0));
+        System.out.println(factorial(5));
+        System.out.println(factorial(-1));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "Alice", isHidden: false }
+                { input: "", expectedOutput: "1\n120\n-1", isHidden: false }
               ],
               hints: [
-                "Declare String name in class",
-                "Use new Person()",
-                "Access with p.name"
+                "Every recursive function needs a BASE CASE - when does recursion stop?",
+                "For factorial, the base case is when n is 0 or 1 (both return 1)",
+                "The recursive step: factorial(n) = n * factorial(n-1)",
+                "Don't forget to handle negative inputs BEFORE the base case"
               ],
-              tags: ["oop", "class", "object"],
-              difficulty: 2,
+              tags: ["recursion", "numbers", "base-case"],
+              difficulty: 1,
               estimatedMinutes: 8,
-              points: 30
+              points: 100
             },
             {
-              slug: "constructor",
+              slug: "power-recursive",
               type: "FULL_PROGRAM",
-              title: "Constructor",
-              prompt: "Create Person class with constructor that takes name. Print the name.",
-              starterCode: `class Person {
-    String name;
+              title: "Power (Base to Exponent)",
+              prompt: `Write a recursive method that calculates base raised to the power of exponent (base^exp).
 
-    // Add constructor
+**Examples:**
+- power(2, 0) → 1 (anything to the power of 0 is 1)
+- power(2, 3) → 8 (2 × 2 × 2)
+- power(5, 2) → 25
 
-}
+**Requirements:**
+- Must use recursion (no loops, no Math.pow)
+- Exponent is guaranteed to be non-negative`,
+              constraints: "Do NOT use loops or Math.pow(). Your solution MUST be recursive.",
+              starterCode: `public class Solution {
+    public static long power(int base, int exp) {
+        // Your recursive implementation here
 
-public class Solution {
+        return 0; // Replace this
+    }
+
     public static void main(String[] args) {
-        Person p = new Person("Bob");
-        System.out.println(p.name);
+        System.out.println(power(2, 0));  // Expected: 1
+        System.out.println(power(2, 3));  // Expected: 8
+        System.out.println(power(5, 2));  // Expected: 25
     }
 }`,
-              solutionCode: `class Person {
-    String name;
-
-    Person(String name) {
-        this.name = name;
+              solutionCode: `public class Solution {
+    public static long power(int base, int exp) {
+        // Base case: anything to the power of 0 is 1
+        if (exp == 0) {
+            return 1;
+        }
+        // Recursive case: base^exp = base * base^(exp-1)
+        return base * power(base, exp - 1);
     }
-}
 
-public class Solution {
     public static void main(String[] args) {
-        Person p = new Person("Bob");
-        System.out.println(p.name);
+        System.out.println(power(2, 0));
+        System.out.println(power(2, 3));
+        System.out.println(power(5, 2));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "Bob", isHidden: false }
+                { input: "", expectedOutput: "1\n8\n25", isHidden: false }
               ],
               hints: [
-                "Constructor has same name as class",
-                "Use this.name = name",
-                "No return type for constructor"
+                "Base case: What is any number raised to the power of 0?",
+                "The recursive formula: power(base, exp) = base * power(base, exp - 1)"
               ],
-              tags: ["oop", "constructor", "this"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
-            },
-            {
-              slug: "getter-setter",
-              type: "FULL_PROGRAM",
-              title: "Getters & Setters",
-              prompt: "Create Person with private name, getter and setter. Set to 'Charlie' and print.",
-              starterCode: `class Person {
-    private String name;
-
-    // Add getter and setter
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Person p = new Person();
-        p.setName("Charlie");
-        System.out.println(p.getName());
-    }
-}`,
-              solutionCode: `class Person {
-    private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Person p = new Person();
-        p.setName("Charlie");
-        System.out.println(p.getName());
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Charlie", isHidden: false }
-              ],
-              hints: [
-                "getName() returns name",
-                "setName(String) assigns name",
-                "Use public for methods"
-              ],
-              tags: ["oop", "encapsulation", "getter", "setter"],
+              tags: ["recursion", "numbers", "power"],
               difficulty: 2,
               estimatedMinutes: 10,
-              points: 35
+              points: 120
             },
             {
-              slug: "multiple-fields",
+              slug: "fibonacci-recursive",
               type: "FULL_PROGRAM",
-              title: "Multiple Fields",
-              prompt: "Create Rectangle with width and height. Print area (width * height).",
-              starterCode: `class Rectangle {
-    int width;
-    int height;
+              title: "Fibonacci Number",
+              prompt: `Write a recursive method that returns the nth Fibonacci number.
 
-    // Add constructor and getArea method
+**Fibonacci Sequence:** 0, 1, 1, 2, 3, 5, 8, 13, 21, ...
+- F(0) = 0
+- F(1) = 1  
+- F(n) = F(n-1) + F(n-2) for n > 1
 
-}
+**Examples:**
+- fibonacci(0) → 0
+- fibonacci(1) → 1
+- fibonacci(6) → 8
 
-public class Solution {
+**Requirements:**
+- Must use recursion
+- Return -1 for negative inputs`,
+              constraints: "Do NOT use loops. Your solution MUST be recursive.",
+              starterCode: `public class Solution {
+    public static int fibonacci(int n) {
+        // Your recursive implementation here
+
+        return 0; // Replace this
+    }
+
     public static void main(String[] args) {
-        Rectangle r = new Rectangle(4, 5);
-        System.out.println(r.getArea());
+        System.out.println(fibonacci(0));   // Expected: 0
+        System.out.println(fibonacci(1));   // Expected: 1
+        System.out.println(fibonacci(6));   // Expected: 8
+        System.out.println(fibonacci(-1));  // Expected: -1
     }
 }`,
-              solutionCode: `class Rectangle {
-    int width;
-    int height;
-
-    Rectangle(int width, int height) {
-        this.width = width;
-        this.height = height;
+              solutionCode: `public class Solution {
+    public static int fibonacci(int n) {
+        if (n < 0) {
+            return -1;
+        }
+        if (n == 0) {
+            return 0;
+        }
+        if (n == 1) {
+            return 1;
+        }
+        return fibonacci(n - 1) + fibonacci(n - 2);
     }
 
-    int getArea() {
-        return width * height;
-    }
-}
-
-public class Solution {
     public static void main(String[] args) {
-        Rectangle r = new Rectangle(4, 5);
-        System.out.println(r.getArea());
+        System.out.println(fibonacci(0));
+        System.out.println(fibonacci(1));
+        System.out.println(fibonacci(6));
+        System.out.println(fibonacci(-1));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "20", isHidden: false }
+                { input: "", expectedOutput: "0\n1\n8\n-1", isHidden: false }
               ],
               hints: [
-                "Constructor takes two params",
-                "getArea returns width * height",
-                "4 * 5 = 20"
+                "Fibonacci has TWO base cases: F(0)=0 and F(1)=1",
+                "The recursive formula adds two previous values: F(n) = F(n-1) + F(n-2)"
               ],
-              tags: ["oop", "methods", "constructor"],
-              difficulty: 2,
-              estimatedMinutes: 10,
-              points: 35
-            }
-          ]
-        },
-        {
-          slug: "methods-objects",
-          title: "Object Methods",
-          description: "Instance methods and behavior",
-          questions: [
-            {
-              slug: "instance-method",
-              type: "FULL_PROGRAM",
-              title: "Instance Method",
-              prompt: "Create Counter class with count field and increment() method. Print count after 3 increments.",
-              starterCode: `class Counter {
-    int count = 0;
-
-    // Add increment method
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Counter c = new Counter();
-        c.increment();
-        c.increment();
-        c.increment();
-        System.out.println(c.count);
-    }
-}`,
-              solutionCode: `class Counter {
-    int count = 0;
-
-    void increment() {
-        count++;
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Counter c = new Counter();
-        c.increment();
-        c.increment();
-        c.increment();
-        System.out.println(c.count);
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "3", isHidden: false }
-              ],
-              hints: [
-                "void increment()",
-                "count++ or count = count + 1",
-                "Called 3 times"
-              ],
-              tags: ["oop", "methods", "instance"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
-            },
-            {
-              slug: "method-return",
-              type: "FULL_PROGRAM",
-              title: "Method with Return",
-              prompt: "Create BankAccount with balance. Add deposit(int) and getBalance() methods.",
-              starterCode: `class BankAccount {
-    private int balance = 0;
-
-    // Add deposit and getBalance
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        BankAccount acc = new BankAccount();
-        acc.deposit(100);
-        acc.deposit(50);
-        System.out.println(acc.getBalance());
-    }
-}`,
-              solutionCode: `class BankAccount {
-    private int balance = 0;
-
-    void deposit(int amount) {
-        balance += amount;
-    }
-
-    int getBalance() {
-        return balance;
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        BankAccount acc = new BankAccount();
-        acc.deposit(100);
-        acc.deposit(50);
-        System.out.println(acc.getBalance());
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "150", isHidden: false }
-              ],
-              hints: [
-                "deposit adds to balance",
-                "getBalance returns balance",
-                "100 + 50 = 150"
-              ],
-              tags: ["oop", "methods", "return"],
-              difficulty: 2,
-              estimatedMinutes: 10,
-              points: 35
-            },
-            {
-              slug: "tostring-method",
-              type: "FULL_PROGRAM",
-              title: "toString Method",
-              prompt: "Create Point class with x, y. Override toString() to return \"(x, y)\" format.",
-              starterCode: `class Point {
-    int x, y;
-
-    Point(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    // Override toString
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Point p = new Point(3, 4);
-        System.out.println(p);
-    }
-}`,
-              solutionCode: `class Point {
-    int x, y;
-
-    Point(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    @Override
-    public String toString() {
-        return "(" + x + ", " + y + ")";
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Point p = new Point(3, 4);
-        System.out.println(p);
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "(3, 4)", isHidden: false }
-              ],
-              hints: [
-                "Use @Override annotation",
-                "Return String format",
-                "Concatenate with +"
-              ],
-              tags: ["oop", "toString", "override"],
+              tags: ["recursion", "numbers", "fibonacci"],
               difficulty: 3,
+              estimatedMinutes: 12,
+              points: 150
+            },
+            {
+              slug: "string-equals-recursive",
+              type: "FULL_PROGRAM",
+              title: "String Equals (Recursive)",
+              prompt: `Write a recursive method that checks if two strings are equal WITHOUT using .equals() or loops.
+
+**Examples:**
+- stringEquals("hello", "hello") → true
+- stringEquals("hello", "world") → false
+- stringEquals("", "") → true
+
+**Requirements:**
+- Must use recursion (no loops)
+- Cannot use .equals() or .compareTo()
+- Can use .length(), .charAt(), .substring()`,
+              constraints: "Do NOT use loops, .equals(), or .compareTo().",
+              starterCode: `public class Solution {
+    public static boolean stringEquals(String s1, String s2) {
+        // Your recursive implementation here
+
+        return false; // Replace this
+    }
+
+    public static void main(String[] args) {
+        System.out.println(stringEquals("hello", "hello")); // true
+        System.out.println(stringEquals("hello", "world")); // false
+        System.out.println(stringEquals("", ""));           // true
+        System.out.println(stringEquals("ab", "abc"));      // false
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static boolean stringEquals(String s1, String s2) {
+        if (s1.length() != s2.length()) {
+            return false;
+        }
+        if (s1.length() == 0) {
+            return true;
+        }
+        if (s1.charAt(0) != s2.charAt(0)) {
+            return false;
+        }
+        return stringEquals(s1.substring(1), s2.substring(1));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(stringEquals("hello", "hello"));
+        System.out.println(stringEquals("hello", "world"));
+        System.out.println(stringEquals("", ""));
+        System.out.println(stringEquals("ab", "abc"));
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "true\nfalse\ntrue\nfalse", isHidden: false }
+              ],
+              hints: [
+                "First, check if lengths are different - if so, return false",
+                "Base case: if both strings are empty, they're equal",
+                "Compare first character, then recurse on substring(1)"
+              ],
+              tags: ["recursion", "strings"],
+              difficulty: 4,
+              estimatedMinutes: 15,
+              points: 180
+            },
+            {
+              slug: "reverse-string-recursive",
+              type: "FULL_PROGRAM",
+              title: "Reverse String (Recursive)",
+              prompt: `Write a recursive method that reverses a string.
+
+**Examples:**
+- reverseString("hello") → "olleh"
+- reverseString("a") → "a"
+- reverseString("") → ""
+
+**Requirements:**
+- Must use recursion (no loops)
+- Cannot use StringBuilder.reverse()`,
+              constraints: "Do NOT use loops or StringBuilder.reverse().",
+              starterCode: `public class Solution {
+    public static String reverseString(String s) {
+        // Your recursive implementation here
+
+        return ""; // Replace this
+    }
+
+    public static void main(String[] args) {
+        System.out.println(reverseString("hello")); // olleh
+        System.out.println(reverseString("a"));     // a
+        System.out.println(reverseString(""));      // (empty)
+        System.out.println(reverseString("ab"));    // ba
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static String reverseString(String s) {
+        if (s.length() <= 1) {
+            return s;
+        }
+        return reverseString(s.substring(1)) + s.charAt(0);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(reverseString("hello"));
+        System.out.println(reverseString("a"));
+        System.out.println(reverseString(""));
+        System.out.println(reverseString("ab"));
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "olleh\na\n\nba", isHidden: false }
+              ],
+              hints: [
+                "Base case: empty string or single char returns as-is",
+                "Key insight: reverse('hello') = reverse('ello') + 'h'"
+              ],
+              tags: ["recursion", "strings"],
+              difficulty: 5,
+              estimatedMinutes: 12,
+              points: 200
+            },
+            {
+              slug: "count-char-recursive",
+              type: "FULL_PROGRAM",
+              title: "Count Character (Recursive)",
+              prompt: `Write a recursive method that counts how many times a character appears in a string.
+
+**Examples:**
+- countChar("hello", 'l') → 2
+- countChar("hello", 'z') → 0
+- countChar("", 'a') → 0
+- countChar("aaa", 'a') → 3
+
+**Requirements:**
+- Must use recursion (no loops)`,
+              constraints: "Do NOT use loops.",
+              starterCode: `public class Solution {
+    public static int countChar(String s, char c) {
+        // Your recursive implementation here
+
+        return 0; // Replace this
+    }
+
+    public static void main(String[] args) {
+        System.out.println(countChar("hello", 'l')); // 2
+        System.out.println(countChar("hello", 'z')); // 0
+        System.out.println(countChar("", 'a'));      // 0
+        System.out.println(countChar("aaa", 'a'));   // 3
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static int countChar(String s, char c) {
+        if (s.length() == 0) {
+            return 0;
+        }
+        int count = (s.charAt(0) == c) ? 1 : 0;
+        return count + countChar(s.substring(1), c);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(countChar("hello", 'l'));
+        System.out.println(countChar("hello", 'z'));
+        System.out.println(countChar("", 'a'));
+        System.out.println(countChar("aaa", 'a'));
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "2\n0\n0\n3", isHidden: false }
+              ],
+              hints: [
+                "Base case: empty string → return 0",
+                "Check if s.charAt(0) equals c, if so add 1",
+                "Recurse on s.substring(1) and add the results"
+              ],
+              tags: ["recursion", "strings", "counting"],
+              difficulty: 5,
               estimatedMinutes: 10,
-              points: 40
+              points: 220
             }
           ]
         }
       ]
     },
-    // Week 7 - Inheritance & Polymorphism
+    // Week 7 - Recursion Mastery
     {
       weekNumber: 7,
-      title: "Inheritance & Polymorphism",
-      description: "Extending classes, method overriding, and polymorphic behavior",
+      title: "Recursion — Mastery",
+      description: "Advanced recursion with arrays, optimization, and complex patterns",
       topics: [
         {
-          slug: "inheritance-basics",
-          title: "Inheritance Basics",
-          description: "Extending classes and using super",
+          slug: "recursion-mastery",
+          title: "Recursion — Arrays & Advanced Patterns",
+          description: "Apply recursion to arrays, use memoization, and solve complex recursive problems",
           questions: [
             {
-              slug: "extends-class",
+              slug: "max-value-recursive",
               type: "FULL_PROGRAM",
-              title: "Class Extension",
-              prompt: "Create Animal with name. Create Dog that extends Animal and has breed. Print both.",
-              starterCode: `class Animal {
-    String name;
+              title: "Find Maximum (Recursive)",
+              prompt: `Write a recursive method that finds the maximum value in an integer array.
 
-    Animal(String name) {
-        this.name = name;
+**Examples:**
+- maxValue([1, 5, 3, 9, 2]) → 9
+- maxValue([7]) → 7
+- maxValue([-5, -2, -10]) → -2
+
+**Requirements:**
+- Must use recursion (no loops)`,
+              constraints: "Do NOT use loops or Arrays.stream().",
+              starterCode: `public class Solution {
+    public static int maxValue(int[] arr) {
+        return maxValueHelper(arr, 0);
     }
-}
 
-class Dog extends Animal {
-    // Add breed field and constructor
+    private static int maxValueHelper(int[] arr, int index) {
+        // Your recursive implementation here
 
-}
+        return 0; // Replace this
+    }
 
-public class Solution {
     public static void main(String[] args) {
-        Dog d = new Dog("Buddy", "Labrador");
-        System.out.println(d.name);
-        System.out.println(d.breed);
+        System.out.println(maxValue(new int[]{1, 5, 3, 9, 2})); // 9
+        System.out.println(maxValue(new int[]{7}));             // 7
+        System.out.println(maxValue(new int[]{-5, -2, -10}));   // -2
     }
 }`,
-              solutionCode: `class Animal {
-    String name;
-
-    Animal(String name) {
-        this.name = name;
-    }
-}
-
-class Dog extends Animal {
-    String breed;
-
-    Dog(String name, String breed) {
-        super(name);
-        this.breed = breed;
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Dog d = new Dog("Buddy", "Labrador");
-        System.out.println(d.name);
-        System.out.println(d.breed);
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Buddy\nLabrador", isHidden: false }
-              ],
-              hints: [
-                "Use extends keyword",
-                "Call super(name) in constructor",
-                "Dog inherits name from Animal"
-              ],
-              tags: ["inheritance", "extends", "super"],
-              difficulty: 3,
-              estimatedMinutes: 12,
-              points: 45
-            },
-            {
-              slug: "method-override",
-              type: "FULL_PROGRAM",
-              title: "Method Override",
-              prompt: "Animal has speak() returning \"...\". Dog overrides to return \"Woof!\". Print Dog's speak.",
-              starterCode: `class Animal {
-    String speak() {
-        return "...";
-    }
-}
-
-class Dog extends Animal {
-    // Override speak
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Dog d = new Dog();
-        System.out.println(d.speak());
-    }
-}`,
-              solutionCode: `class Animal {
-    String speak() {
-        return "...";
-    }
-}
-
-class Dog extends Animal {
-    @Override
-    String speak() {
-        return "Woof!";
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Dog d = new Dog();
-        System.out.println(d.speak());
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Woof!", isHidden: false }
-              ],
-              hints: [
-                "Use @Override annotation",
-                "Same method signature",
-                "Return different value"
-              ],
-              tags: ["inheritance", "override", "polymorphism"],
-              difficulty: 3,
-              estimatedMinutes: 10,
-              points: 40
-            },
-            {
-              slug: "super-method",
-              type: "FULL_PROGRAM",
-              title: "Calling Super Method",
-              prompt: "Animal.describe() returns name. Dog.describe() adds breed. Use super.",
-              starterCode: `class Animal {
-    String name;
-    Animal(String name) { this.name = name; }
-
-    String describe() {
-        return "Name: " + name;
-    }
-}
-
-class Dog extends Animal {
-    String breed;
-    Dog(String name, String breed) {
-        super(name);
-        this.breed = breed;
+              solutionCode: `public class Solution {
+    public static int maxValue(int[] arr) {
+        return maxValueHelper(arr, 0);
     }
 
-    // Override describe to add breed
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Dog d = new Dog("Max", "Husky");
-        System.out.println(d.describe());
-    }
-}`,
-              solutionCode: `class Animal {
-    String name;
-    Animal(String name) { this.name = name; }
-
-    String describe() {
-        return "Name: " + name;
-    }
-}
-
-class Dog extends Animal {
-    String breed;
-    Dog(String name, String breed) {
-        super(name);
-        this.breed = breed;
-    }
-
-    @Override
-    String describe() {
-        return super.describe() + ", Breed: " + breed;
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Dog d = new Dog("Max", "Husky");
-        System.out.println(d.describe());
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Name: Max, Breed: Husky", isHidden: false }
-              ],
-              hints: [
-                "Call super.describe()",
-                "Concatenate breed info",
-                "super accesses parent method"
-              ],
-              tags: ["inheritance", "super", "override"],
-              difficulty: 3,
-              estimatedMinutes: 12,
-              points: 45
-            }
-          ]
-        },
-        {
-          slug: "polymorphism",
-          title: "Polymorphism",
-          description: "Using parent type for child objects",
-          questions: [
-            {
-              slug: "polymorphic-array",
-              type: "FULL_PROGRAM",
-              title: "Polymorphic Array",
-              prompt: "Create Animal array with Dog and Cat objects. Call speak() on each.",
-              starterCode: `class Animal {
-    String speak() { return "..."; }
-}
-class Dog extends Animal {
-    String speak() { return "Woof"; }
-}
-class Cat extends Animal {
-    String speak() { return "Meow"; }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        // Create Animal array with Dog and Cat
-
-    }
-}`,
-              solutionCode: `class Animal {
-    String speak() { return "..."; }
-}
-class Dog extends Animal {
-    String speak() { return "Woof"; }
-}
-class Cat extends Animal {
-    String speak() { return "Meow"; }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Animal[] animals = {new Dog(), new Cat()};
-        for (Animal a : animals) {
-            System.out.println(a.speak());
+    private static int maxValueHelper(int[] arr, int index) {
+        if (index == arr.length - 1) {
+            return arr[index];
         }
+        int maxOfRest = maxValueHelper(arr, index + 1);
+        return Math.max(arr[index], maxOfRest);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(maxValue(new int[]{1, 5, 3, 9, 2}));
+        System.out.println(maxValue(new int[]{7}));
+        System.out.println(maxValue(new int[]{-5, -2, -10}));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "Woof\nMeow", isHidden: false }
+                { input: "", expectedOutput: "9\n7\n-2", isHidden: false }
               ],
               hints: [
-                "Animal[] can hold Dog and Cat",
-                "Use for-each loop",
-                "speak() is polymorphic"
+                "Use a helper method with an index parameter",
+                "Base case: when index is at the last element, return that element",
+                "Use Math.max() to compare current with max of the rest"
               ],
-              tags: ["polymorphism", "array", "inheritance"],
-              difficulty: 3,
-              estimatedMinutes: 12,
-              points: 45
+              tags: ["recursion", "arrays"],
+              difficulty: 4,
+              estimatedMinutes: 15,
+              points: 250
             },
             {
-              slug: "instanceof-check",
+              slug: "array-sum-recursive",
               type: "FULL_PROGRAM",
-              title: "instanceof Check",
-              prompt: "Given Animal, print \"Dog!\" if it's a Dog, \"Cat!\" if Cat, else \"Animal\".",
-              starterCode: `class Animal {}
-class Dog extends Animal {}
-class Cat extends Animal {}
+              title: "Array Sum (Recursive)",
+              prompt: `Write a recursive method that calculates the sum of all elements in an array.
 
-public class Solution {
+**Examples:**
+- sumArray([1, 2, 3, 4, 5]) → 15
+- sumArray([10]) → 10
+- sumArray([]) → 0
+
+**Requirements:**
+- Must use recursion (no loops)`,
+              constraints: "Do NOT use loops or streams.",
+              starterCode: `public class Solution {
+    public static int sumArray(int[] arr) {
+        return sumHelper(arr, 0);
+    }
+
+    private static int sumHelper(int[] arr, int index) {
+        // Your recursive implementation here
+
+        return 0; // Replace this
+    }
+
     public static void main(String[] args) {
-        Animal a = new Dog();
-        // Check type and print
-
+        System.out.println(sumArray(new int[]{1, 2, 3, 4, 5})); // 15
+        System.out.println(sumArray(new int[]{10}));            // 10
+        System.out.println(sumArray(new int[]{}));              // 0
     }
 }`,
-              solutionCode: `class Animal {}
-class Dog extends Animal {}
-class Cat extends Animal {}
+              solutionCode: `public class Solution {
+    public static int sumArray(int[] arr) {
+        return sumHelper(arr, 0);
+    }
 
-public class Solution {
+    private static int sumHelper(int[] arr, int index) {
+        if (index >= arr.length) {
+            return 0;
+        }
+        return arr[index] + sumHelper(arr, index + 1);
+    }
+
     public static void main(String[] args) {
-        Animal a = new Dog();
-        if (a instanceof Dog) {
-            System.out.println("Dog!");
-        } else if (a instanceof Cat) {
-            System.out.println("Cat!");
+        System.out.println(sumArray(new int[]{1, 2, 3, 4, 5}));
+        System.out.println(sumArray(new int[]{10}));
+        System.out.println(sumArray(new int[]{}));
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "15\n10\n0", isHidden: false }
+              ],
+              hints: [
+                "Base case: when index >= arr.length, return 0",
+                "Recursive case: arr[index] + sumHelper(arr, index + 1)"
+              ],
+              tags: ["recursion", "arrays"],
+              difficulty: 4,
+              estimatedMinutes: 12,
+              points: 270
+            },
+            {
+              slug: "fibonacci-memoization",
+              type: "FULL_PROGRAM",
+              title: "Fibonacci with Memoization",
+              prompt: `Improve the basic Fibonacci recursion using memoization.
+
+**Problem:** Basic recursive Fibonacci is very slow for large n.
+**Solution:** Use an array to store already-computed values.
+
+**Examples:**
+- fibonacci(10) → 55
+- fibonacci(40) → 102334155 (fast with memoization!)
+- fibonacci(0) → 0
+
+**Requirements:**
+- Use memoization with an array
+- Return -1 for negative inputs`,
+              constraints: "Your solution MUST use memoization.",
+              starterCode: `public class Solution {
+    public static long fibonacci(int n) {
+        if (n < 0) return -1;
+        if (n == 0) return 0;
+        long[] memo = new long[n + 1];
+        for (int i = 0; i <= n; i++) {
+            memo[i] = -1;
+        }
+        return fibHelper(n, memo);
+    }
+
+    private static long fibHelper(int n, long[] memo) {
+        // Your memoized implementation here
+
+        return 0; // Replace this
+    }
+
+    public static void main(String[] args) {
+        System.out.println(fibonacci(10));  // 55
+        System.out.println(fibonacci(40));  // 102334155
+        System.out.println(fibonacci(0));   // 0
+        System.out.println(fibonacci(-1));  // -1
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static long fibonacci(int n) {
+        if (n < 0) return -1;
+        if (n == 0) return 0;
+        long[] memo = new long[n + 1];
+        for (int i = 0; i <= n; i++) {
+            memo[i] = -1;
+        }
+        return fibHelper(n, memo);
+    }
+
+    private static long fibHelper(int n, long[] memo) {
+        if (memo[n] != -1) {
+            return memo[n];
+        }
+        if (n <= 1) {
+            memo[n] = n;
+            return n;
+        }
+        memo[n] = fibHelper(n - 1, memo) + fibHelper(n - 2, memo);
+        return memo[n];
+    }
+
+    public static void main(String[] args) {
+        System.out.println(fibonacci(10));
+        System.out.println(fibonacci(40));
+        System.out.println(fibonacci(0));
+        System.out.println(fibonacci(-1));
+    }
+}`,
+              tests: [
+                { input: "", expectedOutput: "55\n102334155\n0\n-1", isHidden: false }
+              ],
+              hints: [
+                "Check if memo[n] already has a value (!= -1)",
+                "Store the result in memo[n] before returning",
+                "This changes O(2^n) to O(n) time complexity!"
+              ],
+              tags: ["recursion", "memoization", "optimization"],
+              difficulty: 5,
+              estimatedMinutes: 15,
+              points: 350
+            },
+            {
+              slug: "binary-search-recursive",
+              type: "FULL_PROGRAM",
+              title: "Binary Search (Recursive)",
+              prompt: `Implement binary search recursively to find a target value in a sorted array.
+
+**Examples:**
+- binarySearch([1, 3, 5, 7, 9], 5) → 2 (index of 5)
+- binarySearch([1, 3, 5, 7, 9], 1) → 0
+- binarySearch([1, 3, 5, 7, 9], 6) → -1 (not found)
+
+**Requirements:**
+- Must use recursion
+- Return index if found, -1 if not found`,
+              constraints: "Do NOT use loops or Arrays.binarySearch().",
+              starterCode: `public class Solution {
+    public static int binarySearch(int[] arr, int target) {
+        return binarySearchHelper(arr, target, 0, arr.length - 1);
+    }
+
+    private static int binarySearchHelper(int[] arr, int target, int left, int right) {
+        // Your recursive implementation here
+
+        return -1; // Replace this
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 3, 5, 7, 9};
+        System.out.println(binarySearch(arr, 5)); // 2
+        System.out.println(binarySearch(arr, 1)); // 0
+        System.out.println(binarySearch(arr, 6)); // -1
+    }
+}`,
+              solutionCode: `public class Solution {
+    public static int binarySearch(int[] arr, int target) {
+        return binarySearchHelper(arr, target, 0, arr.length - 1);
+    }
+
+    private static int binarySearchHelper(int[] arr, int target, int left, int right) {
+        if (left > right) {
+            return -1;
+        }
+        int mid = left + (right - left) / 2;
+        if (arr[mid] == target) {
+            return mid;
+        } else if (target < arr[mid]) {
+            return binarySearchHelper(arr, target, left, mid - 1);
         } else {
-            System.out.println("Animal");
+            return binarySearchHelper(arr, target, mid + 1, right);
         }
     }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Dog!", isHidden: false }
-              ],
-              hints: [
-                "Use instanceof operator",
-                "Check Dog first",
-                "a is actually a Dog"
-              ],
-              tags: ["polymorphism", "instanceof", "type"],
-              difficulty: 3,
-              estimatedMinutes: 10,
-              points: 40
-            }
-          ]
-        }
-      ]
-    },
-    // Week 8 - Abstract Classes & Interfaces
-    {
-      weekNumber: 8,
-      title: "Abstract Classes & Interfaces",
-      description: "Abstract methods, interfaces, and contracts",
-      topics: [
-        {
-          slug: "abstract-classes",
-          title: "Abstract Classes",
-          description: "Creating and extending abstract classes",
-          questions: [
-            {
-              slug: "abstract-method",
-              type: "FULL_PROGRAM",
-              title: "Abstract Method",
-              prompt: "Create abstract Shape with abstract getArea(). Circle extends it with radius 5. Print area.",
-              starterCode: `abstract class Shape {
-    // Add abstract getArea
 
-}
-
-class Circle extends Shape {
-    double radius = 5;
-
-    // Implement getArea
-
-}
-
-public class Solution {
     public static void main(String[] args) {
-        Circle c = new Circle();
-        System.out.println(c.getArea());
-    }
-}`,
-              solutionCode: `abstract class Shape {
-    abstract double getArea();
-}
-
-class Circle extends Shape {
-    double radius = 5;
-
-    @Override
-    double getArea() {
-        return Math.PI * radius * radius;
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Circle c = new Circle();
-        System.out.println(c.getArea());
+        int[] arr = {1, 3, 5, 7, 9};
+        System.out.println(binarySearch(arr, 5));
+        System.out.println(binarySearch(arr, 1));
+        System.out.println(binarySearch(arr, 6));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "78.53981633974483", isHidden: false }
+                { input: "", expectedOutput: "2\n0\n-1", isHidden: false }
               ],
               hints: [
-                "abstract keyword for method",
-                "No body for abstract method",
-                "Math.PI for π value"
+                "Base case: left > right means target is not in the array",
+                "Calculate mid as: left + (right - left) / 2",
+                "If target < arr[mid], search left half; otherwise search right half"
               ],
-              tags: ["abstract", "inheritance", "method"],
-              difficulty: 3,
-              estimatedMinutes: 12,
-              points: 45
+              tags: ["recursion", "binary-search", "arrays"],
+              difficulty: 5,
+              estimatedMinutes: 15,
+              points: 380
             },
             {
-              slug: "abstract-with-concrete",
+              slug: "palindrome-recursive",
               type: "FULL_PROGRAM",
-              title: "Mixed Methods",
-              prompt: "Abstract Vehicle with abstract start() and concrete honk() that prints \"Beep!\". Car implements start().",
-              starterCode: `abstract class Vehicle {
-    // Add abstract start and concrete honk
+              title: "Palindrome Check (Recursive)",
+              prompt: `Write a recursive method that checks if a string is a palindrome.
 
-}
+**Rules:**
+- Case-insensitive comparison
+- Only consider alphanumeric characters
 
-class Car extends Vehicle {
-    // Implement start
+**Examples:**
+- isPalindrome("racecar") → true
+- isPalindrome("A man a plan a canal Panama") → true
+- isPalindrome("hello") → false
 
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Car c = new Car();
-        c.start();
-        c.honk();
-    }
-}`,
-              solutionCode: `abstract class Vehicle {
-    abstract void start();
-
-    void honk() {
-        System.out.println("Beep!");
-    }
-}
-
-class Car extends Vehicle {
-    @Override
-    void start() {
-        System.out.println("Engine started");
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Car c = new Car();
-        c.start();
-        c.honk();
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Engine started\nBeep!", isHidden: false }
-              ],
-              hints: [
-                "abstract for start()",
-                "Regular method for honk()",
-                "Car inherits honk()"
-              ],
-              tags: ["abstract", "concrete", "method"],
-              difficulty: 3,
-              estimatedMinutes: 12,
-              points: 45
-            }
-          ]
-        },
-        {
-          slug: "interfaces",
-          title: "Interfaces",
-          description: "Implementing interfaces and multiple inheritance",
-          questions: [
-            {
-              slug: "simple-interface",
-              type: "FULL_PROGRAM",
-              title: "Simple Interface",
-              prompt: "Create Drawable interface with draw(). Rectangle implements it printing \"Drawing rectangle\".",
-              starterCode: `interface Drawable {
-    // Add draw method
-
-}
-
-class Rectangle implements Drawable {
-    // Implement draw
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Drawable d = new Rectangle();
-        d.draw();
-    }
-}`,
-              solutionCode: `interface Drawable {
-    void draw();
-}
-
-class Rectangle implements Drawable {
-    @Override
-    public void draw() {
-        System.out.println("Drawing rectangle");
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Drawable d = new Rectangle();
-        d.draw();
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Drawing rectangle", isHidden: false }
-              ],
-              hints: [
-                "Interface methods are abstract",
-                "Use implements keyword",
-                "Methods must be public"
-              ],
-              tags: ["interface", "implements", "polymorphism"],
-              difficulty: 3,
-              estimatedMinutes: 10,
-              points: 40
-            },
-            {
-              slug: "multiple-interfaces",
-              type: "FULL_PROGRAM",
-              title: "Multiple Interfaces",
-              prompt: "Create Flyable and Swimmable interfaces. Duck implements both. Call fly() and swim().",
-              starterCode: `interface Flyable {
-    void fly();
-}
-
-interface Swimmable {
-    void swim();
-}
-
-class Duck implements Flyable, Swimmable {
-    // Implement both
-
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Duck d = new Duck();
-        d.fly();
-        d.swim();
-    }
-}`,
-              solutionCode: `interface Flyable {
-    void fly();
-}
-
-interface Swimmable {
-    void swim();
-}
-
-class Duck implements Flyable, Swimmable {
-    @Override
-    public void fly() {
-        System.out.println("Flying");
-    }
-
-    @Override
-    public void swim() {
-        System.out.println("Swimming");
-    }
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        Duck d = new Duck();
-        d.fly();
-        d.swim();
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Flying\nSwimming", isHidden: false }
-              ],
-              hints: [
-                "Comma separates interfaces",
-                "Must implement all methods",
-                "Multiple inheritance via interfaces"
-              ],
-              tags: ["interface", "multiple", "inheritance"],
-              difficulty: 3,
-              estimatedMinutes: 12,
-              points: 45
-            },
-            {
-              slug: "interface-default",
-              type: "FULL_PROGRAM",
-              title: "Default Method",
-              prompt: "Interface Logger with default log(String) that prints the message. TestClass uses it.",
-              starterCode: `interface Logger {
-    // Add default log method
-
-}
-
-class TestClass implements Logger {
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        TestClass t = new TestClass();
-        t.log("Hello World");
-    }
-}`,
-              solutionCode: `interface Logger {
-    default void log(String message) {
-        System.out.println(message);
-    }
-}
-
-class TestClass implements Logger {
-}
-
-public class Solution {
-    public static void main(String[] args) {
-        TestClass t = new TestClass();
-        t.log("Hello World");
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Hello World", isHidden: false }
-              ],
-              hints: [
-                "Use default keyword",
-                "Default methods have body",
-                "No override needed"
-              ],
-              tags: ["interface", "default", "method"],
-              difficulty: 3,
-              estimatedMinutes: 10,
-              points: 40
-            }
-          ]
-        }
-      ]
-    },
-    // Week 9 - Exception Handling & Collections Intro
-    {
-      weekNumber: 9,
-      title: "Exceptions & Collections",
-      description: "Error handling with try-catch and intro to ArrayList",
-      topics: [
-        {
-          slug: "exception-handling",
-          title: "Exception Handling",
-          description: "Try-catch blocks and throwing exceptions",
-          questions: [
-            {
-              slug: "try-catch-basic",
-              type: "FULL_PROGRAM",
-              title: "Basic Try-Catch",
-              prompt: "Divide 10 by 0 in try block. Catch ArithmeticException and print \"Error\".",
+**Requirements:**
+- Must use recursion for the palindrome check`,
+              constraints: "The palindrome checking logic MUST be recursive.",
               starterCode: `public class Solution {
-    public static void main(String[] args) {
-        // Try-catch for division by zero
+    public static boolean isPalindrome(String s) {
+        // Preprocess: remove non-alphanumeric and convert to lowercase
+        String cleaned = "";
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isLetterOrDigit(c)) {
+                cleaned += Character.toLowerCase(c);
+            }
+        }
+        return isPalindromeHelper(cleaned, 0, cleaned.length() - 1);
+    }
 
+    private static boolean isPalindromeHelper(String s, int left, int right) {
+        // Your recursive implementation here
+
+        return false; // Replace this
+    }
+
+    public static void main(String[] args) {
+        System.out.println(isPalindrome("racecar"));                        // true
+        System.out.println(isPalindrome("A man a plan a canal Panama"));    // true
+        System.out.println(isPalindrome("hello"));                          // false
+        System.out.println(isPalindrome(""));                               // true
     }
 }`,
               solutionCode: `public class Solution {
-    public static void main(String[] args) {
-        try {
-            int result = 10 / 0;
-            System.out.println(result);
-        } catch (ArithmeticException e) {
-            System.out.println("Error");
-        }
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Error", isHidden: false }
-              ],
-              hints: [
-                "Use try { } catch { }",
-                "ArithmeticException for math errors",
-                "Catch prevents crash"
-              ],
-              tags: ["exception", "try", "catch"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
-            },
-            {
-              slug: "finally-block",
-              type: "FULL_PROGRAM",
-              title: "Finally Block",
-              prompt: "Use finally to print \"Done\" after try-catch (even if exception occurs).",
-              starterCode: `public class Solution {
-    public static void main(String[] args) {
-        try {
-            int[] arr = new int[1];
-            arr[5] = 10;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Out of bounds");
-        }
-        // Add finally
-
-    }
-}`,
-              solutionCode: `public class Solution {
-    public static void main(String[] args) {
-        try {
-            int[] arr = new int[1];
-            arr[5] = 10;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Out of bounds");
-        } finally {
-            System.out.println("Done");
-        }
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Out of bounds\nDone", isHidden: false }
-              ],
-              hints: [
-                "finally after catch",
-                "Always executes",
-                "Used for cleanup"
-              ],
-              tags: ["exception", "finally", "cleanup"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
-            },
-            {
-              slug: "throw-exception",
-              type: "FULL_PROGRAM",
-              title: "Throw Exception",
-              prompt: "Create divide(a, b) that throws IllegalArgumentException if b is 0. Catch it in main.",
-              starterCode: `public class Solution {
-    static int divide(int a, int b) {
-        // Throw if b is 0
-
-        return a / b;
-    }
-
-    public static void main(String[] args) {
-        try {
-            System.out.println(divide(10, 0));
-        } catch (IllegalArgumentException e) {
-            System.out.println("Cannot divide by zero");
-        }
-    }
-}`,
-              solutionCode: `public class Solution {
-    static int divide(int a, int b) {
-        if (b == 0) {
-            throw new IllegalArgumentException("Division by zero");
-        }
-        return a / b;
-    }
-
-    public static void main(String[] args) {
-        try {
-            System.out.println(divide(10, 0));
-        } catch (IllegalArgumentException e) {
-            System.out.println("Cannot divide by zero");
-        }
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "Cannot divide by zero", isHidden: false }
-              ],
-              hints: [
-                "Check if b == 0",
-                "throw new Exception()",
-                "Caught in main"
-              ],
-              tags: ["exception", "throw", "validation"],
-              difficulty: 3,
-              estimatedMinutes: 10,
-              points: 40
+    public static boolean isPalindrome(String s) {
+        String cleaned = "";
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isLetterOrDigit(c)) {
+                cleaned += Character.toLowerCase(c);
             }
-          ]
-        },
-        {
-          slug: "arraylist-basics",
-          title: "ArrayList Basics",
-          description: "Dynamic arrays with ArrayList",
-          questions: [
-            {
-              slug: "arraylist-add",
-              type: "FULL_PROGRAM",
-              title: "ArrayList Add",
-              prompt: "Create ArrayList<String>, add \"Hello\" and \"World\", print size.",
-              starterCode: `import java.util.ArrayList;
-
-public class Solution {
-    public static void main(String[] args) {
-        // Create ArrayList and add elements
-
-    }
-}`,
-              solutionCode: `import java.util.ArrayList;
-
-public class Solution {
-    public static void main(String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        list.add("Hello");
-        list.add("World");
-        System.out.println(list.size());
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "2", isHidden: false }
-              ],
-              hints: [
-                "ArrayList<String> for String list",
-                "Use add() method",
-                "size() returns count"
-              ],
-              tags: ["collections", "arraylist", "add"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
-            },
-            {
-              slug: "arraylist-get",
-              type: "FULL_PROGRAM",
-              title: "ArrayList Get",
-              prompt: "Create list with 10, 20, 30. Print element at index 1.",
-              starterCode: `import java.util.ArrayList;
-
-public class Solution {
-    public static void main(String[] args) {
-        ArrayList<Integer> nums = new ArrayList<>();
-        nums.add(10);
-        nums.add(20);
-        nums.add(30);
-        // Print element at index 1
-
-    }
-}`,
-              solutionCode: `import java.util.ArrayList;
-
-public class Solution {
-    public static void main(String[] args) {
-        ArrayList<Integer> nums = new ArrayList<>();
-        nums.add(10);
-        nums.add(20);
-        nums.add(30);
-        System.out.println(nums.get(1));
-    }
-}`,
-              tests: [
-                { input: "", expectedOutput: "20", isHidden: false }
-              ],
-              hints: [
-                "Use get(index)",
-                "0-indexed like arrays",
-                "Index 1 = second element"
-              ],
-              tags: ["collections", "arraylist", "get"],
-              difficulty: 2,
-              estimatedMinutes: 6,
-              points: 25
-            },
-            {
-              slug: "arraylist-loop",
-              type: "FULL_PROGRAM",
-              title: "ArrayList Loop",
-              prompt: "Create list with 1, 2, 3. Print each element on new line using for-each.",
-              starterCode: `import java.util.ArrayList;
-
-public class Solution {
-    public static void main(String[] args) {
-        ArrayList<Integer> nums = new ArrayList<>();
-        nums.add(1);
-        nums.add(2);
-        nums.add(3);
-        // Loop and print
-
-    }
-}`,
-              solutionCode: `import java.util.ArrayList;
-
-public class Solution {
-    public static void main(String[] args) {
-        ArrayList<Integer> nums = new ArrayList<>();
-        nums.add(1);
-        nums.add(2);
-        nums.add(3);
-        for (int n : nums) {
-            System.out.println(n);
         }
+        return isPalindromeHelper(cleaned, 0, cleaned.length() - 1);
+    }
+
+    private static boolean isPalindromeHelper(String s, int left, int right) {
+        if (left >= right) {
+            return true;
+        }
+        if (s.charAt(left) != s.charAt(right)) {
+            return false;
+        }
+        return isPalindromeHelper(s, left + 1, right - 1);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(isPalindrome("racecar"));
+        System.out.println(isPalindrome("A man a plan a canal Panama"));
+        System.out.println(isPalindrome("hello"));
+        System.out.println(isPalindrome(""));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "1\n2\n3", isHidden: false }
+                { input: "", expectedOutput: "true\ntrue\nfalse\ntrue", isHidden: false }
               ],
               hints: [
-                "for (int n : nums)",
-                "Same as array for-each",
-                "Works with any Iterable"
+                "Preprocess the string first: remove non-alphanumeric, convert to lowercase",
+                "Use two pointers: left at 0, right at length-1",
+                "Base case: left >= right means we've checked all pairs"
               ],
-              tags: ["collections", "arraylist", "loop"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
+              tags: ["recursion", "strings", "palindrome"],
+              difficulty: 5,
+              estimatedMinutes: 20,
+              points: 450
             },
             {
-              slug: "arraylist-remove",
+              slug: "climb-stairs-memoization",
               type: "FULL_PROGRAM",
-              title: "ArrayList Remove",
-              prompt: "Create list with A, B, C. Remove \"B\" and print remaining size.",
-              starterCode: `import java.util.ArrayList;
+              title: "Climb Stairs (Memoization)",
+              prompt: `You are climbing a staircase with n steps. Each time you can climb 1 or 2 steps.
+In how many distinct ways can you climb to the top?
 
-public class Solution {
+**Examples:**
+- climbStairs(1) → 1 (just take 1 step)
+- climbStairs(2) → 2 (1+1 or 2)
+- climbStairs(3) → 3 (1+1+1, 1+2, 2+1)
+- climbStairs(10) → 89
+
+**Requirements:**
+- Use recursion with memoization
+- Return 0 for n <= 0`,
+              constraints: "Your solution MUST use memoization.",
+              starterCode: `public class Solution {
+    public static long climbStairs(int n) {
+        if (n <= 0) return 0;
+        long[] memo = new long[n + 1];
+        for (int i = 0; i <= n; i++) {
+            memo[i] = -1;
+        }
+        return climbHelper(n, memo);
+    }
+
+    private static long climbHelper(int n, long[] memo) {
+        // Your memoized recursive implementation here
+
+        return 0; // Replace this
+    }
+
     public static void main(String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        list.add("A");
-        list.add("B");
-        list.add("C");
-        // Remove B and print size
-
+        System.out.println(climbStairs(1));   // 1
+        System.out.println(climbStairs(2));   // 2
+        System.out.println(climbStairs(3));   // 3
+        System.out.println(climbStairs(10));  // 89
+        System.out.println(climbStairs(0));   // 0
     }
 }`,
-              solutionCode: `import java.util.ArrayList;
+              solutionCode: `public class Solution {
+    public static long climbStairs(int n) {
+        if (n <= 0) return 0;
+        long[] memo = new long[n + 1];
+        for (int i = 0; i <= n; i++) {
+            memo[i] = -1;
+        }
+        return climbHelper(n, memo);
+    }
 
-public class Solution {
+    private static long climbHelper(int n, long[] memo) {
+        if (memo[n] != -1) {
+            return memo[n];
+        }
+        if (n == 1) {
+            memo[n] = 1;
+            return 1;
+        }
+        if (n == 2) {
+            memo[n] = 2;
+            return 2;
+        }
+        memo[n] = climbHelper(n - 1, memo) + climbHelper(n - 2, memo);
+        return memo[n];
+    }
+
     public static void main(String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        list.add("A");
-        list.add("B");
-        list.add("C");
-        list.remove("B");
-        System.out.println(list.size());
+        System.out.println(climbStairs(1));
+        System.out.println(climbStairs(2));
+        System.out.println(climbStairs(3));
+        System.out.println(climbStairs(10));
+        System.out.println(climbStairs(0));
     }
 }`,
               tests: [
-                { input: "", expectedOutput: "2", isHidden: false }
+                { input: "", expectedOutput: "1\n2\n3\n89\n0", isHidden: false }
               ],
               hints: [
-                "remove(Object) or remove(index)",
-                "remove(\"B\") removes by value",
-                "Size becomes 2"
+                "This is essentially Fibonacci! ways(n) = ways(n-1) + ways(n-2)",
+                "Base cases: ways(1) = 1, ways(2) = 2",
+                "Check memo[n] first - if not -1, return it immediately"
               ],
-              tags: ["collections", "arraylist", "remove"],
-              difficulty: 2,
-              estimatedMinutes: 8,
-              points: 30
+              tags: ["recursion", "memoization", "dynamic-programming"],
+              difficulty: 5,
+              estimatedMinutes: 18,
+              points: 500
             }
           ]
         }

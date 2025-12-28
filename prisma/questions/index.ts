@@ -4,6 +4,8 @@ export { week2Questions } from "./week2-strings"
 export { week3Functions } from "./week3-functions"
 export { week4Arrays } from "./week4-arrays"
 export { week5_2DArrays } from "./week5-2darrays"
+export { week6RecursionFundamentals } from "./week6-recursion-fundamentals"
+export { week7RecursionMastery } from "./week7-recursion-mastery"
 
 // Question type for TypeScript
 export interface SeedQuestion {
@@ -177,6 +179,32 @@ export const courseStructure = {
         },
       ],
     },
+    {
+      weekNumber: 6,
+      title: "Recursion — Fundamentals",
+      description: "Master recursive thinking with numbers and strings",
+      topics: [
+        {
+          title: "Recursion — Numbers & Strings",
+          slug: "recursion-fundamentals",
+          description: "Learn base cases, recursion steps, and apply to numbers and strings",
+          questionRange: [0, 6], // All 6 questions in week6RecursionFundamentals
+        },
+      ],
+    },
+    {
+      weekNumber: 7,
+      title: "Recursion — Mastery",
+      description: "Advanced recursion with arrays, optimization, and complex patterns",
+      topics: [
+        {
+          title: "Recursion — Arrays & Advanced Patterns",
+          slug: "recursion-mastery",
+          description: "Apply recursion to arrays, use memoization, and solve complex recursive problems",
+          questionRange: [0, 9], // All 9 questions in week7RecursionMastery
+        },
+      ],
+    },
   ],
 }
 
@@ -187,12 +215,16 @@ export function getTotalQuestionCount(): number {
   const { week3Functions } = require("./week3-functions")
   const { week4Arrays } = require("./week4-arrays")
   const { week5_2DArrays } = require("./week5-2darrays")
+  const { week6RecursionFundamentals } = require("./week6-recursion-fundamentals")
+  const { week7RecursionMastery } = require("./week7-recursion-mastery")
 
   return (
     week1Questions.length +
     week2Questions.length +
     week3Functions.length +
     week4Arrays.length +
-    week5_2DArrays.length
+    week5_2DArrays.length +
+    week6RecursionFundamentals.length +
+    week7RecursionMastery.length
   )
 }
