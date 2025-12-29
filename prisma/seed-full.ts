@@ -6,6 +6,7 @@ import { week4Arrays } from "./questions/week4-arrays"
 import { week5_2DArrays } from "./questions/week5-2darrays"
 import { week6RecursionFundamentals } from "./questions/week6-recursion-fundamentals"
 import { week7RecursionMastery } from "./questions/week7-recursion-mastery"
+import { topicIntros } from "./topic-intros"
 import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
@@ -181,13 +182,14 @@ async function main() {
   // Week 1 Topics
   const topic1_1 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week1.id, slug: "command-line-output" } },
-    update: {},
+    update: { introMarkdown: topicIntros["command-line-output"] },
     create: {
       weekId: week1.id,
       title: "Command Line & Output",
       slug: "command-line-output",
       description:
         "Master printing, escape sequences, and basic output formatting",
+      introMarkdown: topicIntros["command-line-output"],
       orderIndex: 0,
     },
   })
@@ -197,13 +199,14 @@ async function main() {
     where: {
       weekId_slug: { weekId: week1.id, slug: "variables-compilation" },
     },
-    update: {},
+    update: { introMarkdown: topicIntros["variables-compilation"] },
     create: {
       weekId: week1.id,
       title: "Variables & Compilation",
       slug: "variables-compilation",
       description:
         "Declare variables, understand data types, and compile programs",
+      introMarkdown: topicIntros["variables-compilation"],
       orderIndex: 1,
     },
   })
@@ -211,12 +214,13 @@ async function main() {
 
   const topic1_3 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week1.id, slug: "git-basics" } },
-    update: {},
+    update: { introMarkdown: topicIntros["git-basics"] },
     create: {
       weekId: week1.id,
       title: "Git Basics",
       slug: "git-basics",
       description: "Version control concepts and Git commands",
+      introMarkdown: topicIntros["git-basics"],
       orderIndex: 2,
     },
   })
@@ -224,12 +228,13 @@ async function main() {
 
   const topic1_4 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week1.id, slug: "error-types-debugging" } },
-    update: {},
+    update: { introMarkdown: topicIntros["error-types-debugging"] },
     create: {
       weekId: week1.id,
       title: "Error Types & Debugging",
       slug: "error-types-debugging",
       description: "Identify and fix syntax, compile, and runtime errors",
+      introMarkdown: topicIntros["error-types-debugging"],
       orderIndex: 3,
     },
   })
@@ -254,12 +259,13 @@ async function main() {
 
   const topic2_1 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week2.id, slug: "string-methods" } },
-    update: {},
+    update: { introMarkdown: topicIntros["string-methods"] },
     create: {
       weekId: week2.id,
       title: "String Methods",
       slug: "string-methods",
       description: "Master Java String class methods and operations",
+      introMarkdown: topicIntros["string-methods"],
       orderIndex: 0,
     },
   })
@@ -267,12 +273,13 @@ async function main() {
 
   const topic2_2 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week2.id, slug: "conditionals" } },
-    update: {},
+    update: { introMarkdown: topicIntros["conditionals"] },
     create: {
       weekId: week2.id,
       title: "Conditionals",
       slug: "conditionals",
       description: "If statements, comparisons, and logical operators",
+      introMarkdown: topicIntros["conditionals"],
       orderIndex: 1,
     },
   })
@@ -280,12 +287,13 @@ async function main() {
 
   const topic2_3 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week2.id, slug: "loops" } },
-    update: {},
+    update: { introMarkdown: topicIntros["loops"] },
     create: {
       weekId: week2.id,
       title: "Loops",
       slug: "loops",
       description: "For loops, while loops, and loop control",
+      introMarkdown: topicIntros["loops"],
       orderIndex: 2,
     },
   })
@@ -310,12 +318,13 @@ async function main() {
 
   const topic3_1 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week3.id, slug: "function-basics" } },
-    update: {},
+    update: { introMarkdown: topicIntros["function-basics"] },
     create: {
       weekId: week3.id,
       title: "Function Basics",
       slug: "function-basics",
       description: "Define and call methods, understand parameters",
+      introMarkdown: topicIntros["function-basics"],
       orderIndex: 0,
     },
   })
@@ -323,12 +332,13 @@ async function main() {
 
   const topic3_2 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week3.id, slug: "return-values" } },
-    update: {},
+    update: { introMarkdown: topicIntros["return-values"] },
     create: {
       weekId: week3.id,
       title: "Return Values",
       slug: "return-values",
       description: "Return types, return statements, using return values",
+      introMarkdown: topicIntros["return-values"],
       orderIndex: 1,
     },
   })
@@ -336,12 +346,13 @@ async function main() {
 
   const topic3_3 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week3.id, slug: "method-overloading" } },
-    update: {},
+    update: { introMarkdown: topicIntros["method-overloading"] },
     create: {
       weekId: week3.id,
       title: "Method Overloading",
       slug: "method-overloading",
       description: "Multiple methods with same name, different signatures",
+      introMarkdown: topicIntros["method-overloading"],
       orderIndex: 2,
     },
   })
@@ -349,12 +360,13 @@ async function main() {
 
   const topic3_4 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week3.id, slug: "input-validation" } },
-    update: {},
+    update: { introMarkdown: topicIntros["input-validation"] },
     create: {
       weekId: week3.id,
       title: "Input Validation",
       slug: "input-validation",
       description: "Validate inputs and handle edge cases",
+      introMarkdown: topicIntros["input-validation"],
       orderIndex: 3,
     },
   })
@@ -379,12 +391,13 @@ async function main() {
 
   const topic4_1 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week4.id, slug: "array-basics" } },
-    update: {},
+    update: { introMarkdown: topicIntros["array-basics"] },
     create: {
       weekId: week4.id,
       title: "Array Basics",
       slug: "array-basics",
       description: "Create, access, and modify arrays",
+      introMarkdown: topicIntros["array-basics"],
       orderIndex: 0,
     },
   })
@@ -392,12 +405,13 @@ async function main() {
 
   const topic4_2 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week4.id, slug: "array-operations" } },
-    update: {},
+    update: { introMarkdown: topicIntros["array-operations"] },
     create: {
       weekId: week4.id,
       title: "Array Operations",
       slug: "array-operations",
       description: "Common array algorithms and manipulations",
+      introMarkdown: topicIntros["array-operations"],
       orderIndex: 1,
     },
   })
@@ -405,12 +419,13 @@ async function main() {
 
   const topic4_3 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week4.id, slug: "command-line-args" } },
-    update: {},
+    update: { introMarkdown: topicIntros["command-line-args"] },
     create: {
       weekId: week4.id,
       title: "Command Line Arguments",
       slug: "command-line-args",
       description: "Process command line arguments in Java programs",
+      introMarkdown: topicIntros["command-line-args"],
       orderIndex: 2,
     },
   })
@@ -418,12 +433,13 @@ async function main() {
 
   const topic4_4 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week4.id, slug: "pass-by-value" } },
-    update: {},
+    update: { introMarkdown: topicIntros["pass-by-value"] },
     create: {
       weekId: week4.id,
       title: "Pass by Value",
       slug: "pass-by-value",
       description: "Understand how Java passes arguments to methods",
+      introMarkdown: topicIntros["pass-by-value"],
       orderIndex: 3,
     },
   })
@@ -448,12 +464,13 @@ async function main() {
 
   const topic5_1 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week5.id, slug: "2d-arrays" } },
-    update: {},
+    update: { introMarkdown: topicIntros["2d-arrays"] },
     create: {
       weekId: week5.id,
       title: "2D Arrays",
       slug: "2d-arrays",
       description: "Create and manipulate two-dimensional arrays",
+      introMarkdown: topicIntros["2d-arrays"],
       orderIndex: 0,
     },
   })
@@ -461,12 +478,13 @@ async function main() {
 
   const topic5_2 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week5.id, slug: "standard-io" } },
-    update: {},
+    update: { introMarkdown: topicIntros["standard-io"] },
     create: {
       weekId: week5.id,
       title: "Standard I/O",
       slug: "standard-io",
       description: "Read input with Scanner, format output",
+      introMarkdown: topicIntros["standard-io"],
       orderIndex: 1,
     },
   })
@@ -474,12 +492,13 @@ async function main() {
 
   const topic5_3 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week5.id, slug: "matrix-operations" } },
-    update: {},
+    update: { introMarkdown: topicIntros["matrix-operations"] },
     create: {
       weekId: week5.id,
       title: "Matrix Operations & PageRank",
       slug: "matrix-operations",
       description: "PageRank-style 2D processing and matrix algorithms",
+      introMarkdown: topicIntros["matrix-operations"],
       orderIndex: 2,
     },
   })
@@ -487,12 +506,13 @@ async function main() {
 
   const topic5_4 = await prisma.topic.upsert({
     where: { weekId_slug: { weekId: week5.id, slug: "final-keyword" } },
-    update: {},
+    update: { introMarkdown: topicIntros["final-keyword"] },
     create: {
       weekId: week5.id,
       title: "Final Keyword & Constants",
       slug: "final-keyword",
       description: "Constants and immutable references",
+      introMarkdown: topicIntros["final-keyword"],
       orderIndex: 3,
     },
   })

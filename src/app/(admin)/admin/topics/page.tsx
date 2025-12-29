@@ -45,6 +45,7 @@ interface Topic {
   title: string
   slug: string
   description: string | null
+  introMarkdown: string | null
   isLocked: boolean
   orderIndex: number
   week: {
@@ -263,6 +264,7 @@ function TopicEditForm({
   const [formData, setFormData] = useState({
     title: topic.title,
     description: topic.description || "",
+    introMarkdown: topic.introMarkdown || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -311,6 +313,21 @@ function TopicEditForm({
               setFormData({ ...formData, description: e.target.value })
             }
             rows={3}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Introduction Markdown</Label>
+          <p className="text-xs text-muted-foreground">
+            Markdown content shown at the top of the topic page. Supports headings, lists, code blocks, and tables.
+          </p>
+          <Textarea
+            value={formData.introMarkdown}
+            onChange={(e) =>
+              setFormData({ ...formData, introMarkdown: e.target.value })
+            }
+            rows={10}
+            placeholder="## What is this topic?&#10;&#10;Add a conceptual introduction here..."
+            className="font-mono text-sm"
           />
         </div>
       </div>

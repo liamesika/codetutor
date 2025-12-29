@@ -66,6 +66,7 @@ export async function PATCH(
       data: {
         title: body.title,
         description: body.description,
+        introMarkdown: body.introMarkdown,
         isLocked: body.isLocked,
       },
     })
