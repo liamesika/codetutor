@@ -51,17 +51,39 @@ export function useCourses() {
           "Pragma": "no-cache",
         },
       })
-      if (!response.ok) {
-        throw new Error("Failed to fetch courses")
+
+      // Even on non-2xx, try to parse JSON - our hardened API returns data even on errors
+      const data = await response.json().catch(() => [])
+
+      // If response has courses array, return it even if there was an error
+      if (Array.isArray(data)) {
+        return data
       }
-      return response.json()
+
+      // If data has a courses property, return it
+      if (data?.courses && Array.isArray(data.courses)) {
+        return data.courses
+      }
+
+      // Return empty array as fallback
+      return []
     },
     staleTime: COURSES_STALE_TIME,
     gcTime: COURSES_GC_TIME,
     refetchOnWindowFocus: true, // Refetch when window regains focus
     refetchOnMount: true, // Always refetch on mount to get fresh entitlement data
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    // PREVENT RETRY STORMS: Limited retries with aggressive backoff
+    retry: (failureCount, error) => {
+      // Max 2 retries
+      if (failureCount >= 2) return false
+      // Don't retry on 401/403 - user needs to re-authenticate
+      if (error instanceof Error && error.message.includes("401")) return false
+      if (error instanceof Error && error.message.includes("403")) return false
+      return true
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    // Return empty array on error instead of undefined
+    placeholderData: [],
   })
 }
 
@@ -80,8 +102,9 @@ export function usePrefetchCourses() {
       queryKey: ["courses"],
       queryFn: async () => {
         const response = await fetch("/api/courses")
-        if (!response.ok) throw new Error("Failed to fetch courses")
-        return response.json()
+        // Parse response, fallback to empty array
+        const data = await response.json().catch(() => [])
+        return Array.isArray(data) ? data : []
       },
       staleTime: COURSES_STALE_TIME,
     })

@@ -3,26 +3,76 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { getDailyChallenge, getDailyChallengeStreak } from "@/lib/daily-challenge"
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions)
+// Generate unique request ID for error tracking
+function generateRequestId(): string {
+  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+}
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+// Default response when no challenge is available
+const DEFAULT_RESPONSE = {
+  challenge: null,
+  streak: 0,
+}
+
+export async function GET() {
+  const requestId = generateRequestId()
+
+  try {
+    // Get session with defensive handling
+    let session = null
+    try {
+      session = await getServerSession(authOptions)
+    } catch (sessionError) {
+      console.error(`[DAILY-CHALLENGE API][${requestId}] Session retrieval failed:`, sessionError)
+      return NextResponse.json(
+        { error: "Unauthorized", ...DEFAULT_RESPONSE },
+        { status: 401, headers: { "X-Request-Id": requestId } }
+      )
     }
 
-    const challenge = await getDailyChallenge(session.user.id)
-    const streak = await getDailyChallengeStreak(session.user.id)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized", ...DEFAULT_RESPONSE },
+        { status: 401, headers: { "X-Request-Id": requestId } }
+      )
+    }
 
-    return NextResponse.json({
-      challenge,
-      streak,
-    })
-  } catch (error) {
-    console.error("Error fetching daily challenge:", error)
+    const userId = session.user.id
+
+    // Get daily challenge (defensive - may return null)
+    let challenge = null
+    try {
+      challenge = await getDailyChallenge(userId)
+    } catch (challengeError) {
+      console.error(`[DAILY-CHALLENGE API][${requestId}] Failed to get daily challenge:`, challengeError)
+      // Continue with null challenge - don't crash
+    }
+
+    // Get streak (defensive - default to 0)
+    let streak = 0
+    try {
+      streak = await getDailyChallengeStreak(userId)
+    } catch (streakError) {
+      console.error(`[DAILY-CHALLENGE API][${requestId}] Failed to get streak:`, streakError)
+      // Continue with 0 streak - don't crash
+    }
+
     return NextResponse.json(
-      { error: "Failed to fetch daily challenge" },
-      { status: 500 }
+      {
+        challenge,
+        streak: streak ?? 0,
+      },
+      { headers: { "X-Request-Id": requestId } }
+    )
+  } catch (error) {
+    console.error(`[DAILY-CHALLENGE API][${requestId}] Unexpected error:`, error)
+    // Return safe default instead of 500
+    return NextResponse.json(
+      DEFAULT_RESPONSE,
+      {
+        status: 200,
+        headers: { "X-Request-Id": requestId, "X-Error": "unexpected_error" },
+      }
     )
   }
 }

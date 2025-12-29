@@ -8,21 +8,32 @@ import { getUserEntitlement, FREE_ACCESS } from "@/lib/entitlement"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions)
+// Generate unique request ID for error tracking
+function generateRequestId(): string {
+  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+}
 
-    // CRITICAL DEBUG: Log session state for troubleshooting auth issues
-    console.log("[COURSES API] Session state:", {
+export async function GET() {
+  const requestId = generateRequestId()
+
+  try {
+    // Wrap session retrieval in its own try/catch
+    let session = null
+    try {
+      session = await getServerSession(authOptions)
+    } catch (sessionError) {
+      console.error(`[COURSES API][${requestId}] Session retrieval failed:`, sessionError)
+      // Continue without session - treat as unauthenticated
+    }
+
+    // Log session state for debugging
+    console.log(`[COURSES API][${requestId}] Session state:`, {
       hasSession: !!session,
       hasUser: !!session?.user,
       userId: session?.user?.id || "MISSING",
-      email: session?.user?.email || "MISSING",
-      sessionKeys: session ? Object.keys(session) : [],
-      userKeys: session?.user ? Object.keys(session.user) : [],
     })
 
-    // Get user's entitlement to determine access
+    // Get user's entitlement to determine access (with defensive handling)
     let userHasAccess = false
     let entitlementDebug: {
       status: string | null
@@ -33,144 +44,169 @@ export async function GET() {
     } | null = null
 
     if (session?.user?.id) {
-      const entitlement = await getUserEntitlement(session.user.id)
-      userHasAccess = entitlement.hasAccess
-      entitlementDebug = entitlement
-
-      // Debug logging for entitlement issues
-      console.log("[COURSES API] User entitlement check:", {
-        userId: session.user.id,
-        email: session.user.email,
-        entitlement,
-        userHasAccess,
-      })
-    } else {
-      // Log why we're treating user as anonymous
-      console.log("[COURSES API] No authenticated user - treating as anonymous:", {
-        sessionExists: !!session,
-        userExists: !!session?.user,
-        userIdExists: !!session?.user?.id,
-      })
+      try {
+        const entitlement = await getUserEntitlement(session.user.id)
+        userHasAccess = entitlement?.hasAccess ?? false
+        entitlementDebug = entitlement
+      } catch (entitlementError) {
+        console.error(`[COURSES API][${requestId}] Entitlement check failed:`, entitlementError)
+        // Continue with default (no access) - don't crash
+        userHasAccess = false
+      }
     }
 
-    const courses = await db.course.findMany({
-      orderBy: { orderIndex: "asc" },
-      include: {
-        weeks: {
-          orderBy: { weekNumber: "asc" },
-          include: {
-            topics: {
-              orderBy: { orderIndex: "asc" },
-              include: {
-                questions: {
-                  select: { id: true },
-                },
-                ...(session?.user?.id
-                  ? {
-                      userStats: {
-                        where: { userId: session.user.id },
-                        select: {
-                          passCount: true,
-                          attemptsCount: true,
+    // Fetch courses with defensive error handling
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let courses: any[] = []
+    try {
+      courses = await db.course.findMany({
+        orderBy: { orderIndex: "asc" },
+        include: {
+          weeks: {
+            orderBy: { weekNumber: "asc" },
+            include: {
+              topics: {
+                orderBy: { orderIndex: "asc" },
+                include: {
+                  questions: {
+                    where: { isActive: true },
+                    select: { id: true },
+                  },
+                  ...(session?.user?.id
+                    ? {
+                        userStats: {
+                          where: { userId: session.user.id },
+                          select: {
+                            passCount: true,
+                            attemptsCount: true,
+                          },
                         },
-                      },
-                    }
-                  : {}),
+                      }
+                    : {}),
+                },
               },
             },
           },
+          ...(session?.user?.id
+            ? {
+                enrollments: {
+                  where: { userId: session.user.id },
+                  select: { id: true },
+                },
+              }
+            : {}),
         },
-        ...(session?.user?.id
-          ? {
-              enrollments: {
-                where: { userId: session.user.id },
-                select: { id: true },
-              },
-            }
-          : {}),
-      },
-    })
+      })
+    } catch (dbError) {
+      console.error(`[COURSES API][${requestId}] Database query failed:`, dbError)
+      // Return empty courses array with error indication
+      return NextResponse.json(
+        {
+          courses: [],
+          error: "Database temporarily unavailable",
+          requestId,
+        },
+        { status: 200 } // Return 200 with empty data, not 500
+      )
+    }
 
-    // Transform data to include progress
-    // IMPORTANT: Compute isLocked dynamically based on entitlement
+    // If no courses found, return empty array (not an error)
+    if (!courses || courses.length === 0) {
+      console.log(`[COURSES API][${requestId}] No courses found in database`)
+      return NextResponse.json([])
+    }
+
+    // Transform data to include progress (with defensive null checks)
     const coursesWithProgress = courses.map((course) => ({
-      id: course.id,
-      name: course.name,
-      slug: course.slug,
-      description: course.description,
-      language: course.language,
-      isLocked: course.isLocked,
+      id: course.id ?? "",
+      name: course.name ?? "Untitled Course",
+      slug: course.slug ?? "",
+      description: course.description ?? "",
+      language: course.language ?? "java",
+      isLocked: course.isLocked ?? false,
       isEnrolled: session?.user?.id
         ? ((course as { enrollments?: { id: string }[] }).enrollments?.length ?? 0) > 0
         : false,
-      weeks: course.weeks.map((week) => {
-        // Dynamic lock logic:
-        // - Week 1 (or below maxWeek) is always free
-        // - User with entitlement has access to all weeks
-        // - Otherwise, weeks beyond FREE_ACCESS.maxWeek are locked
-        const weekIsLocked = week.weekNumber > FREE_ACCESS.maxWeek && !userHasAccess
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      weeks: (course.weeks ?? []).map((week: any) => {
+        // Dynamic lock logic with null safety
+        const weekNumber = week.weekNumber ?? 1
+        const weekIsLocked = weekNumber > (FREE_ACCESS?.maxWeek ?? 1) && !userHasAccess
 
         return {
-          id: week.id,
-          weekNumber: week.weekNumber,
-          title: week.title,
-          description: week.description,
+          id: week.id ?? "",
+          weekNumber,
+          title: week.title ?? `Week ${weekNumber}`,
+          description: week.description ?? "",
           isLocked: weekIsLocked,
-          topics: week.topics.map((topic) => {
-            const totalQuestions = topic.questions.length
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          topics: (week.topics ?? []).map((topic: any) => {
+            const totalQuestions = topic.questions?.length ?? 0
             const stats = (topic as { userStats?: { passCount: number }[] }).userStats?.[0]
-            const passCount = stats?.passCount || 0
+            const passCount = stats?.passCount ?? 0
             const progress =
               totalQuestions > 0
                 ? Math.round((passCount / totalQuestions) * 100)
                 : 0
 
             return {
-              id: topic.id,
-              title: topic.title,
-              slug: topic.slug,
-              description: topic.description,
-              isLocked: weekIsLocked, // Topics inherit week lock status
+              id: topic.id ?? "",
+              title: topic.title ?? "Untitled Topic",
+              slug: topic.slug ?? "",
+              description: topic.description ?? "",
+              isLocked: weekIsLocked,
               questionCount: totalQuestions,
               progress,
               isCompleted: progress === 100,
             }
           }),
-          progress: 0, // Will calculate below
+          progress: 0,
         }
       }),
     }))
 
-    // Calculate week progress
+    // Calculate week progress (with defensive checks)
     coursesWithProgress.forEach((course) => {
-      course.weeks.forEach((week) => {
-        if (week.topics.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (course.weeks ?? []).forEach((week: any) => {
+        if (week.topics && week.topics.length > 0) {
           const avgProgress =
-            week.topics.reduce((sum, t) => sum + t.progress, 0) /
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            week.topics.reduce((sum: number, t: any) => sum + (t.progress ?? 0), 0) /
             week.topics.length
           week.progress = Math.round(avgProgress)
         }
       })
     })
 
-    // Add debug header to help troubleshoot entitlement issues in production
+    // Build response with debug headers
     const response = NextResponse.json(coursesWithProgress)
+    response.headers.set("X-Request-Id", requestId)
     response.headers.set("X-Entitlement-Debug", JSON.stringify({
       userId: session?.user?.id || "anonymous",
-      email: session?.user?.email || "anonymous",
       hasAccess: userHasAccess,
       plan: entitlementDebug?.plan || "none",
       status: entitlementDebug?.status || "none",
       weekCount: coursesWithProgress[0]?.weeks?.length || 0,
-      lockedWeeks: coursesWithProgress[0]?.weeks?.filter(w => w.isLocked).length || 0,
-      sessionValid: !!session?.user?.id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      lockedWeeks: coursesWithProgress[0]?.weeks?.filter((w: any) => w.isLocked).length || 0,
     }))
+
     return response
   } catch (error) {
-    console.error("Error fetching courses:", error)
+    // Catch-all for any unexpected errors
+    console.error(`[COURSES API][${requestId}] Unexpected error:`, error)
+
+    // Return a safe fallback response (empty courses, not 500)
     return NextResponse.json(
-      { error: "Failed to fetch courses" },
-      { status: 500 }
+      [],
+      {
+        status: 200,
+        headers: {
+          "X-Request-Id": requestId,
+          "X-Error": "unexpected_error",
+        }
+      }
     )
   }
 }
