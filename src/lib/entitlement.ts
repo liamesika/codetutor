@@ -1,51 +1,122 @@
 /**
  * Entitlement System - Content gating and access management
  * Single source of truth for all access control
+ *
+ * TIER DEFINITIONS:
+ * - FREE: Week 1 only (onboarding, no premium features)
+ * - BASIC: Weeks 1-10 (practice only, no learning explanations, no missions, no AI)
+ * - PRO: All weeks + all premium features (learning, missions, analytics, AI coming soon)
  */
 
 import { db } from "@/lib/db"
 import { EntitlementPlan, EntitlementStatus } from "@prisma/client"
 import crypto from "crypto"
 
-// Free access rules
+// Tier-based access rules
+export const TIER_ACCESS = {
+  FREE: {
+    maxWeek: 1,
+    hasLearningExplanations: false,
+    hasMissions: false,
+    hasAnalytics: false,
+    hasAIMentor: false,
+    hasXPBoost: false,
+    hasPremiumChallenges: false,
+  },
+  BASIC: {
+    maxWeek: 10,
+    hasLearningExplanations: false,
+    hasMissions: false,
+    hasAnalytics: false,
+    hasAIMentor: false,
+    hasXPBoost: false,
+    hasPremiumChallenges: false,
+  },
+  PRO: {
+    maxWeek: Infinity, // All weeks
+    hasLearningExplanations: true,
+    hasMissions: true,
+    hasAnalytics: true,
+    hasAIMentor: true, // Coming soon
+    hasXPBoost: true,
+    hasPremiumChallenges: true,
+  },
+} as const
+
+// Legacy export for backward compatibility
 export const FREE_ACCESS = {
-  maxWeek: 1, // Week 1 is free for all users
+  maxWeek: TIER_ACCESS.FREE.maxWeek,
 }
+
+// Plan pricing info
+export const PLAN_PRICING = {
+  FREE: {
+    priceUSD: 0,
+    priceILS: 0,
+    period: "forever",
+  },
+  BASIC: {
+    priceUSD: 9.99,
+    priceILS: 30,
+    period: "month",
+  },
+  PRO: {
+    priceUSD: 21.90,
+    priceILS: 75,
+    period: "month",
+  },
+} as const
 
 // Plan definitions for display purposes
 export const PLAN_INFO: Record<EntitlementPlan, {
   name: string
   description: string
   features: string[]
+  notIncluded?: string[]
 }> = {
-  BASIC: {
-    name: "Basic Access",
-    description: "Full access to all course content",
+  FREE: {
+    name: "Free",
+    description: "Get started with Week 1",
     features: [
-      "Full access to all weeks",
-      "All challenges & exercises",
-      "Daily streak & leagues",
-      "Achievements & rank system",
+      "Week 1 Java Fundamentals",
+      "Real-time code execution",
+      "Progress tracking",
+      "Daily streak tracking",
+    ],
+    notIncluded: [
+      "Weeks 2-10 curriculum",
+      "Learning explanations",
+      "Missions & challenges",
+      "AI Mentor",
+    ],
+  },
+  BASIC: {
+    name: "Basic",
+    description: "Full practice access (Weeks 1-10)",
+    features: [
+      "Weeks 1-10 curriculum",
+      "All exercises & practice",
+      "XP / Levels / Streak",
+      "Leaderboards",
+    ],
+    notIncluded: [
+      "Learning explanations",
+      "Missions & challenges",
+      "Advanced analytics",
+      "AI Mentor",
     ],
   },
   PRO: {
-    name: "Pro Access",
-    description: "Advanced features and support",
+    name: "Pro",
+    description: "Complete learning experience",
     features: [
-      "Everything in Basic",
-      "Advanced algorithms content",
-      "Priority support",
-      "Exclusive badges",
-    ],
-  },
-  ELITE: {
-    name: "Elite Access",
-    description: "Premium mentorship experience",
-    features: [
-      "Everything in Pro",
-      "1-on-1 mentorship sessions",
-      "Code review sessions",
-      "Career guidance",
+      "All weeks (unlimited)",
+      "Full learning explanations",
+      "Missions & challenges",
+      "Advanced analytics",
+      "PRO badge & XP boosts",
+      "Premium challenges",
+      "AI Mentor (coming soon)",
     ],
   },
 }
@@ -59,27 +130,52 @@ export async function getUserEntitlement(userId: string) {
   })
 
   if (!entitlement) {
+    // No entitlement = FREE tier
     return {
       status: null,
-      plan: null,
-      hasAccess: false,
+      plan: "FREE" as EntitlementPlan,
+      hasAccess: true, // FREE users have access to Week 1
       expiresAt: null,
       grantedAt: null,
+      tier: TIER_ACCESS.FREE,
     }
   }
 
   // Check if expired
   const isExpired = entitlement.expiresAt && entitlement.expiresAt < new Date()
-  const hasAccess =
-    entitlement.status === EntitlementStatus.ACTIVE && !isExpired
+  const isActive = entitlement.status === EntitlementStatus.ACTIVE && !isExpired
+
+  // If expired or not active, treat as FREE
+  if (!isActive) {
+    return {
+      status: isExpired ? EntitlementStatus.EXPIRED : entitlement.status,
+      plan: "FREE" as EntitlementPlan,
+      hasAccess: true,
+      expiresAt: entitlement.expiresAt?.toISOString() || null,
+      grantedAt: entitlement.grantedAt.toISOString(),
+      tier: TIER_ACCESS.FREE,
+    }
+  }
+
+  const plan = entitlement.plan
+  const tier = TIER_ACCESS[plan] || TIER_ACCESS.FREE
 
   return {
-    status: isExpired ? EntitlementStatus.EXPIRED : entitlement.status,
-    plan: entitlement.plan,
-    hasAccess,
+    status: entitlement.status,
+    plan,
+    hasAccess: true,
     expiresAt: entitlement.expiresAt?.toISOString() || null,
     grantedAt: entitlement.grantedAt.toISOString(),
+    tier,
   }
+}
+
+/**
+ * Get max week accessible by user's plan
+ */
+export function getMaxWeekForPlan(plan: EntitlementPlan | null): number {
+  if (!plan) return TIER_ACCESS.FREE.maxWeek
+  return TIER_ACCESS[plan]?.maxWeek || TIER_ACCESS.FREE.maxWeek
 }
 
 /**
@@ -88,21 +184,27 @@ export async function getUserEntitlement(userId: string) {
 export async function canAccessWeek(
   userId: string,
   weekNumber: number
-): Promise<{ allowed: boolean; reason?: string }> {
-  // Week 1 is always free
-  if (weekNumber <= FREE_ACCESS.maxWeek) {
+): Promise<{ allowed: boolean; reason?: string; requiredPlan?: EntitlementPlan }> {
+  const entitlement = await getUserEntitlement(userId)
+  const maxWeek = entitlement.tier.maxWeek
+
+  if (weekNumber <= maxWeek) {
     return { allowed: true }
   }
 
-  const entitlement = await getUserEntitlement(userId)
-
-  if (entitlement.hasAccess) {
-    return { allowed: true }
+  // Determine which plan is needed
+  if (weekNumber <= TIER_ACCESS.BASIC.maxWeek) {
+    return {
+      allowed: false,
+      reason: `Week ${weekNumber} requires Basic or Pro plan`,
+      requiredPlan: "BASIC" as EntitlementPlan,
+    }
   }
 
   return {
     allowed: false,
-    reason: `Week ${weekNumber} requires Basic Access or higher`,
+    reason: `Week ${weekNumber} requires Pro plan`,
+    requiredPlan: "PRO" as EntitlementPlan,
   }
 }
 
@@ -112,7 +214,7 @@ export async function canAccessWeek(
 export async function canAccessTopic(
   userId: string,
   topicId: string
-): Promise<{ allowed: boolean; weekNumber?: number; reason?: string }> {
+): Promise<{ allowed: boolean; weekNumber?: number; reason?: string; requiredPlan?: EntitlementPlan }> {
   const topic = await db.topic.findUnique({
     where: { id: topicId },
     include: {
@@ -139,7 +241,7 @@ export async function canAccessTopic(
 export async function canAccessQuestion(
   userId: string,
   questionId: string
-): Promise<{ allowed: boolean; weekNumber?: number; reason?: string }> {
+): Promise<{ allowed: boolean; weekNumber?: number; reason?: string; requiredPlan?: EntitlementPlan }> {
   const question = await db.question.findUnique({
     where: { id: questionId },
     include: {
@@ -160,6 +262,33 @@ export async function canAccessQuestion(
     ...access,
     weekNumber,
   }
+}
+
+/**
+ * Check if user has a premium feature
+ */
+export async function hasFeature(
+  userId: string,
+  feature: keyof typeof TIER_ACCESS.PRO
+): Promise<boolean> {
+  const entitlement = await getUserEntitlement(userId)
+  return entitlement.tier[feature] === true
+}
+
+/**
+ * Check if user has PRO access
+ */
+export async function checkProAccess(userId: string): Promise<boolean> {
+  const entitlement = await getUserEntitlement(userId)
+  return entitlement.plan === "PRO"
+}
+
+/**
+ * Check if user has BASIC or higher access
+ */
+export async function checkBasicAccess(userId: string): Promise<boolean> {
+  const entitlement = await getUserEntitlement(userId)
+  return entitlement.plan === "BASIC" || entitlement.plan === "PRO"
 }
 
 /**
@@ -247,7 +376,7 @@ export async function createAccessCode(params: {
   note?: string
 }) {
   const {
-    plan = EntitlementPlan.BASIC,
+    plan = "BASIC" as EntitlementPlan,
     maxRedemptions = 1,
     expiresAt,
     createdByUserId,
@@ -313,10 +442,11 @@ export async function redeemAccessCode(params: {
     return { success: false, error: "You have already redeemed this code" }
   }
 
-  // Check if user already has active entitlement
+  // Check if user already has a better plan
   const existing = await getUserEntitlement(userId)
-  if (existing.hasAccess) {
-    return { success: false, error: "You already have active access" }
+  const planHierarchy: Record<EntitlementPlan, number> = { FREE: 0, BASIC: 1, PRO: 2 }
+  if (planHierarchy[existing.plan] >= planHierarchy[accessCode.plan]) {
+    return { success: false, error: "You already have equal or better access" }
   }
 
   // Redeem the code
@@ -380,9 +510,9 @@ export async function createAccessRequest(params: {
     return { success: false, error: "You already have a pending request" }
   }
 
-  // Check if user already has access
+  // Check if user already has BASIC or PRO access
   const entitlement = await getUserEntitlement(userId)
-  if (entitlement.hasAccess) {
+  if (entitlement.plan !== "FREE") {
     return { success: false, error: "You already have access" }
   }
 
@@ -407,7 +537,7 @@ export async function processAccessRequest(params: {
   processedBy: string
   plan?: EntitlementPlan
 }) {
-  const { requestId, approve, processedBy, plan = EntitlementPlan.BASIC } = params
+  const { requestId, approve, processedBy, plan = "BASIC" as EntitlementPlan } = params
 
   const request = await db.accessRequest.findUnique({
     where: { id: requestId },
@@ -473,9 +603,10 @@ export interface EntitlementGateResult {
   weekNumber?: number
   entitlement: {
     status: EntitlementStatus | null
-    plan: EntitlementPlan | null
+    plan: EntitlementPlan
     hasAccess: boolean
   }
+  requiredPlan?: EntitlementPlan
   message?: string
 }
 
@@ -494,6 +625,7 @@ export async function checkEntitlementGate(
       plan: entitlement.plan,
       hasAccess: entitlement.hasAccess,
     },
+    requiredPlan: access.requiredPlan,
     message: access.reason,
   }
 }
@@ -595,28 +727,9 @@ export async function deactivateAccessCode(codeId: string) {
 }
 
 /**
- * Check if user has PRO or ELITE access
- * Used for gating PRO-only features like Mentor Intelligence
- */
-export async function checkProAccess(userId: string): Promise<boolean> {
-  const entitlement = await getUserEntitlement(userId)
-
-  if (!entitlement.hasAccess) {
-    return false
-  }
-
-  return entitlement.plan === "PRO" || entitlement.plan === "ELITE"
-}
-
-/**
- * Check if user has ELITE access
+ * Legacy function for backward compatibility
  */
 export async function checkEliteAccess(userId: string): Promise<boolean> {
-  const entitlement = await getUserEntitlement(userId)
-
-  if (!entitlement.hasAccess) {
-    return false
-  }
-
-  return entitlement.plan === "ELITE"
+  // ELITE no longer exists, map to PRO
+  return checkProAccess(userId)
 }

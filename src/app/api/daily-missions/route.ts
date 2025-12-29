@@ -141,7 +141,7 @@ export async function GET() {
     const entitlement = await db.entitlement.findUnique({
       where: { userId },
     })
-    const isPremium = entitlement?.plan === "PRO" || entitlement?.plan === "ELITE"
+    const isPremium = entitlement?.plan === "PRO"
 
     // Get or create today's missions
     const existingMissions = await db.userDailyMission.findMany({
@@ -289,7 +289,7 @@ export async function POST(request: Request) {
     const entitlement = await db.entitlement.findUnique({
       where: { userId },
     })
-    const isPremium = entitlement?.plan === "PRO" || entitlement?.plan === "ELITE"
+    const isPremium = entitlement?.plan === "PRO"
 
     if (userMission.mission.isPremiumOnly && !isPremium) {
       return NextResponse.json({ error: "Premium mission locked" }, { status: 403 })

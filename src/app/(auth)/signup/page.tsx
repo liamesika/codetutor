@@ -50,10 +50,16 @@ const freeFeatures = [
   { icon: Target, text: "Progress tracking" },
 ]
 
+const basicFeatures = [
+  { icon: BookOpen, text: "Weeks 1-10 curriculum" },
+  { icon: Code2, text: "All exercises & practice" },
+  { icon: Target, text: "XP / Levels / Streak" },
+]
+
 const proFeatures = [
-  { icon: BookOpen, text: "All 9 weeks of curriculum" },
-  { icon: Sparkles, text: "PRO Mentor Intelligence" },
-  { icon: Shield, text: "Priority support" },
+  { icon: BookOpen, text: "All weeks (unlimited)" },
+  { icon: Sparkles, text: "Learning explanations" },
+  { icon: Shield, text: "Missions & AI Mentor" },
 ]
 
 function SignupFormContent() {
@@ -61,6 +67,8 @@ function SignupFormContent() {
   const searchParams = useSearchParams()
   const selectedPlan = searchParams.get("plan") || "free"
   const isPro = selectedPlan === "pro"
+  const isBasic = selectedPlan === "basic"
+  const isPaid = isPro || isBasic
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -121,8 +129,8 @@ function SignupFormContent() {
         return
       }
 
-      // Redirect to upgrade if PRO selected, otherwise dashboard
-      if (isPro) {
+      // Redirect to upgrade if paid plan selected, otherwise dashboard
+      if (isPaid) {
         router.push("/upgrade")
       } else {
         router.push("/dashboard")
@@ -134,7 +142,9 @@ function SignupFormContent() {
     }
   }
 
-  const features = isPro ? proFeatures : freeFeatures
+  const features = isPro ? proFeatures : isBasic ? basicFeatures : freeFeatures
+  const planLabel = isPro ? "PRO" : isBasic ? "BASIC" : "FREE"
+  const planColor = isPro ? "#F59E0B" : isBasic ? "#8B5CF6" : "#22D3EE"
 
   return (
     <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
@@ -150,14 +160,21 @@ function SignupFormContent() {
             {isPro ? (
               <>
                 Unlock{" "}
-                <span className="bg-gradient-to-r from-[#F59E0B] to-[#EF4444] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#F59E0B] to-[#EF4444] bg-clip-text text-transparent">
                   PRO Power
+                </span>
+              </>
+            ) : isBasic ? (
+              <>
+                Get{" "}
+                <span className="bg-linear-to-r from-[#8B5CF6] to-[#6366F1] bg-clip-text text-transparent">
+                  Full Practice
                 </span>
               </>
             ) : (
               <>
                 Start Your{" "}
-                <span className="bg-gradient-to-r from-[#4F46E5] to-[#22D3EE] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#4F46E5] to-[#22D3EE] bg-clip-text text-transparent">
                   Journey
                 </span>
               </>
@@ -166,6 +183,8 @@ function SignupFormContent() {
           <p className="text-lg text-[#9CA3AF]">
             {isPro
               ? "Get full access to all curriculum weeks and PRO features."
+              : isBasic
+              ? "Access Weeks 1-10 with all exercises and practice."
               : "Begin mastering Java fundamentals with Week 1 content."}
           </p>
         </div>
@@ -179,12 +198,14 @@ function SignupFormContent() {
               transition={{ delay: 0.2 + index * 0.1 }}
               className="flex items-start gap-4"
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                isPro
-                  ? "bg-[#F59E0B]/20 border border-[#F59E0B]/30"
-                  : "bg-[#4F46E5]/20 border border-[#4F46E5]/30"
-              }`}>
-                <feature.icon className={`h-6 w-6 ${isPro ? "text-[#F59E0B]" : "text-[#22D3EE]"}`} />
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor: `${planColor}20`,
+                  border: `1px solid ${planColor}30`
+                }}
+              >
+                <feature.icon className="h-6 w-6" style={{ color: planColor }} />
               </div>
               <div>
                 <h3 className="font-semibold text-white">{feature.text}</h3>
@@ -224,13 +245,16 @@ function SignupFormContent() {
             animate={{ opacity: 1, scale: 1 }}
             className="mb-6"
           >
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-              isPro
-                ? "bg-gradient-to-r from-[#F59E0B]/20 to-[#EF4444]/20 border border-[#F59E0B]/30 text-[#F59E0B]"
-                : "bg-[#4F46E5]/20 border border-[#4F46E5]/30 text-[#22D3EE]"
-            }`}>
-              {isPro ? <Crown className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-              Selected plan: {isPro ? "PRO" : "FREE"}
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+              style={{
+                backgroundColor: `${planColor}20`,
+                border: `1px solid ${planColor}30`,
+                color: planColor
+              }}
+            >
+              {isPro ? <Crown className="h-4 w-4" /> : isBasic ? <BookOpen className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+              Selected plan: {planLabel}
             </div>
           </motion.div>
 
@@ -238,7 +262,7 @@ function SignupFormContent() {
           <div className="lg:hidden text-center mb-6">
             <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
             <p className="text-[#9CA3AF]">
-              {isPro ? "Get full PRO access" : "Start learning Java free"}
+              {isPro ? "Get full PRO access" : isBasic ? "Get full practice access" : "Start learning Java free"}
             </p>
           </div>
 
@@ -398,7 +422,7 @@ function SignupFormContent() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Creating account...
                 </>
-              ) : isPro ? (
+              ) : isPaid ? (
                 "Create Account to Upgrade"
               ) : (
                 "Create Free Account"
@@ -421,10 +445,10 @@ function SignupFormContent() {
           {/* Switch plan link */}
           <div className="mt-4 text-center">
             <Link
-              href={isPro ? "/signup?plan=free" : "/signup?plan=pro"}
+              href="/pricing"
               className="text-sm text-[#6B7280] hover:text-white transition-colors"
             >
-              {isPro ? "Switch to Free plan" : "Upgrade to PRO plan"}
+              View all plans
             </Link>
           </div>
         </div>

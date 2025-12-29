@@ -109,9 +109,9 @@ function PerkItem({ icon: Icon, text, delay }: { icon: typeof Check; text: strin
 }
 
 const PLAN_NAMES: Record<EntitlementPlan, string> = {
+  FREE: "Free Access",
   BASIC: "Basic Access",
   PRO: "Pro Access",
-  ELITE: "Elite Access",
 }
 
 export function AccessUnlockedOverlay({

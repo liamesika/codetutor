@@ -48,7 +48,7 @@ import { toast } from "sonner"
 interface Entitlement {
   id: string
   userId: string
-  plan: "BASIC" | "PRO" | "ELITE"
+  plan: "FREE" | "BASIC" | "PRO"
   status: "ACTIVE" | "EXPIRED" | "REVOKED"
   grantedAt: string
   expiresAt: string | null
@@ -88,10 +88,10 @@ const STATUS_COLORS = {
   REJECTED: "bg-red-500/10 text-red-500 border-red-500/20",
 }
 
-const PLAN_COLORS = {
-  BASIC: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+const PLAN_COLORS: Record<"FREE" | "BASIC" | "PRO", string> = {
+  FREE: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+  BASIC: "bg-violet-500/10 text-violet-500 border-violet-500/20",
   PRO: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-  ELITE: "bg-pink-500/10 text-pink-500 border-pink-500/20",
 }
 
 export default function AdminAccessPage() {
@@ -100,7 +100,7 @@ export default function AdminAccessPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showGrantDialog, setShowGrantDialog] = useState(false)
   const [grantEmail, setGrantEmail] = useState("")
-  const [grantPlan, setGrantPlan] = useState<"BASIC" | "PRO" | "ELITE">("BASIC")
+  const [grantPlan, setGrantPlan] = useState<"FREE" | "BASIC" | "PRO">("BASIC")
   const [processingId, setProcessingId] = useState<string | null>(null)
 
   const { data: entitlements, isLoading: entitlementsLoading } = useQuery<{
@@ -490,9 +490,9 @@ export default function AdminAccessPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="FREE">Free</SelectItem>
                   <SelectItem value="BASIC">Basic</SelectItem>
                   <SelectItem value="PRO">Pro</SelectItem>
-                  <SelectItem value="ELITE">Elite</SelectItem>
                 </SelectContent>
               </Select>
             </div>

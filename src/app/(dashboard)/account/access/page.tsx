@@ -61,21 +61,21 @@ const STATUS_CONFIG = {
   },
 }
 
-const PLAN_CONFIG = {
+const PLAN_CONFIG: Record<EntitlementPlan, { name: string; color: string; gradient: string }> = {
+  FREE: {
+    name: "Free",
+    color: "#22D3EE",
+    gradient: "linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(79, 70, 229, 0.1) 100%)",
+  },
   BASIC: {
     name: "Basic Access",
-    color: "#4F46E5",
-    gradient: "linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%)",
+    color: "#8B5CF6",
+    gradient: "linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)",
   },
   PRO: {
     name: "Pro Access",
     color: "#F59E0B",
     gradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 179, 8, 0.1) 100%)",
-  },
-  ELITE: {
-    name: "Elite Access",
-    color: "#EC4899",
-    gradient: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%)",
   },
 }
 

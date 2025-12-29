@@ -47,7 +47,7 @@ import { toast } from "sonner"
 interface AccessCode {
   id: string
   codeHash: string
-  plan: "BASIC" | "PRO" | "ELITE"
+  plan: "FREE" | "BASIC" | "PRO"
   maxRedemptions: number
   redeemedCount: number
   expiresAt: string | null
@@ -63,10 +63,10 @@ interface AccessCode {
   }
 }
 
-const PLAN_COLORS = {
-  BASIC: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+const PLAN_COLORS: Record<"FREE" | "BASIC" | "PRO", string> = {
+  FREE: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+  BASIC: "bg-violet-500/10 text-violet-500 border-violet-500/20",
   PRO: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-  ELITE: "bg-pink-500/10 text-pink-500 border-pink-500/20",
 }
 
 export default function AdminAccessCodesPage() {
@@ -77,7 +77,7 @@ export default function AdminAccessCodesPage() {
   const [copied, setCopied] = useState(false)
 
   // Form state
-  const [formPlan, setFormPlan] = useState<"BASIC" | "PRO" | "ELITE">("BASIC")
+  const [formPlan, setFormPlan] = useState<"FREE" | "BASIC" | "PRO">("BASIC")
   const [formMaxRedemptions, setFormMaxRedemptions] = useState("1")
   const [formExpiresIn, setFormExpiresIn] = useState<string>("")
   const [formNote, setFormNote] = useState("")
@@ -365,9 +365,9 @@ export default function AdminAccessCodesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="FREE">Free</SelectItem>
                   <SelectItem value="BASIC">Basic</SelectItem>
                   <SelectItem value="PRO">Pro</SelectItem>
-                  <SelectItem value="ELITE">Elite</SelectItem>
                 </SelectContent>
               </Select>
             </div>

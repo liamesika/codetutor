@@ -2,7 +2,8 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { getUserEntitlement, FREE_ACCESS } from "@/lib/entitlement"
+import { getUserEntitlement, TIER_ACCESS } from "@/lib/entitlement"
+import type { EntitlementPlan } from "@prisma/client"
 
 // Force dynamic to ensure entitlement is always fresh (no caching)
 export const dynamic = "force-dynamic"
@@ -34,7 +35,8 @@ export async function GET() {
     })
 
     // Get user's entitlement to determine access (with defensive handling)
-    let userHasAccess = false
+    let userPlan: EntitlementPlan = "FREE"
+    let userMaxWeek: number = TIER_ACCESS.FREE.maxWeek
     let entitlementDebug: {
       status: string | null
       plan: string | null
@@ -46,12 +48,14 @@ export async function GET() {
     if (session?.user?.id) {
       try {
         const entitlement = await getUserEntitlement(session.user.id)
-        userHasAccess = entitlement?.hasAccess ?? false
+        userPlan = entitlement?.plan ?? "FREE"
+        userMaxWeek = TIER_ACCESS[userPlan]?.maxWeek ?? TIER_ACCESS.FREE.maxWeek
         entitlementDebug = entitlement
       } catch (entitlementError) {
         console.error(`[COURSES API][${requestId}] Entitlement check failed:`, entitlementError)
-        // Continue with default (no access) - don't crash
-        userHasAccess = false
+        // Continue with FREE tier defaults - don't crash
+        userPlan = "FREE"
+        userMaxWeek = TIER_ACCESS.FREE.maxWeek
       }
     }
 
@@ -129,9 +133,9 @@ export async function GET() {
         : false,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       weeks: (course.weeks ?? []).map((week: any) => {
-        // Dynamic lock logic with null safety
+        // Dynamic lock logic based on user's plan tier
         const weekNumber = week.weekNumber ?? 1
-        const weekIsLocked = weekNumber > (FREE_ACCESS?.maxWeek ?? 1) && !userHasAccess
+        const weekIsLocked = weekNumber > userMaxWeek
 
         return {
           id: week.id ?? "",
@@ -184,8 +188,8 @@ export async function GET() {
     response.headers.set("X-Request-Id", requestId)
     response.headers.set("X-Entitlement-Debug", JSON.stringify({
       userId: session?.user?.id || "anonymous",
-      hasAccess: userHasAccess,
-      plan: entitlementDebug?.plan || "none",
+      plan: userPlan,
+      maxWeek: userMaxWeek === Infinity ? "unlimited" : userMaxWeek,
       status: entitlementDebug?.status || "none",
       weekCount: coursesWithProgress[0]?.weeks?.length || 0,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate plan
-    const validPlans = ["BASIC", "PRO", "ELITE"]
+    const validPlans = ["FREE", "BASIC", "PRO"]
     if (!validPlans.includes(plan)) {
       return NextResponse.json(
         { error: `Invalid plan: ${plan}. Valid plans: ${validPlans.join(", ")}` },

@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-type PlanTier = "basic" | "pro" | "elite"
+type PlanTier = "free" | "basic" | "pro"
 
 interface PremiumLockProps {
   children: React.ReactNode
@@ -23,9 +23,9 @@ interface PremiumLockProps {
 }
 
 const PLAN_LABELS: Record<PlanTier, { label: string; color: string }> = {
+  free: { label: "FREE", color: "#22D3EE" },
   basic: { label: "BASIC", color: "#4F46E5" },
   pro: { label: "PRO", color: "#F59E0B" },
-  elite: { label: "ELITE", color: "#EC4899" },
 }
 
 export function PremiumLock({

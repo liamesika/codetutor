@@ -33,7 +33,7 @@ export async function GET() {
       where: { userId },
     })
 
-    const isPro = entitlement?.plan === "PRO" || entitlement?.plan === "ELITE"
+    const isPro = entitlement?.plan === "PRO"
 
     if (!isPro) {
       return NextResponse.json({
@@ -118,7 +118,7 @@ export async function PATCH(request: Request) {
       where: { userId },
     })
 
-    if (entitlement?.plan !== "PRO" && entitlement?.plan !== "ELITE") {
+    if (entitlement?.plan !== "PRO") {
       return NextResponse.json({ error: "PRO subscription required" }, { status: 403 })
     }
 
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
       where: { userId },
     })
 
-    if (entitlement?.plan !== "PRO" && entitlement?.plan !== "ELITE") {
+    if (entitlement?.plan !== "PRO") {
       return NextResponse.json({ error: "PRO subscription required" }, { status: 403 })
     }
 

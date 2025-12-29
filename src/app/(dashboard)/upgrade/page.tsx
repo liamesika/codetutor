@@ -53,21 +53,21 @@ interface AccessRequestData {
   } | null
 }
 
-const PLAN_COLORS = {
+const PLAN_COLORS: Record<string, { primary: string; glow: string; gradient: string }> = {
+  FREE: {
+    primary: "#22D3EE",
+    glow: "rgba(34, 211, 238, 0.4)",
+    gradient: "linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(79, 70, 229, 0.1) 100%)",
+  },
   BASIC: {
-    primary: "#4F46E5",
-    glow: "rgba(79, 70, 229, 0.4)",
-    gradient: "linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%)",
+    primary: "#8B5CF6",
+    glow: "rgba(139, 92, 246, 0.4)",
+    gradient: "linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)",
   },
   PRO: {
     primary: "#F59E0B",
     glow: "rgba(245, 158, 11, 0.4)",
     gradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 179, 8, 0.1) 100%)",
-  },
-  ELITE: {
-    primary: "#EC4899",
-    glow: "rgba(236, 72, 153, 0.4)",
-    gradient: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%)",
   },
 }
 

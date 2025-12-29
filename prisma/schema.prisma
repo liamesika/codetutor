@@ -746,9 +746,9 @@ model Entitlement {
 }
 
 enum EntitlementPlan {
+  FREE
   BASIC
   PRO
-  ELITE
 }
 
 enum EntitlementStatus {
