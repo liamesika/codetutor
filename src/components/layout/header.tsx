@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
+import Image from "next/image"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -83,9 +84,14 @@ export function Header({ weeks = [], currentCourse, userStats }: HeaderProps) {
 
         {/* Logo (mobile only) */}
         <Link href="/dashboard" className="md:hidden flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xs">CT</span>
-          </div>
+          <Image
+            src="/images/logo.png"
+            alt="CodeTutor"
+            width={120}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
 
         <div className="flex-1" />

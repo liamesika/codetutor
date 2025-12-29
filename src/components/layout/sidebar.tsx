@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -88,10 +89,14 @@ export function Sidebar({ weeks, currentCourse, isLoading }: SidebarProps) {
       {/* Logo and course selector */}
       <div className="p-4 border-b border-sidebar-border">
         <Link href="/dashboard" className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <Code2 className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="font-semibold">CodeTutor</span>
+          <Image
+            src="/images/logo.png"
+            alt="CodeTutor"
+            width={140}
+            height={36}
+            className="h-9 w-auto"
+            priority
+          />
         </Link>
         {currentCourse && (
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-sidebar-accent text-sm">

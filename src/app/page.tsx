@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
@@ -144,10 +145,14 @@ export default function HomePage() {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)] group-hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all">
-              <Code2 className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-bold text-xl gradient-neon-text">CodeTutor</span>
+            <Image
+              src="/images/logo.png"
+              alt="CodeTutor"
+              width={150}
+              height={40}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link
