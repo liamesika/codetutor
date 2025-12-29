@@ -53,6 +53,15 @@ export default function SecurityPage() {
               <li>Firewall protection and network isolation</li>
               <li>Rate limiting to prevent abuse and DDoS attacks</li>
             </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">2.3 Web Application Firewall (WAF)</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong className="text-white">Vercel WAF:</strong> Integrated protection against common web attacks</li>
+              <li>Protection against OWASP Top 10 vulnerabilities (SQL injection, XSS, CSRF)</li>
+              <li>Bot detection and mitigation</li>
+              <li>Geo-blocking capabilities for suspicious regions</li>
+              <li>Real-time threat intelligence updates</li>
+            </ul>
           </div>
         </section>
 
@@ -60,12 +69,33 @@ export default function SecurityPage() {
         <section id="data-protection" className="mb-10">
           <h2 className="text-2xl font-semibold text-white mb-4">3. Data Protection</h2>
           <div className="text-gray-300 space-y-4">
-            <h3 className="text-lg font-medium text-white mt-4">3.1 Encryption</h3>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong className="text-white">In Transit:</strong> All data is encrypted using TLS 1.3</li>
-              <li><strong className="text-white">At Rest:</strong> Database encryption using AES-256</li>
-              <li><strong className="text-white">Passwords:</strong> Hashed using bcrypt with salt</li>
-            </ul>
+            <h3 className="text-lg font-medium text-white mt-4">3.1 Encryption Standards</h3>
+            <div className="bg-white/5 rounded-xl p-6 mt-2 mb-4">
+              <h4 className="text-md font-medium text-white mb-3">Data in Transit</h4>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong className="text-white">TLS 1.2+ Required:</strong> Minimum TLS 1.2, with TLS 1.3 preferred for all connections</li>
+                <li><strong className="text-white">Strong Cipher Suites:</strong> ECDHE key exchange with AES-GCM encryption</li>
+                <li><strong className="text-white">HSTS Enabled:</strong> HTTP Strict Transport Security prevents downgrade attacks</li>
+                <li><strong className="text-white">Certificate Pinning:</strong> For mobile applications (when applicable)</li>
+              </ul>
+            </div>
+            <div className="bg-white/5 rounded-xl p-6 mt-2 mb-4">
+              <h4 className="text-md font-medium text-white mb-3">Data at Rest</h4>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong className="text-white">AES-256 Encryption:</strong> Industry-standard encryption for all stored data</li>
+                <li><strong className="text-white">Encrypted Backups:</strong> All database backups are encrypted before storage</li>
+                <li><strong className="text-white">Key Management:</strong> Encryption keys managed through secure key management services</li>
+              </ul>
+            </div>
+            <div className="bg-white/5 rounded-xl p-6 mt-2 mb-4">
+              <h4 className="text-md font-medium text-white mb-3">Password Security</h4>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong className="text-white">bcrypt Hashing:</strong> Passwords are hashed using bcrypt with configurable cost factor</li>
+                <li><strong className="text-white">Unique Salt:</strong> Each password uses a unique random salt</li>
+                <li><strong className="text-white">No Reversible Encryption:</strong> Passwords cannot be decrypted, only verified</li>
+                <li><strong className="text-white">Argon2 Ready:</strong> Infrastructure supports migration to Argon2id for enhanced security</li>
+              </ul>
+            </div>
 
             <h3 className="text-lg font-medium text-white mt-4">3.2 Data Handling</h3>
             <ul className="list-disc pl-6 space-y-2">
@@ -143,6 +173,16 @@ export default function SecurityPage() {
               <li>Least privilege principle for all operations</li>
               <li>Admin actions require additional authentication</li>
             </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">5.4 Multi-Factor Authentication (MFA)</h3>
+            <div className="bg-white/5 rounded-xl p-6 mt-2">
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong className="text-white">OAuth Providers:</strong> Login via Google, GitHub, and other OAuth providers offers built-in MFA where enabled on those accounts</li>
+                <li><strong className="text-white">Admin MFA Required:</strong> Administrator accounts require enhanced authentication</li>
+                <li><strong className="text-white">Session Verification:</strong> Sensitive operations may require re-authentication</li>
+              </ul>
+              <p className="mt-4 text-sm text-gray-400">We recommend enabling MFA on your OAuth provider (Google, GitHub) for maximum security.</p>
+            </div>
           </div>
         </section>
 
@@ -158,7 +198,15 @@ export default function SecurityPage() {
               <li>Log analysis for suspicious activity</li>
             </ul>
 
-            <h3 className="text-lg font-medium text-white mt-4">6.2 Incident Response</h3>
+            <h3 className="text-lg font-medium text-white mt-4">6.2 Security Testing</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong className="text-white">Automated Scanning:</strong> Regular vulnerability scans using industry-standard tools</li>
+              <li><strong className="text-white">Dependency Audits:</strong> Automated monitoring for vulnerable dependencies (npm audit, Snyk)</li>
+              <li><strong className="text-white">Code Analysis:</strong> Static code analysis for security vulnerabilities</li>
+              <li><strong className="text-white">Penetration Testing:</strong> Periodic security assessments to identify and remediate vulnerabilities</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">6.3 Incident Response</h3>
             <p>In the event of a security incident, we will:</p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Immediately investigate and contain the issue</li>
@@ -269,6 +317,15 @@ export default function SecurityPage() {
               <li>הגנת Firewall ובידוד רשת</li>
               <li>הגבלת קצב למניעת שימוש לרעה והתקפות DDoS</li>
             </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">2.3 חומת אש יישומי אינטרנט (WAF)</h3>
+            <ul className="list-disc pr-6 space-y-2">
+              <li><strong className="text-white">Vercel WAF:</strong> הגנה משולבת מפני התקפות אינטרנט נפוצות</li>
+              <li>הגנה מפני פגיעויות OWASP Top 10 (הזרקת SQL, XSS, CSRF)</li>
+              <li>זיהוי והפחתת בוטים</li>
+              <li>יכולות חסימה גיאוגרפית לאזורים חשודים</li>
+              <li>עדכוני מודיעין איומים בזמן אמת</li>
+            </ul>
           </div>
         </section>
 
@@ -276,12 +333,33 @@ export default function SecurityPage() {
         <section id="he-data-protection" className="mb-10">
           <h2 className="text-2xl font-semibold text-white mb-4">3. הגנת מידע</h2>
           <div className="text-gray-300 space-y-4">
-            <h3 className="text-lg font-medium text-white mt-4">3.1 הצפנה</h3>
-            <ul className="list-disc pr-6 space-y-2">
-              <li><strong className="text-white">במעבר:</strong> כל הנתונים מוצפנים באמצעות TLS 1.3</li>
-              <li><strong className="text-white">במנוחה:</strong> הצפנת מסד נתונים באמצעות AES-256</li>
-              <li><strong className="text-white">סיסמאות:</strong> מגובבות באמצעות bcrypt עם salt</li>
-            </ul>
+            <h3 className="text-lg font-medium text-white mt-4">3.1 תקני הצפנה</h3>
+            <div className="bg-white/5 rounded-xl p-6 mt-2 mb-4">
+              <h4 className="text-md font-medium text-white mb-3">נתונים במעבר</h4>
+              <ul className="list-disc pr-6 space-y-2">
+                <li><strong className="text-white">TLS 1.2+ נדרש:</strong> מינימום TLS 1.2, עם העדפה ל-TLS 1.3 לכל החיבורים</li>
+                <li><strong className="text-white">חבילות צפנים חזקות:</strong> החלפת מפתחות ECDHE עם הצפנת AES-GCM</li>
+                <li><strong className="text-white">HSTS מופעל:</strong> אבטחת תעבורה קפדנית למניעת התקפות שדרוג לאחור</li>
+                <li><strong className="text-white">הצמדת אישורים:</strong> עבור אפליקציות מובייל (כשרלוונטי)</li>
+              </ul>
+            </div>
+            <div className="bg-white/5 rounded-xl p-6 mt-2 mb-4">
+              <h4 className="text-md font-medium text-white mb-3">נתונים במנוחה</h4>
+              <ul className="list-disc pr-6 space-y-2">
+                <li><strong className="text-white">הצפנת AES-256:</strong> הצפנה סטנדרטית בתעשייה לכל הנתונים המאוחסנים</li>
+                <li><strong className="text-white">גיבויים מוצפנים:</strong> כל גיבויי מסד הנתונים מוצפנים לפני אחסון</li>
+                <li><strong className="text-white">ניהול מפתחות:</strong> מפתחות הצפנה מנוהלים באמצעות שירותי ניהול מפתחות מאובטחים</li>
+              </ul>
+            </div>
+            <div className="bg-white/5 rounded-xl p-6 mt-2 mb-4">
+              <h4 className="text-md font-medium text-white mb-3">אבטחת סיסמאות</h4>
+              <ul className="list-disc pr-6 space-y-2">
+                <li><strong className="text-white">גיבוב bcrypt:</strong> סיסמאות מגובבות באמצעות bcrypt עם מקדם עלות מתכוונן</li>
+                <li><strong className="text-white">Salt ייחודי:</strong> כל סיסמה משתמשת ב-salt אקראי ייחודי</li>
+                <li><strong className="text-white">ללא הצפנה הפיכה:</strong> לא ניתן לפענח סיסמאות, רק לאמת</li>
+                <li><strong className="text-white">מוכנות ל-Argon2:</strong> התשתית תומכת במעבר ל-Argon2id לאבטחה משופרת</li>
+              </ul>
+            </div>
 
             <h3 className="text-lg font-medium text-white mt-4">3.2 טיפול בנתונים</h3>
             <ul className="list-disc pr-6 space-y-2">
@@ -359,6 +437,16 @@ export default function SecurityPage() {
               <li>עיקרון ההרשאה המינימלית לכל הפעולות</li>
               <li>פעולות מנהל דורשות אימות נוסף</li>
             </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">5.4 אימות רב-גורמי (MFA)</h3>
+            <div className="bg-white/5 rounded-xl p-6 mt-2">
+              <ul className="list-disc pr-6 space-y-2">
+                <li><strong className="text-white">ספקי OAuth:</strong> התחברות דרך Google, GitHub וספקי OAuth אחרים מציעה MFA מובנה כשמופעל בחשבונות אלה</li>
+                <li><strong className="text-white">MFA נדרש למנהלים:</strong> חשבונות מנהל דורשים אימות משופר</li>
+                <li><strong className="text-white">אימות סשן:</strong> פעולות רגישות עשויות לדרוש אימות מחדש</li>
+              </ul>
+              <p className="mt-4 text-sm text-gray-400">אנו ממליצים להפעיל MFA בספק ה-OAuth שלך (Google, GitHub) לאבטחה מרבית.</p>
+            </div>
           </div>
         </section>
 
@@ -374,7 +462,15 @@ export default function SecurityPage() {
               <li>ניתוח לוגים לפעילות חשודה</li>
             </ul>
 
-            <h3 className="text-lg font-medium text-white mt-4">6.2 תגובה לאירועים</h3>
+            <h3 className="text-lg font-medium text-white mt-4">6.2 בדיקות אבטחה</h3>
+            <ul className="list-disc pr-6 space-y-2">
+              <li><strong className="text-white">סריקה אוטומטית:</strong> סריקות פגיעות קבועות באמצעות כלים סטנדרטיים בתעשייה</li>
+              <li><strong className="text-white">ביקורות תלויות:</strong> ניטור אוטומטי של תלויות פגיעות (npm audit, Snyk)</li>
+              <li><strong className="text-white">ניתוח קוד:</strong> ניתוח קוד סטטי לזיהוי פגיעויות אבטחה</li>
+              <li><strong className="text-white">בדיקות חדירה:</strong> הערכות אבטחה תקופתיות לזיהוי ותיקון פגיעויות</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">6.3 תגובה לאירועים</h3>
             <p>במקרה של אירוע אבטחה, אנו נ:</p>
             <ul className="list-disc pr-6 space-y-2">
               <li>נחקור ונכיל את הבעיה מיד</li>

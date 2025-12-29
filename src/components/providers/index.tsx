@@ -15,6 +15,7 @@ import { DopamineProvider } from "./dopamine-provider"
 import { ImmersionProvider } from "@/components/immersion"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 import { Toaster } from "@/components/ui/sonner"
+import { CookieConsent } from "@/components/cookie-consent"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -49,6 +50,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               </DopamineProvider>
             </AppSplashProvider>
             <Toaster position="top-right" richColors />
+            <CookieConsent />
           </ThemeProvider>
         </QueryProvider>
       </SessionProvider>

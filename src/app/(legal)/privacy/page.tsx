@@ -16,17 +16,18 @@ export default function PrivacyPage() {
           <ol className="space-y-2 text-gray-300">
             <li><a href="#info-collect" className="hover:text-purple-400 transition-colors">1. Information We Collect</a></li>
             <li><a href="#how-use" className="hover:text-purple-400 transition-colors">2. How We Use Your Information</a></li>
-            <li><a href="#legal-basis" className="hover:text-purple-400 transition-colors">3. Legal Basis for Processing (GDPR)</a></li>
-            <li><a href="#data-sharing" className="hover:text-purple-400 transition-colors">4. Data Sharing and Third Parties</a></li>
-            <li><a href="#data-retention" className="hover:text-purple-400 transition-colors">5. Data Retention</a></li>
-            <li><a href="#data-security" className="hover:text-purple-400 transition-colors">6. Data Security</a></li>
-            <li><a href="#your-rights" className="hover:text-purple-400 transition-colors">7. Your Rights</a></li>
-            <li><a href="#children" className="hover:text-purple-400 transition-colors">8. Children's Privacy</a></li>
-            <li><a href="#cookies" className="hover:text-purple-400 transition-colors">9. Cookies and Tracking</a></li>
-            <li><a href="#marketing" className="hover:text-purple-400 transition-colors">10. Marketing Communications</a></li>
-            <li><a href="#international" className="hover:text-purple-400 transition-colors">11. International Data Transfers</a></li>
-            <li><a href="#changes-privacy" className="hover:text-purple-400 transition-colors">12. Changes to This Policy</a></li>
-            <li><a href="#contact-privacy" className="hover:text-purple-400 transition-colors">13. Contact Us</a></li>
+            <li><a href="#ai-transparency" className="hover:text-purple-400 transition-colors">3. AI and Automated Processing</a></li>
+            <li><a href="#legal-basis" className="hover:text-purple-400 transition-colors">4. Legal Basis for Processing (GDPR)</a></li>
+            <li><a href="#data-sharing" className="hover:text-purple-400 transition-colors">5. Data Sharing and Third Parties</a></li>
+            <li><a href="#data-retention" className="hover:text-purple-400 transition-colors">6. Data Retention</a></li>
+            <li><a href="#data-security" className="hover:text-purple-400 transition-colors">7. Data Security</a></li>
+            <li><a href="#your-rights" className="hover:text-purple-400 transition-colors">8. Your Rights</a></li>
+            <li><a href="#children" className="hover:text-purple-400 transition-colors">9. Children's Privacy (COPPA Compliance)</a></li>
+            <li><a href="#cookies" className="hover:text-purple-400 transition-colors">10. Cookies and Tracking</a></li>
+            <li><a href="#marketing" className="hover:text-purple-400 transition-colors">11. Marketing Communications</a></li>
+            <li><a href="#international" className="hover:text-purple-400 transition-colors">12. International Data Transfers</a></li>
+            <li><a href="#changes-privacy" className="hover:text-purple-400 transition-colors">13. Changes to This Policy</a></li>
+            <li><a href="#contact-privacy" className="hover:text-purple-400 transition-colors">14. Contact Us</a></li>
           </ol>
         </nav>
 
@@ -85,9 +86,53 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 3 */}
+        {/* Section 3 - AI Transparency */}
+        <section id="ai-transparency" className="mb-10">
+          <h2 className="text-2xl font-semibold text-white mb-4">3. AI and Automated Processing</h2>
+          <div className="text-gray-300 space-y-4">
+            <p>CodeTutor uses artificial intelligence (AI) and automated processing to enhance your learning experience. We are committed to transparency about how these technologies work.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.1 How We Use AI</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong className="text-white">Adaptive Learning:</strong> AI algorithms analyze your performance, learning patterns, and skill levels to personalize question difficulty and recommend appropriate content</li>
+              <li><strong className="text-white">Code Feedback:</strong> Automated systems evaluate your code submissions, providing instant feedback on correctness, style, and best practices</li>
+              <li><strong className="text-white">Hint Generation:</strong> AI may generate contextual hints based on common mistakes and your current progress</li>
+              <li><strong className="text-white">Progress Tracking:</strong> Algorithms calculate skill proficiency and suggest next steps in your learning journey</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.2 Data Used by AI</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Code submissions and solutions you write</li>
+              <li>Time spent on questions and topics</li>
+              <li>Correct and incorrect attempts</li>
+              <li>Learning progression patterns</li>
+              <li>Skill assessment scores</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.3 AI Safeguards</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong className="text-white">No Third-Party Training:</strong> Your code submissions and personal data are NOT used to train external AI models</li>
+              <li><strong className="text-white">Local Processing:</strong> Adaptive learning calculations are performed on our secure servers, not shared externally</li>
+              <li><strong className="text-white">Human Oversight:</strong> Critical decisions affecting your account or access are reviewed by humans</li>
+              <li><strong className="text-white">Opt-Out Options:</strong> You may request reduced AI personalization by contacting us</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.4 Your Rights Regarding AI</h3>
+            <p>Under GDPR Article 22, you have the right to:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Request human review of significant automated decisions</li>
+              <li>Obtain meaningful information about the logic involved in automated processing</li>
+              <li>Express your point of view and contest automated decisions</li>
+            </ul>
+            <p className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <strong className="text-blue-400">Important:</strong> CodeTutor does not make legally significant decisions (e.g., employment, credit, housing) based solely on automated processing.
+            </p>
+          </div>
+        </section>
+
+        {/* Section 4 */}
         <section id="legal-basis" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">3. Legal Basis for Processing (GDPR)</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">4. Legal Basis for Processing (GDPR)</h2>
           <div className="text-gray-300 space-y-4">
             <p>For users in the European Economic Area (EEA), we process your data based on:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -99,21 +144,21 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 4 */}
+        {/* Section 5 */}
         <section id="data-sharing" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">4. Data Sharing and Third Parties</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">5. Data Sharing and Third Parties</h2>
           <div className="text-gray-300 space-y-4">
             <p>We may share your information with:</p>
-            <h3 className="text-lg font-medium text-white mt-4">4.1 Service Providers</h3>
+            <h3 className="text-lg font-medium text-white mt-4">5.1 Service Providers</h3>
             <ul className="list-disc pl-6 space-y-2">
               <li><strong className="text-white">PayPlus:</strong> Payment processing (Israel-based)</li>
               <li><strong className="text-white">Vercel:</strong> Hosting and infrastructure</li>
               <li><strong className="text-white">Neon:</strong> Database services</li>
               <li><strong className="text-white">Sentry:</strong> Error tracking and monitoring</li>
             </ul>
-            <h3 className="text-lg font-medium text-white mt-4">4.2 Legal Requirements</h3>
+            <h3 className="text-lg font-medium text-white mt-4">5.2 Legal Requirements</h3>
             <p>We may disclose information when required by law, court order, or to protect our rights and safety.</p>
-            <h3 className="text-lg font-medium text-white mt-4">4.3 Business Transfers</h3>
+            <h3 className="text-lg font-medium text-white mt-4">5.3 Business Transfers</h3>
             <p>In the event of a merger, acquisition, or sale of assets, user data may be transferred to the new entity.</p>
             <p className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
               <strong className="text-green-400">We do not sell your personal information.</strong>
@@ -121,9 +166,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 5 */}
+        {/* Section 6 */}
         <section id="data-retention" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">5. Data Retention</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">6. Data Retention</h2>
           <div className="text-gray-300 space-y-4">
             <p>We retain your data according to the following guidelines:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -135,9 +180,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 6 */}
+        {/* Section 7 */}
         <section id="data-security" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">6. Data Security</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">7. Data Security</h2>
           <div className="text-gray-300 space-y-4">
             <p>We implement industry-standard security measures including:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -152,9 +197,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 7 */}
+        {/* Section 8 */}
         <section id="your-rights" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">7. Your Rights</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">8. Your Rights</h2>
           <div className="text-gray-300 space-y-4">
             <p>Depending on your location, you may have the following rights:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -170,24 +215,64 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 8 */}
+        {/* Section 9 - Children's Privacy (COPPA Compliance) */}
         <section id="children" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">8. Children's Privacy</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">9. Children's Privacy (COPPA Compliance)</h2>
           <div className="text-gray-300 space-y-4">
-            <p>CodeTutor welcomes learners of all ages, including minors. For users under 16:</p>
+            <p>CodeTutor is an educational platform designed for learners of all ages. We are committed to protecting children's privacy in compliance with the Children's Online Privacy Protection Act (COPPA) and similar regulations.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.1 Age Requirements</h3>
             <ul className="list-disc pl-6 space-y-2">
-              <li>We recommend parental or guardian oversight during registration</li>
-              <li>We collect only information necessary for educational purposes</li>
-              <li>We do not knowingly target advertising to minors</li>
-              <li>Parents or guardians can request access to or deletion of their child's data</li>
+              <li><strong className="text-white">Under 13 Years Old:</strong> Children under 13 must have verifiable parental consent before creating an account or using our services</li>
+              <li><strong className="text-white">13-16 Years Old:</strong> Parental or guardian oversight is strongly recommended during registration and use</li>
+              <li><strong className="text-white">16 and Older:</strong> Users may create and manage accounts independently</li>
             </ul>
-            <p className="mt-4">If you believe a child has provided personal information without appropriate consent, please contact us immediately.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.2 Verifiable Parental Consent</h3>
+            <p>For children under 13, we require verifiable parental consent before collecting personal information. We may verify consent through:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Email confirmation from a parent's email address</li>
+              <li>Signed consent form submitted electronically or by mail</li>
+              <li>Video conference verification with a parent or guardian</li>
+              <li>Credit card verification (with a nominal charge refunded immediately)</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.3 Information Collected from Children</h3>
+            <p>For users under 13, we limit data collection to what is strictly necessary for educational purposes:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Username (may be a pseudonym, not requiring real name)</li>
+              <li>Parent/guardian email address (for consent and communication)</li>
+              <li>Educational progress and code submissions</li>
+              <li>We do NOT collect: photos, location data, phone numbers, or social media profiles from children</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.4 Parental Rights</h3>
+            <p>Parents and guardians have the right to:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Review their child's personal information</li>
+              <li>Request deletion of their child's account and data</li>
+              <li>Refuse further collection or use of their child's information</li>
+              <li>Consent to collection without consenting to third-party disclosure</li>
+            </ul>
+            <p className="mt-2">To exercise these rights, contact us at <a href="mailto:liamessi30@gmail.com" className="text-purple-400 hover:text-purple-300">liamessi30@gmail.com</a> with proof of parental relationship.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.5 Child Safety Measures</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>No advertising or marketing is targeted at children</li>
+              <li>No social features that allow direct communication between children and unknown users</li>
+              <li>No collection of geolocation data from children</li>
+              <li>No sharing of children's data with third parties except as necessary for service operation</li>
+            </ul>
+
+            <p className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <strong className="text-yellow-400">Report Concern:</strong> If you believe a child under 13 has provided personal information without parental consent, please contact us immediately at <a href="mailto:liamessi30@gmail.com" className="text-purple-400 hover:text-purple-300">liamessi30@gmail.com</a>. We will promptly investigate and delete the information if appropriate.
+            </p>
           </div>
         </section>
 
-        {/* Section 9 */}
+        {/* Section 10 */}
         <section id="cookies" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">9. Cookies and Tracking</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">10. Cookies and Tracking</h2>
           <div className="text-gray-300 space-y-4">
             <p>We use cookies and similar technologies for:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -199,9 +284,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 10 */}
+        {/* Section 11 */}
         <section id="marketing" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">10. Marketing Communications</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">11. Marketing Communications</h2>
           <div className="text-gray-300 space-y-4">
             <p>With your consent, we may send you:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -219,9 +304,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 11 */}
+        {/* Section 12 */}
         <section id="international" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">11. International Data Transfers</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">12. International Data Transfers</h2>
           <div className="text-gray-300 space-y-4">
             <p>CodeTutor is operated from Israel. Your data may be transferred to and processed in countries outside your residence, including:</p>
             <ul className="list-disc pl-6 space-y-2">
@@ -233,18 +318,18 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 12 */}
+        {/* Section 13 */}
         <section id="changes-privacy" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">12. Changes to This Policy</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">13. Changes to This Policy</h2>
           <div className="text-gray-300 space-y-4">
             <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last Updated" date. For significant changes, we will notify you via email or a prominent notice on our platform.</p>
             <p className="mt-4">Continued use of CodeTutor after changes constitutes acceptance of the updated policy.</p>
           </div>
         </section>
 
-        {/* Section 13 */}
+        {/* Section 14 */}
         <section id="contact-privacy" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">13. Contact Us</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">14. Contact Us</h2>
           <div className="text-gray-300 space-y-4">
             <p>For privacy-related questions or to exercise your rights, contact us:</p>
             <div className="bg-white/5 rounded-xl p-6 mt-4">
@@ -268,17 +353,18 @@ export default function PrivacyPage() {
           <ol className="space-y-2 text-gray-300">
             <li><a href="#he-info-collect" className="hover:text-purple-400 transition-colors">1. מידע שאנו אוספים</a></li>
             <li><a href="#he-how-use" className="hover:text-purple-400 transition-colors">2. כיצד אנו משתמשים במידע שלך</a></li>
-            <li><a href="#he-legal-basis" className="hover:text-purple-400 transition-colors">3. בסיס משפטי לעיבוד (GDPR)</a></li>
-            <li><a href="#he-data-sharing" className="hover:text-purple-400 transition-colors">4. שיתוף מידע וצדדים שלישיים</a></li>
-            <li><a href="#he-data-retention" className="hover:text-purple-400 transition-colors">5. שמירת מידע</a></li>
-            <li><a href="#he-data-security" className="hover:text-purple-400 transition-colors">6. אבטחת מידע</a></li>
-            <li><a href="#he-your-rights" className="hover:text-purple-400 transition-colors">7. הזכויות שלך</a></li>
-            <li><a href="#he-children" className="hover:text-purple-400 transition-colors">8. פרטיות ילדים</a></li>
-            <li><a href="#he-cookies" className="hover:text-purple-400 transition-colors">9. עוגיות ומעקב</a></li>
-            <li><a href="#he-marketing" className="hover:text-purple-400 transition-colors">10. תקשורת שיווקית</a></li>
-            <li><a href="#he-international" className="hover:text-purple-400 transition-colors">11. העברות מידע בינלאומיות</a></li>
-            <li><a href="#he-changes-privacy" className="hover:text-purple-400 transition-colors">12. שינויים במדיניות זו</a></li>
-            <li><a href="#he-contact-privacy" className="hover:text-purple-400 transition-colors">13. צור קשר</a></li>
+            <li><a href="#he-ai-transparency" className="hover:text-purple-400 transition-colors">3. בינה מלאכותית ועיבוד אוטומטי</a></li>
+            <li><a href="#he-legal-basis" className="hover:text-purple-400 transition-colors">4. בסיס משפטי לעיבוד (GDPR)</a></li>
+            <li><a href="#he-data-sharing" className="hover:text-purple-400 transition-colors">5. שיתוף מידע וצדדים שלישיים</a></li>
+            <li><a href="#he-data-retention" className="hover:text-purple-400 transition-colors">6. שמירת מידע</a></li>
+            <li><a href="#he-data-security" className="hover:text-purple-400 transition-colors">7. אבטחת מידע</a></li>
+            <li><a href="#he-your-rights" className="hover:text-purple-400 transition-colors">8. הזכויות שלך</a></li>
+            <li><a href="#he-children" className="hover:text-purple-400 transition-colors">9. פרטיות ילדים (תאימות COPPA)</a></li>
+            <li><a href="#he-cookies" className="hover:text-purple-400 transition-colors">10. עוגיות ומעקב</a></li>
+            <li><a href="#he-marketing" className="hover:text-purple-400 transition-colors">11. תקשורת שיווקית</a></li>
+            <li><a href="#he-international" className="hover:text-purple-400 transition-colors">12. העברות מידע בינלאומיות</a></li>
+            <li><a href="#he-changes-privacy" className="hover:text-purple-400 transition-colors">13. שינויים במדיניות זו</a></li>
+            <li><a href="#he-contact-privacy" className="hover:text-purple-400 transition-colors">14. צור קשר</a></li>
           </ol>
         </nav>
 
@@ -337,9 +423,53 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 3 - Hebrew */}
+        {/* Section 3 - Hebrew - AI Transparency */}
+        <section id="he-ai-transparency" className="mb-10">
+          <h2 className="text-2xl font-semibold text-white mb-4">3. בינה מלאכותית ועיבוד אוטומטי</h2>
+          <div className="text-gray-300 space-y-4">
+            <p>CodeTutor משתמשת בבינה מלאכותית (AI) ועיבוד אוטומטי לשיפור חווית הלמידה שלך. אנו מחויבים לשקיפות לגבי אופן פעולת טכנולוגיות אלה.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.1 כיצד אנו משתמשים ב-AI</h3>
+            <ul className="list-disc pr-6 space-y-2">
+              <li><strong className="text-white">למידה אדפטיבית:</strong> אלגוריתמי AI מנתחים את הביצועים שלך, דפוסי הלמידה ורמות המיומנות להתאמה אישית של רמת הקושי והמלצה על תוכן מתאים</li>
+              <li><strong className="text-white">משוב על קוד:</strong> מערכות אוטומטיות מעריכות את הגשות הקוד שלך, ומספקות משוב מיידי על נכונות, סגנון ושיטות עבודה מומלצות</li>
+              <li><strong className="text-white">יצירת רמזים:</strong> AI עשוי ליצור רמזים הקשריים בהתבסס על טעויות נפוצות וההתקדמות הנוכחית שלך</li>
+              <li><strong className="text-white">מעקב התקדמות:</strong> אלגוריתמים מחשבים מיומנות ומציעים את הצעדים הבאים במסע הלמידה שלך</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.2 נתונים המשמשים את ה-AI</h3>
+            <ul className="list-disc pr-6 space-y-2">
+              <li>הגשות קוד ופתרונות שאתה כותב</li>
+              <li>זמן שהושקע בשאלות ונושאים</li>
+              <li>ניסיונות נכונים ושגויים</li>
+              <li>דפוסי התקדמות למידה</li>
+              <li>ציוני הערכת מיומנויות</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.3 אמצעי הגנה של AI</h3>
+            <ul className="list-disc pr-6 space-y-2">
+              <li><strong className="text-white">ללא אימון צד שלישי:</strong> הגשות הקוד והנתונים האישיים שלך אינם משמשים לאימון מודלי AI חיצוניים</li>
+              <li><strong className="text-white">עיבוד מקומי:</strong> חישובי למידה אדפטיבית מבוצעים בשרתים המאובטחים שלנו, ללא שיתוף חיצוני</li>
+              <li><strong className="text-white">פיקוח אנושי:</strong> החלטות קריטיות המשפיעות על החשבון או הגישה שלך נבדקות על ידי בני אדם</li>
+              <li><strong className="text-white">אפשרויות ביטול:</strong> תוכל לבקש הפחתת התאמה אישית של AI על ידי פנייה אלינו</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">3.4 הזכויות שלך בנוגע ל-AI</h3>
+            <p>לפי סעיף 22 של GDPR, יש לך זכות:</p>
+            <ul className="list-disc pr-6 space-y-2">
+              <li>לבקש סקירה אנושית של החלטות אוטומטיות משמעותיות</li>
+              <li>לקבל מידע משמעותי על הלוגיקה המעורבת בעיבוד אוטומטי</li>
+              <li>להביע את נקודת המבט שלך ולערער על החלטות אוטומטיות</li>
+            </ul>
+            <p className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <strong className="text-blue-400">חשוב:</strong> CodeTutor אינה מקבלת החלטות משמעותיות מבחינה משפטית (למשל, תעסוקה, אשראי, דיור) המבוססות אך ורק על עיבוד אוטומטי.
+            </p>
+          </div>
+        </section>
+
+        {/* Section 4 - Hebrew */}
         <section id="he-legal-basis" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">3. בסיס משפטי לעיבוד (GDPR)</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">4. בסיס משפטי לעיבוד (GDPR)</h2>
           <div className="text-gray-300 space-y-4">
             <p>עבור משתמשים באזור הכלכלי האירופי (EEA), אנו מעבדים את הנתונים שלך על בסיס:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -351,21 +481,21 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 4 - Hebrew */}
+        {/* Section 5 - Hebrew */}
         <section id="he-data-sharing" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">4. שיתוף מידע וצדדים שלישיים</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">5. שיתוף מידע וצדדים שלישיים</h2>
           <div className="text-gray-300 space-y-4">
             <p>אנו עשויים לשתף את המידע שלך עם:</p>
-            <h3 className="text-lg font-medium text-white mt-4">4.1 ספקי שירות</h3>
+            <h3 className="text-lg font-medium text-white mt-4">5.1 ספקי שירות</h3>
             <ul className="list-disc pr-6 space-y-2">
               <li><strong className="text-white">PayPlus:</strong> עיבוד תשלומים (מבוסס ישראל)</li>
               <li><strong className="text-white">Vercel:</strong> אירוח ותשתית</li>
               <li><strong className="text-white">Neon:</strong> שירותי מסד נתונים</li>
               <li><strong className="text-white">Sentry:</strong> מעקב שגיאות וניטור</li>
             </ul>
-            <h3 className="text-lg font-medium text-white mt-4">4.2 דרישות משפטיות</h3>
+            <h3 className="text-lg font-medium text-white mt-4">5.2 דרישות משפטיות</h3>
             <p>אנו עשויים לחשוף מידע כאשר נדרש על פי חוק, צו בית משפט, או להגנה על הזכויות והבטיחות שלנו.</p>
-            <h3 className="text-lg font-medium text-white mt-4">4.3 העברות עסקיות</h3>
+            <h3 className="text-lg font-medium text-white mt-4">5.3 העברות עסקיות</h3>
             <p>במקרה של מיזוג, רכישה או מכירת נכסים, נתוני משתמשים עשויים להיות מועברים לגוף החדש.</p>
             <p className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
               <strong className="text-green-400">אנו לא מוכרים את המידע האישי שלך.</strong>
@@ -373,9 +503,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 5 - Hebrew */}
+        {/* Section 6 - Hebrew */}
         <section id="he-data-retention" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">5. שמירת מידע</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">6. שמירת מידע</h2>
           <div className="text-gray-300 space-y-4">
             <p>אנו שומרים את הנתונים שלך בהתאם להנחיות הבאות:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -387,9 +517,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 6 - Hebrew */}
+        {/* Section 7 - Hebrew */}
         <section id="he-data-security" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">6. אבטחת מידע</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">7. אבטחת מידע</h2>
           <div className="text-gray-300 space-y-4">
             <p>אנו מיישמים אמצעי אבטחה תקניים בתעשייה כולל:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -404,9 +534,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 7 - Hebrew */}
+        {/* Section 8 - Hebrew */}
         <section id="he-your-rights" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">7. הזכויות שלך</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">8. הזכויות שלך</h2>
           <div className="text-gray-300 space-y-4">
             <p>בהתאם למיקומך, ייתכן שיש לך את הזכויות הבאות:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -422,24 +552,64 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 8 - Hebrew */}
+        {/* Section 9 - Hebrew - Children's Privacy (COPPA Compliance) */}
         <section id="he-children" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">8. פרטיות ילדים</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">9. פרטיות ילדים (תאימות COPPA)</h2>
           <div className="text-gray-300 space-y-4">
-            <p>CodeTutor מקבלת בברכה לומדים מכל הגילאים, כולל קטינים. עבור משתמשים מתחת לגיל 16:</p>
+            <p>CodeTutor היא פלטפורמה חינוכית המיועדת ללומדים בכל הגילאים. אנו מחויבים להגנה על פרטיות ילדים בהתאם לחוק הגנת הפרטיות המקוונת לילדים (COPPA) ותקנות דומות.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.1 דרישות גיל</h3>
             <ul className="list-disc pr-6 space-y-2">
-              <li>אנו ממליצים על פיקוח הורי או אפוטרופוס במהלך ההרשמה</li>
-              <li>אנו אוספים רק מידע הנדרש למטרות חינוכיות</li>
-              <li>איננו מכוונים פרסומות לקטינים ביודעין</li>
-              <li>הורים או אפוטרופוסים יכולים לבקש גישה או מחיקה של נתוני ילדם</li>
+              <li><strong className="text-white">מתחת לגיל 13:</strong> ילדים מתחת לגיל 13 חייבים לקבל הסכמת הורים מאומתת לפני יצירת חשבון או שימוש בשירותים שלנו</li>
+              <li><strong className="text-white">גילאי 13-16:</strong> פיקוח הורי או אפוטרופוס מומלץ מאוד במהלך ההרשמה והשימוש</li>
+              <li><strong className="text-white">16 ומעלה:</strong> משתמשים יכולים ליצור ולנהל חשבונות באופן עצמאי</li>
             </ul>
-            <p className="mt-4">אם אתה מאמין שילד סיפק מידע אישי ללא הסכמה מתאימה, אנא צור איתנו קשר מיד.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.2 הסכמת הורים מאומתת</h3>
+            <p>עבור ילדים מתחת לגיל 13, אנו דורשים הסכמת הורים מאומתת לפני איסוף מידע אישי. אנו עשויים לאמת הסכמה באמצעות:</p>
+            <ul className="list-disc pr-6 space-y-2">
+              <li>אישור אימייל מכתובת אימייל של הורה</li>
+              <li>טופס הסכמה חתום שנשלח אלקטרונית או בדואר</li>
+              <li>אימות וידאו קונפרנס עם הורה או אפוטרופוס</li>
+              <li>אימות כרטיס אשראי (עם חיוב סמלי שמוחזר מיד)</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.3 מידע שנאסף מילדים</h3>
+            <p>עבור משתמשים מתחת לגיל 13, אנו מגבילים את איסוף הנתונים למה שנדרש בהחלט למטרות חינוכיות:</p>
+            <ul className="list-disc pr-6 space-y-2">
+              <li>שם משתמש (יכול להיות כינוי, ללא צורך בשם אמיתי)</li>
+              <li>כתובת אימייל של הורה/אפוטרופוס (להסכמה ותקשורת)</li>
+              <li>התקדמות חינוכית והגשות קוד</li>
+              <li>אנו לא אוספים: תמונות, נתוני מיקום, מספרי טלפון או פרופילי רשתות חברתיות מילדים</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.4 זכויות הורים</h3>
+            <p>להורים ואפוטרופוסים יש את הזכות:</p>
+            <ul className="list-disc pr-6 space-y-2">
+              <li>לעיין במידע האישי של ילדם</li>
+              <li>לבקש מחיקת החשבון והנתונים של ילדם</li>
+              <li>לסרב לאיסוף או שימוש נוסף במידע של ילדם</li>
+              <li>להסכים לאיסוף ללא הסכמה לחשיפה לצד שלישי</li>
+            </ul>
+            <p className="mt-2">למימוש זכויות אלה, צור קשר בכתובת <a href="mailto:liamessi30@gmail.com" className="text-purple-400 hover:text-purple-300">liamessi30@gmail.com</a> עם הוכחה ליחסי הורות.</p>
+
+            <h3 className="text-lg font-medium text-white mt-4">9.5 אמצעי בטיחות לילדים</h3>
+            <ul className="list-disc pr-6 space-y-2">
+              <li>אין פרסום או שיווק המכוון לילדים</li>
+              <li>אין תכונות חברתיות המאפשרות תקשורת ישירה בין ילדים למשתמשים לא מוכרים</li>
+              <li>אין איסוף נתוני מיקום גיאוגרפי מילדים</li>
+              <li>אין שיתוף נתוני ילדים עם צדדים שלישיים אלא אם נדרש להפעלת השירות</li>
+            </ul>
+
+            <p className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <strong className="text-yellow-400">דיווח על חשש:</strong> אם אתה מאמין שילד מתחת לגיל 13 סיפק מידע אישי ללא הסכמת הורים, אנא צור קשר מיד בכתובת <a href="mailto:liamessi30@gmail.com" className="text-purple-400 hover:text-purple-300">liamessi30@gmail.com</a>. נחקור במהירות ונמחק את המידע במידת הצורך.
+            </p>
           </div>
         </section>
 
-        {/* Section 9 - Hebrew */}
+        {/* Section 10 - Hebrew */}
         <section id="he-cookies" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">9. עוגיות ומעקב</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">10. עוגיות ומעקב</h2>
           <div className="text-gray-300 space-y-4">
             <p>אנו משתמשים בעוגיות וטכנולוגיות דומות עבור:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -451,9 +621,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 10 - Hebrew */}
+        {/* Section 11 - Hebrew */}
         <section id="he-marketing" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">10. תקשורת שיווקית</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">11. תקשורת שיווקית</h2>
           <div className="text-gray-300 space-y-4">
             <p>בהסכמתך, אנו עשויים לשלוח לך:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -471,9 +641,9 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 11 - Hebrew */}
+        {/* Section 12 - Hebrew */}
         <section id="he-international" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">11. העברות מידע בינלאומיות</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">12. העברות מידע בינלאומיות</h2>
           <div className="text-gray-300 space-y-4">
             <p>CodeTutor מופעלת מישראל. הנתונים שלך עשויים להיות מועברים ומעובדים במדינות מחוץ למקום מגוריך, כולל:</p>
             <ul className="list-disc pr-6 space-y-2">
@@ -485,18 +655,18 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        {/* Section 12 - Hebrew */}
+        {/* Section 13 - Hebrew */}
         <section id="he-changes-privacy" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">12. שינויים במדיניות זו</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">13. שינויים במדיניות זו</h2>
           <div className="text-gray-300 space-y-4">
             <p>אנו עשויים לעדכן מדיניות פרטיות זו מעת לעת. שינויים יפורסמו בדף זה עם תאריך "עודכן לאחרונה" מעודכן. עבור שינויים משמעותיים, נודיע לך באמצעות אימייל או הודעה בולטת בפלטפורמה שלנו.</p>
             <p className="mt-4">המשך השימוש ב-CodeTutor לאחר שינויים מהווה קבלה של המדיניות המעודכנת.</p>
           </div>
         </section>
 
-        {/* Section 13 - Hebrew */}
+        {/* Section 14 - Hebrew */}
         <section id="he-contact-privacy" className="mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">13. צור קשר</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">14. צור קשר</h2>
           <div className="text-gray-300 space-y-4">
             <p>לשאלות הקשורות לפרטיות או למימוש הזכויות שלך, צור קשר:</p>
             <div className="bg-white/5 rounded-xl p-6 mt-4">

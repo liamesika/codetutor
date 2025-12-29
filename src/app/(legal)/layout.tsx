@@ -9,6 +9,7 @@ const legalLinks = [
   { href: "/cookies", label: "Cookies", labelHe: "עוגיות" },
   { href: "/security", label: "Security", labelHe: "אבטחה" },
   { href: "/accessibility", label: "Accessibility", labelHe: "נגישות" },
+  { href: "/data-rights", label: "My Data", labelHe: "הנתונים שלי" },
 ]
 
 export default function LegalLayout({
