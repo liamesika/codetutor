@@ -100,6 +100,7 @@ export async function GET(
       title: topic.title,
       slug: topic.slug,
       description: topic.description,
+      introMarkdown: topic.introMarkdown,
       week: topic.week,
       lessons: topic.lessons,
       questions: topic.questions.map((q) => ({

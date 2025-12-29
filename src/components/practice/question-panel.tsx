@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -36,9 +42,11 @@ import {
   FileCode,
   AlertCircle,
   BookOpen,
+  Lock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { useXp, useHintCost, useSolutionCost } from "@/components/providers/xp-provider"
 
 interface QuestionPanelProps {
   question: {
@@ -214,6 +222,13 @@ export function QuestionPanel({
   const availableHints = question.hints.length - hintsUsed
   const hintPointsCost = 10 * (hintsUsed + 1)
 
+  // XP purchase guards
+  const { xp, canAfford, isLoading: xpLoading } = useXp()
+  const nextHintCost = useHintCost(hintsUsed)
+  const solutionCost = useSolutionCost()
+  const canAffordHint = canAfford(nextHintCost)
+  const canAffordSolution = canAfford(solutionCost)
+
   // Parse structured content
   const structured = parseStructuredContent(question.prompt)
   const hasStructuredContent = !structured.rawContent
@@ -250,50 +265,87 @@ export function QuestionPanel({
           <Card className="bg-accent/20 border-border/50">
             <CardContent className="p-8 text-center space-y-4">
               <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 flex items-center justify-center">
-                <Eye className="h-8 w-8 text-cyan-500" />
+                {canAffordSolution ? (
+                  <Eye className="h-8 w-8 text-cyan-500" />
+                ) : (
+                  <Lock className="h-8 w-8 text-muted-foreground" />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold text-lg mb-2">Solution Not Revealed</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Try to solve it yourself first! Revealing the solution costs 50 XP
-                  and you won&apos;t earn points for this question.
+                  {canAffordSolution
+                    ? "Try to solve it yourself first! Revealing the solution costs 50 XP and you won't earn points for this question."
+                    : `You need ${solutionCost} XP to reveal the solution. You currently have ${xp ?? 0} XP. Solve more questions to earn XP!`
+                  }
                 </p>
-                <AlertDialog open={showRevealDialog} onOpenChange={setShowRevealDialog}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="gap-2 border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10"
-                    >
-                      <Eye className="h-4 w-4 text-cyan-500" />
-                      Reveal Solution
-                      <Badge variant="secondary" className="ml-1 bg-destructive/20 text-destructive">
-                        -50 XP
-                      </Badge>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="glass-card">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reveal Solution?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Revealing the solution will cost you <strong className="text-destructive">50 XP</strong> and
-                        you won&apos;t earn any points for this question. Are you sure
-                        you want to continue?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Keep Trying</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => {
-                          onRevealSolution()
-                          setShowRevealDialog(false)
-                        }}
-                        className="bg-destructive hover:bg-destructive/90"
-                      >
-                        Reveal (-50 XP)
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <AlertDialog open={showRevealDialog} onOpenChange={canAffordSolution ? setShowRevealDialog : undefined}>
+                          <AlertDialogTrigger asChild disabled={!canAffordSolution}>
+                            <Button
+                              variant="outline"
+                              disabled={!canAffordSolution || xpLoading}
+                              className={cn(
+                                "gap-2",
+                                canAffordSolution
+                                  ? "border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10"
+                                  : "border-muted-foreground/20 opacity-60 cursor-not-allowed"
+                              )}
+                            >
+                              {canAffordSolution ? (
+                                <Eye className="h-4 w-4 text-cyan-500" />
+                              ) : (
+                                <Lock className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              Reveal Solution
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  "ml-1",
+                                  canAffordSolution
+                                    ? "bg-cyan-500/20 text-cyan-500"
+                                    : "bg-destructive/20 text-destructive"
+                                )}
+                              >
+                                -{solutionCost} XP
+                              </Badge>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="glass-card">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Reveal Solution?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Revealing the solution will cost you <strong className="text-destructive">50 XP</strong> and
+                                you won&apos;t earn any points for this question. Are you sure
+                                you want to continue?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Keep Trying</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  onRevealSolution()
+                                  setShowRevealDialog(false)
+                                }}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                Reveal (-50 XP)
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </span>
+                    </TooltipTrigger>
+                    {!canAffordSolution && (
+                      <TooltipContent side="bottom" className="bg-destructive text-destructive-foreground">
+                        <p>Not enough XP ({xp ?? 0}/{solutionCost} XP needed)</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </CardContent>
           </Card>
@@ -504,20 +556,49 @@ export function QuestionPanel({
             Hints
           </h2>
           {availableHints > 0 && !solutionRevealed && (
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onUseHint}
-                className="gap-2 border-yellow-500/30 hover:border-yellow-500/50 hover:bg-yellow-500/10"
-              >
-                <Lightbulb className="h-3.5 w-3.5 text-yellow-500" />
-                Get Hint
-                <Badge variant="secondary" className="ml-1 bg-yellow-500/20 text-yellow-500">
-                  -{hintPointsCost} XP
-                </Badge>
-              </Button>
-            </motion.div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <motion.div whileHover={canAffordHint ? { scale: 1.02 } : undefined} whileTap={canAffordHint ? { scale: 0.98 } : undefined}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={canAffordHint ? onUseHint : undefined}
+                      disabled={!canAffordHint || xpLoading}
+                      className={cn(
+                        "gap-2",
+                        canAffordHint
+                          ? "border-yellow-500/30 hover:border-yellow-500/50 hover:bg-yellow-500/10"
+                          : "border-muted-foreground/20 opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      {canAffordHint ? (
+                        <Lightbulb className="h-3.5 w-3.5 text-yellow-500" />
+                      ) : (
+                        <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                      Get Hint
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "ml-1",
+                          canAffordHint
+                            ? "bg-yellow-500/20 text-yellow-500"
+                            : "bg-destructive/20 text-destructive"
+                        )}
+                      >
+                        -{hintPointsCost} XP
+                      </Badge>
+                    </Button>
+                  </motion.div>
+                </TooltipTrigger>
+                {!canAffordHint && (
+                  <TooltipContent side="bottom" className="bg-destructive text-destructive-foreground">
+                    <p>Not enough XP ({xp ?? 0}/{nextHintCost} XP needed)</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
 
@@ -561,42 +642,76 @@ export function QuestionPanel({
                 Solution
               </h2>
               {!solutionRevealed && (
-                <AlertDialog open={showRevealDialog} onOpenChange={setShowRevealDialog}>
-                  <AlertDialogTrigger asChild>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10"
-                      >
-                        <Eye className="h-3.5 w-3.5 text-cyan-500" />
-                        Reveal Solution
-                      </Button>
-                    </motion.div>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="glass-card">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reveal Solution?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Revealing the solution will cost you <strong className="text-destructive">50 XP</strong> and
-                        you won&apos;t earn any points for this question. Are you sure
-                        you want to continue?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Keep Trying</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => {
-                          onRevealSolution()
-                          setShowRevealDialog(false)
-                        }}
-                        className="bg-destructive hover:bg-destructive/90"
-                      >
-                        Reveal (-50 XP)
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <AlertDialog open={showRevealDialog} onOpenChange={canAffordSolution ? setShowRevealDialog : undefined}>
+                          <AlertDialogTrigger asChild disabled={!canAffordSolution}>
+                            <motion.div whileHover={canAffordSolution ? { scale: 1.02 } : undefined} whileTap={canAffordSolution ? { scale: 0.98 } : undefined}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={!canAffordSolution || xpLoading}
+                                className={cn(
+                                  "gap-2",
+                                  canAffordSolution
+                                    ? "border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10"
+                                    : "border-muted-foreground/20 opacity-60 cursor-not-allowed"
+                                )}
+                              >
+                                {canAffordSolution ? (
+                                  <Eye className="h-3.5 w-3.5 text-cyan-500" />
+                                ) : (
+                                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                                )}
+                                Reveal Solution
+                                <Badge
+                                  variant="secondary"
+                                  className={cn(
+                                    "ml-1",
+                                    canAffordSolution
+                                      ? "bg-cyan-500/20 text-cyan-500"
+                                      : "bg-destructive/20 text-destructive"
+                                  )}
+                                >
+                                  -{solutionCost} XP
+                                </Badge>
+                              </Button>
+                            </motion.div>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="glass-card">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Reveal Solution?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Revealing the solution will cost you <strong className="text-destructive">50 XP</strong> and
+                                you won&apos;t earn any points for this question. Are you sure
+                                you want to continue?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Keep Trying</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  onRevealSolution()
+                                  setShowRevealDialog(false)
+                                }}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                Reveal (-50 XP)
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </span>
+                    </TooltipTrigger>
+                    {!canAffordSolution && (
+                      <TooltipContent side="bottom" className="bg-destructive text-destructive-foreground">
+                        <p>Not enough XP ({xp ?? 0}/{solutionCost} XP needed)</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 

@@ -12,6 +12,7 @@ import { StreakProtectionProvider } from "./streak-protection-provider"
 import { DropOffRecoveryProvider } from "./drop-off-recovery-provider"
 import { RankProvider } from "./rank-provider"
 import { DopamineProvider } from "./dopamine-provider"
+import { XpProvider } from "./xp-provider"
 import { ImmersionProvider } from "@/components/immersion"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 import { Toaster } from "@/components/ui/sonner"
@@ -29,25 +30,27 @@ export function Providers({ children }: { children: React.ReactNode }) {
             disableTransitionOnChange
           >
             <AppSplashProvider>
-              <DopamineProvider>
-                <LevelUpProvider>
-                  <RankProvider>
-                    <SkillUnlockProvider>
-                      <DailyLoginProvider>
-                        <DailyMissionProvider>
-                          <StreakProtectionProvider>
-                            <DropOffRecoveryProvider>
-                              <ImmersionProvider>
-                                {children}
-                              </ImmersionProvider>
-                            </DropOffRecoveryProvider>
-                          </StreakProtectionProvider>
-                        </DailyMissionProvider>
-                      </DailyLoginProvider>
-                    </SkillUnlockProvider>
-                  </RankProvider>
-                </LevelUpProvider>
-              </DopamineProvider>
+              <XpProvider>
+                <DopamineProvider>
+                  <LevelUpProvider>
+                    <RankProvider>
+                      <SkillUnlockProvider>
+                        <DailyLoginProvider>
+                          <DailyMissionProvider>
+                            <StreakProtectionProvider>
+                              <DropOffRecoveryProvider>
+                                <ImmersionProvider>
+                                  {children}
+                                </ImmersionProvider>
+                              </DropOffRecoveryProvider>
+                            </StreakProtectionProvider>
+                          </DailyMissionProvider>
+                        </DailyLoginProvider>
+                      </SkillUnlockProvider>
+                    </RankProvider>
+                  </LevelUpProvider>
+                </DopamineProvider>
+              </XpProvider>
             </AppSplashProvider>
             <Toaster position="top-right" richColors />
             <CookieConsent />

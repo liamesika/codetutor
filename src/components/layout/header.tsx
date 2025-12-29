@@ -28,6 +28,7 @@ import {
   Zap,
 } from "lucide-react"
 import { Sidebar } from "./sidebar"
+import { useXp } from "@/components/providers/xp-provider"
 
 interface HeaderProps {
   weeks?: {
@@ -55,6 +56,13 @@ interface HeaderProps {
 export function Header({ weeks = [], currentCourse, userStats }: HeaderProps) {
   const { data: session, status } = useSession()
   const { theme, setTheme } = useTheme()
+
+  // Use centralized XP provider for real-time XP updates
+  const { xp, streak, isLoading: xpLoading } = useXp()
+
+  // Prefer XP provider values if available, fall back to userStats prop
+  const displayXp = xp ?? userStats?.totalPoints ?? 0
+  const displayStreak = streak ?? userStats?.streak ?? 0
 
   const getInitials = (name?: string | null) => {
     if (!name) return "U"
@@ -97,16 +105,16 @@ export function Header({ weeks = [], currentCourse, userStats }: HeaderProps) {
         <div className="flex-1" />
 
         {/* Stats (desktop) */}
-        {userStats && (
+        {(userStats || xp !== undefined) && (
           <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-1.5 text-sm">
               <Flame className="h-4 w-4 text-orange-500" />
-              <span className="font-medium">{userStats.streak}</span>
+              <span className="font-medium">{displayStreak}</span>
               <span className="text-muted-foreground">day streak</span>
             </div>
             <div className="flex items-center gap-1.5 text-sm">
               <Zap className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">{userStats.totalPoints.toLocaleString()}</span>
+              <span className="font-medium">{displayXp.toLocaleString()}</span>
               <span className="text-muted-foreground">XP</span>
             </div>
           </div>
@@ -152,17 +160,17 @@ export function Header({ weeks = [], currentCourse, userStats }: HeaderProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {/* Mobile stats */}
-              {userStats && (
+              {(userStats || xp !== undefined) && (
                 <>
                   <div className="md:hidden px-2 py-1.5">
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-1.5">
                         <Flame className="h-4 w-4 text-orange-500" />
-                        <span>{userStats.streak} day streak</span>
+                        <span>{displayStreak} day streak</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Zap className="h-4 w-4 text-yellow-500" />
-                        <span>{userStats.totalPoints.toLocaleString()} XP</span>
+                        <span>{displayXp.toLocaleString()} XP</span>
                       </div>
                     </div>
                   </div>

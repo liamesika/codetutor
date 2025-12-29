@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { routes } from "@/lib/routes"
 import { useInvalidateStats, useIsExecutorAvailable, useInvalidateProgression, useForceHealthCheck } from "@/lib/hooks"
 import { useLevelUpContext } from "@/components/providers/level-up-provider"
+import { useXp } from "@/components/providers/xp-provider"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -331,22 +332,36 @@ export default function PracticePage({
     },
   })
 
+  // Use XP provider for refreshing after transactions
+  const { refreshXp } = useXp()
+
   // Use hint mutation
   const hintMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(routes.api.hint(questionId), {
         method: "POST",
       })
-      if (!res.ok) throw new Error("Failed to get hint")
-      return res.json()
+      const data = await res.json()
+      if (!res.ok) {
+        // Handle INSUFFICIENT_XP error specially
+        if (data.error === "INSUFFICIENT_XP") {
+          throw new Error(`Not enough XP! You need ${data.required} XP but only have ${data.available} XP.`)
+        }
+        throw new Error(data.error || "Failed to get hint")
+      }
+      return data
     },
     onSuccess: (data) => {
       setHintsUsed((prev) => prev + 1)
       toast.info(`Hint ${data.hintIndex + 1}: -${data.pointsDeducted} XP`)
       queryClient.invalidateQueries({ queryKey: ["question", questionId] })
+      // Refresh XP state globally
+      refreshXp()
     },
     onError: (err) => {
       toast.error(err.message)
+      // Refresh XP to ensure UI is in sync
+      refreshXp()
     },
   })
 
@@ -356,16 +371,27 @@ export default function PracticePage({
       const res = await fetch(routes.api.solution(questionId), {
         method: "POST",
       })
-      if (!res.ok) throw new Error("Failed to reveal solution")
-      return res.json()
+      const data = await res.json()
+      if (!res.ok) {
+        // Handle INSUFFICIENT_XP error specially
+        if (data.error === "INSUFFICIENT_XP") {
+          throw new Error(`Not enough XP! You need ${data.required} XP but only have ${data.available} XP.`)
+        }
+        throw new Error(data.error || "Failed to reveal solution")
+      }
+      return data
     },
     onSuccess: (data) => {
       setSolutionRevealed(true)
       setSolutionCode(data.solutionCode)
       toast.info(`Solution revealed: -${data.pointsDeducted} XP`)
+      // Refresh XP state globally
+      refreshXp()
     },
     onError: (err) => {
       toast.error(err.message)
+      // Refresh XP to ensure UI is in sync
+      refreshXp()
     },
   })
 

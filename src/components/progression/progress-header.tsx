@@ -1,9 +1,9 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { Flame, Zap, Trophy, ChevronUp, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useXp } from "@/components/providers/xp-provider"
 
 interface UserProgressData {
   xp: number
@@ -21,15 +21,30 @@ interface ProgressHeaderProps {
 }
 
 export function ProgressHeader({ compact = false, className }: ProgressHeaderProps) {
-  const { data: progress, isLoading } = useQuery<UserProgressData>({
-    queryKey: ["user-progress"],
-    queryFn: async () => {
-      const res = await fetch("/api/progression")
-      if (!res.ok) throw new Error("Failed to load progress")
-      return res.json()
-    },
-    refetchInterval: 30000, // Refresh every 30s
-  })
+  // Use centralized XP provider for real-time sync
+  const {
+    xp,
+    level,
+    xpToNextLevel,
+    xpProgress,
+    streak: currentStreak,
+    bestStreak,
+    totalSolved,
+    isLoading,
+  } = useXp()
+
+  // Build progress object from XP provider
+  const progress: UserProgressData | null = xp !== undefined
+    ? {
+        xp,
+        level: level ?? 1,
+        xpToNextLevel: xpToNextLevel ?? 100,
+        xpProgress: xpProgress ?? 0,
+        currentStreak: currentStreak ?? 0,
+        bestStreak: bestStreak ?? 0,
+        totalSolved: totalSolved ?? 0,
+      }
+    : null
 
   if (isLoading) {
     return (

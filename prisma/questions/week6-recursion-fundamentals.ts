@@ -1,5 +1,6 @@
 // Week 6: Recursion Fundamentals - Numbers & Strings (6 questions)
 // Difficulty levels 1-6: Building the foundation of recursive thinking
+// Updated with comprehensive prompt standard for self-teaching
 
 export const week6RecursionFundamentals = [
   // ===== Level 1: Factorial - The Classic Introduction =====
@@ -7,27 +8,57 @@ export const week6RecursionFundamentals = [
     title: "Factorial (Basic Recursion)",
     slug: "factorial-basic",
     type: "CODE",
-    prompt: `Write a recursive method that calculates the factorial of a non-negative integer n.
+    prompt: `## Concept
+**Recursion** is when a function calls itself to solve smaller pieces of the same problem. Every recursive function needs:
+1. **Base case** – the simplest case where we return a value without recursing
+2. **Recursive step** – where the function calls itself with a "smaller" input
 
-**Definition:** n! = n × (n-1) × (n-2) × ... × 1, and 0! = 1
+**Factorial** is written as \`n!\` and means: multiply n by all positive integers below it.
+- Formula: \`factorial(n) = n × factorial(n-1)\`
+- Example: \`5! = 5 × 4 × 3 × 2 × 1 = 120\`
 
-**Examples:**
-- factorial(0) → 1
-- factorial(1) → 1
-- factorial(5) → 120 (5 × 4 × 3 × 2 × 1)
+---
 
-**Requirements:**
-- Must use recursion (no loops allowed)
-- Return -1 for negative inputs`,
+## Task
+Write a recursive method \`factorial(int n)\` that returns n! (n factorial).
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops allowed)
+- Return \`-1\` for negative inputs
+- \`0! = 1\` and \`1! = 1\` (these are your base cases)
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`factorial(0)\` | \`1\` | 0! = 1 by definition |
+| \`factorial(1)\` | \`1\` | 1! = 1 |
+| \`factorial(5)\` | \`120\` | 5 × 4 × 3 × 2 × 1 = 120 |
+| \`factorial(-1)\` | \`-1\` | Negative input → return -1 |
+
+---
+
+## Edge Cases
+- \`n = 0\` → return 1 (base case)
+- \`n = 1\` → return 1 (base case)
+- \`n < 0\` → return -1 (invalid input)
+- Large values: \`factorial(10) = 3628800\``,
     constraints: "Do NOT use loops. Your solution MUST be recursive. Handle negative inputs by returning -1.",
     difficulty: 1,
     estimatedMinutes: 8,
     points: 100,
+    xpReward: 100,
     starterCode: `public class Solution {
     public static long factorial(int n) {
-        // Your recursive implementation here
-        // Base case: What's the simplest case?
-        // Recursive case: How does factorial(n) relate to factorial(n-1)?
+        // Step 1: Handle invalid input (negative numbers)
+
+        // Step 2: Base case - what values of n give an immediate answer?
+
+        // Step 3: Recursive step - how does factorial(n) relate to factorial(n-1)?
 
         return 0; // Replace this
     }
@@ -66,10 +97,10 @@ export const week6RecursionFundamentals = [
       { input: "", expectedOutput: "-1", isHidden: true, testCode: "System.out.println(factorial(-5));" },
     ],
     hints: [
-      "Every recursive function needs a BASE CASE - when does recursion stop?",
-      "For factorial, the base case is when n is 0 or 1 (both return 1)",
-      "The recursive step: factorial(n) = n * factorial(n-1)",
-      "Don't forget to handle negative inputs BEFORE the base case"
+      "Start by handling the invalid case: if n < 0, return -1 immediately.",
+      "The BASE CASE is when recursion stops. For factorial: when n is 0 or 1, return 1.",
+      "The RECURSIVE STEP: factorial(n) = n * factorial(n-1). The function calls itself with n-1.",
+      "Trace through factorial(3): 3 * factorial(2) = 3 * 2 * factorial(1) = 3 * 2 * 1 = 6"
     ],
     tags: ["recursion", "numbers", "base-case", "recursion-step", "difficulty-1"],
   },
@@ -79,25 +110,52 @@ export const week6RecursionFundamentals = [
     title: "Power (Base to Exponent)",
     slug: "power-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that calculates base raised to the power of exponent (base^exp).
+    prompt: `## Concept
+The **power function** calculates \`base^exp\` (base raised to the exponent).
+- \`2^3 = 2 × 2 × 2 = 8\`
+- \`5^0 = 1\` (anything to the power of 0 is 1)
 
-**Examples:**
-- power(2, 0) → 1 (anything to the power of 0 is 1)
-- power(2, 3) → 8 (2 × 2 × 2)
-- power(5, 2) → 25
-- power(3, 4) → 81
+Recursively: \`power(base, exp) = base × power(base, exp-1)\`
 
-**Requirements:**
-- Must use recursion (no loops, no Math.pow)
-- Exponent is guaranteed to be non-negative`,
+---
+
+## Task
+Write a recursive method \`power(int base, int exp)\` that returns base raised to the power of exp.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops, no \`Math.pow()\`)
+- Exponent is guaranteed to be **non-negative** (≥ 0)
+- Return type is \`long\` to handle large results
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`power(2, 0)\` | \`1\` | Any number^0 = 1 |
+| \`power(2, 3)\` | \`8\` | 2 × 2 × 2 = 8 |
+| \`power(5, 2)\` | \`25\` | 5 × 5 = 25 |
+| \`power(3, 4)\` | \`81\` | 3 × 3 × 3 × 3 = 81 |
+
+---
+
+## Edge Cases
+- \`exp = 0\` → always return 1 (base case)
+- \`base = 0\` → 0^n = 0 (for n > 0)
+- \`base = 1\` → 1^n = 1 (for any n)`,
     constraints: "Do NOT use loops or Math.pow(). Your solution MUST be recursive.",
     difficulty: 2,
     estimatedMinutes: 10,
     points: 120,
+    xpReward: 120,
     starterCode: `public class Solution {
     public static long power(int base, int exp) {
-        // Your recursive implementation here
-        // Think: What's base^0? What's base^n in terms of base^(n-1)?
+        // Base case: What is any number raised to the power of 0?
+
+        // Recursive step: How does base^exp relate to base^(exp-1)?
 
         return 0; // Replace this
     }
@@ -132,10 +190,10 @@ export const week6RecursionFundamentals = [
       { input: "", expectedOutput: "0", isHidden: true, testCode: "System.out.println(power(0, 5));" },
     ],
     hints: [
-      "Base case: What is any number raised to the power of 0?",
-      "Think about it: 2^3 = 2 * 2^2 = 2 * 2 * 2^1 = 2 * 2 * 2 * 2^0",
+      "The BASE CASE: When exp == 0, return 1 (any number^0 = 1).",
+      "Think step by step: 2^3 = 2 * 2^2 = 2 * 2 * 2^1 = 2 * 2 * 2 * 2^0 = 2 * 2 * 2 * 1",
       "The recursive formula: power(base, exp) = base * power(base, exp - 1)",
-      "Make sure exp == 0 returns 1, not 0!"
+      "Common mistake: returning 0 for the base case instead of 1!"
     ],
     tags: ["recursion", "numbers", "base-case", "recursion-step", "difficulty-2"],
   },
@@ -145,32 +203,61 @@ export const week6RecursionFundamentals = [
     title: "Fibonacci Number",
     slug: "fibonacci-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that returns the nth Fibonacci number.
+    prompt: `## Concept
+The **Fibonacci sequence** is: 0, 1, 1, 2, 3, 5, 8, 13, 21, ...
 
-**Fibonacci Sequence:** 0, 1, 1, 2, 3, 5, 8, 13, 21, ...
-- F(0) = 0
-- F(1) = 1
-- F(n) = F(n-1) + F(n-2) for n > 1
+Each number is the sum of the two numbers before it:
+- \`F(0) = 0\` (base case 1)
+- \`F(1) = 1\` (base case 2)
+- \`F(n) = F(n-1) + F(n-2)\` for n > 1
 
-**Examples:**
-- fibonacci(0) → 0
-- fibonacci(1) → 1
-- fibonacci(6) → 8
-- fibonacci(10) → 55
+This is special because it has **TWO base cases** and makes **TWO recursive calls**.
 
-**Requirements:**
-- Must use recursion
-- Return -1 for negative inputs`,
+---
+
+## Task
+Write a recursive method \`fibonacci(int n)\` that returns the nth Fibonacci number.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops)
+- Return \`-1\` for negative inputs
+- F(0) = 0, F(1) = 1
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`fibonacci(0)\` | \`0\` | F(0) = 0 (base case) |
+| \`fibonacci(1)\` | \`1\` | F(1) = 1 (base case) |
+| \`fibonacci(6)\` | \`8\` | 0,1,1,2,3,5,**8** |
+| \`fibonacci(10)\` | \`55\` | The 10th Fibonacci number |
+| \`fibonacci(-1)\` | \`-1\` | Negative → invalid |
+
+---
+
+## Edge Cases
+- \`n = 0\` → return 0 (first base case)
+- \`n = 1\` → return 1 (second base case)
+- \`n < 0\` → return -1 (invalid)
+- \`n = 2\` → F(1) + F(0) = 1 + 0 = 1`,
     constraints: "Do NOT use loops. Your solution MUST be recursive. Return -1 for negative n.",
     difficulty: 3,
     estimatedMinutes: 12,
     points: 150,
+    xpReward: 150,
     starterCode: `public class Solution {
     public static int fibonacci(int n) {
-        // Your recursive implementation here
-        // This function has TWO base cases!
-        // F(0) = 0, F(1) = 1
-        // F(n) = F(n-1) + F(n-2)
+        // Step 1: Handle invalid input (negative n)
+
+        // Step 2: Base case 1 - F(0) = ?
+
+        // Step 3: Base case 2 - F(1) = ?
+
+        // Step 4: Recursive step - F(n) = F(n-1) + F(n-2)
 
         return 0; // Replace this
     }
@@ -214,10 +301,10 @@ export const week6RecursionFundamentals = [
       { input: "", expectedOutput: "-1", isHidden: true, testCode: "System.out.println(fibonacci(-10));" },
     ],
     hints: [
-      "Fibonacci has TWO base cases: F(0)=0 and F(1)=1",
-      "The recursive formula adds two previous values: F(n) = F(n-1) + F(n-2)",
-      "Common mistake: forgetting to handle n=0 separately from n=1",
-      "Handle negative input FIRST, before checking base cases"
+      "Fibonacci has TWO base cases: F(0) returns 0, and F(1) returns 1. Handle both!",
+      "The recursive formula ADDS two calls: fibonacci(n-1) + fibonacci(n-2)",
+      "Trace F(4): F(3) + F(2) = (F(2)+F(1)) + (F(1)+F(0)) = ((1+0)+1) + (1+0) = 2+1 = 3",
+      "Handle negative input FIRST, before checking base cases."
     ],
     tags: ["recursion", "numbers", "base-case", "recursion-step", "fibonacci", "difficulty-3"],
   },
@@ -227,30 +314,56 @@ export const week6RecursionFundamentals = [
     title: "String Equals (Recursive)",
     slug: "string-equals-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that checks if two strings are equal WITHOUT using .equals(), .compareTo(), or loops.
+    prompt: `## Concept
+We can check if two strings are equal **recursively** by comparing them character-by-character:
+1. If lengths differ → not equal
+2. If both empty → equal (base case)
+3. Compare first character, then recurse on the rest
 
-**Approach:** Compare character by character recursively.
+---
 
-**Examples:**
-- stringEquals("hello", "hello") → true
-- stringEquals("hello", "world") → false
-- stringEquals("", "") → true (empty strings are equal)
-- stringEquals("ab", "abc") → false (different lengths)
+## Task
+Write a recursive method \`stringEquals(String s1, String s2)\` that returns \`true\` if the strings are equal, \`false\` otherwise.
 
-**Requirements:**
-- Must use recursion (no loops)
-- Cannot use .equals() or .compareTo()
-- Can use .length(), .charAt(), .substring()`,
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops)
+- **Cannot use** \`.equals()\` or \`.compareTo()\`
+- **Can use**: \`.length()\`, \`.charAt()\`, \`.substring()\`
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`stringEquals("hello", "hello")\` | \`true\` | Same characters |
+| \`stringEquals("hello", "world")\` | \`false\` | Different characters |
+| \`stringEquals("", "")\` | \`true\` | Two empty strings are equal |
+| \`stringEquals("ab", "abc")\` | \`false\` | Different lengths |
+
+---
+
+## Edge Cases
+- Both strings empty → true
+- Different lengths → false (check this first!)
+- Single character strings → compare that character
+- Case matters: "Hello" ≠ "hello"`,
     constraints: "Do NOT use loops, .equals(), or .compareTo(). You may use .length(), .charAt(), and .substring().",
     difficulty: 4,
     estimatedMinutes: 15,
     points: 180,
+    xpReward: 180,
     starterCode: `public class Solution {
     public static boolean stringEquals(String s1, String s2) {
-        // Your recursive implementation here
-        // Think: When are two strings definitely NOT equal?
-        // When are they definitely equal (base case)?
-        // How do you reduce the problem?
+        // Step 1: Quick check - if lengths differ, strings can't be equal
+
+        // Step 2: Base case - what if both strings are empty?
+
+        // Step 3: Compare first character of each string
+
+        // Step 4: Recurse on the rest (substring(1))
 
         return false; // Replace this
     }
@@ -295,10 +408,10 @@ export const week6RecursionFundamentals = [
       { input: "", expectedOutput: "false", isHidden: true, testCode: "System.out.println(stringEquals(\"abc\", \"abd\"));" },
     ],
     hints: [
-      "First, check if lengths are different - if so, return false immediately",
-      "Base case: if both strings are empty, they're equal",
-      "Compare first character of each string using charAt(0)",
-      "If first chars match, recurse on substring(1) of both strings"
+      "First optimization: if s1.length() != s2.length(), return false immediately.",
+      "Base case: if both strings have length 0, they are equal (return true).",
+      "Compare the first character: s1.charAt(0) vs s2.charAt(0). If different, return false.",
+      "If first chars match, recurse on substring(1) of both strings."
     ],
     tags: ["recursion", "strings", "base-case", "recursion-step", "difficulty-4"],
   },
@@ -308,26 +421,54 @@ export const week6RecursionFundamentals = [
     title: "Reverse String (Recursive)",
     slug: "reverse-string-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that reverses a string WITHOUT using loops or StringBuilder.reverse().
+    prompt: `## Concept
+To reverse a string recursively:
+1. Take the first character and put it at the END
+2. Reverse the rest of the string
+3. Base case: empty or single-character string → return as-is
 
-**Examples:**
-- reverseString("hello") → "olleh"
-- reverseString("a") → "a"
-- reverseString("") → ""
-- reverseString("ab") → "ba"
+Example: \`reverse("hello")\` = \`reverse("ello") + "h"\` = \`"olle" + "h"\` = \`"olleh"\`
 
-**Requirements:**
-- Must use recursion (no loops)
-- Cannot use StringBuilder.reverse()`,
+---
+
+## Task
+Write a recursive method \`reverseString(String s)\` that returns the reversed string.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops)
+- **Cannot use** \`StringBuilder.reverse()\`
+- **Can use**: \`.length()\`, \`.charAt()\`, \`.substring()\`, string concatenation
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`reverseString("hello")\` | \`"olleh"\` | Characters reversed |
+| \`reverseString("a")\` | \`"a"\` | Single char stays same |
+| \`reverseString("")\` | \`""\` | Empty stays empty |
+| \`reverseString("ab")\` | \`"ba"\` | Two chars swapped |
+
+---
+
+## Edge Cases
+- Empty string → return ""
+- Single character → return that character
+- Palindrome like "racecar" → stays the same`,
     constraints: "Do NOT use loops or StringBuilder.reverse(). Your solution MUST be recursive.",
     difficulty: 5,
     estimatedMinutes: 12,
     points: 200,
+    xpReward: 200,
     starterCode: `public class Solution {
     public static String reverseString(String s) {
-        // Your recursive implementation here
-        // Think: What's the reverse of an empty string or single char?
-        // How can you build the reverse using recursion?
+        // Base case: empty string or single character
+
+        // Recursive step: reverse the rest, then add first char at the end
+        // reverse("hello") = reverse("ello") + "h"
 
         return ""; // Replace this
     }
@@ -364,10 +505,10 @@ export const week6RecursionFundamentals = [
       { input: "", expectedOutput: "a b c", isHidden: true, testCode: "System.out.println(reverseString(\"c b a\"));" },
     ],
     hints: [
-      "Base case: empty string or single character returns as-is",
+      "Base case: if length is 0 or 1, return the string as-is (nothing to reverse).",
       "Key insight: reverse(\"hello\") = reverse(\"ello\") + \"h\"",
-      "Use substring(1) to get all characters after the first",
-      "Use charAt(0) to get the first character"
+      "Use s.substring(1) to get everything after the first character.",
+      "Use s.charAt(0) to get the first character, then add it to the END of the reversed rest."
     ],
     tags: ["recursion", "strings", "base-case", "recursion-step", "difficulty-5"],
   },
@@ -377,25 +518,55 @@ export const week6RecursionFundamentals = [
     title: "Count Character (Recursive)",
     slug: "count-char-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that counts how many times a character appears in a string.
+    prompt: `## Concept
+To count how many times a character appears in a string recursively:
+1. Check if the first character matches
+2. Add 1 if it matches, 0 if not
+3. Add the count from the rest of the string
 
-**Examples:**
-- countChar("hello", 'l') → 2
-- countChar("hello", 'z') → 0
-- countChar("", 'a') → 0
-- countChar("aaa", 'a') → 3
+Formula: \`count = (first char matches? 1 : 0) + countChar(rest, c)\`
 
-**Requirements:**
-- Must use recursion (no loops)`,
+---
+
+## Task
+Write a recursive method \`countChar(String s, char c)\` that returns how many times character \`c\` appears in string \`s\`.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops)
+- Count is case-sensitive: 'a' ≠ 'A'
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`countChar("hello", 'l')\` | \`2\` | Two 'l's in "hello" |
+| \`countChar("hello", 'z')\` | \`0\` | No 'z' in "hello" |
+| \`countChar("", 'a')\` | \`0\` | Empty string has no chars |
+| \`countChar("aaa", 'a')\` | \`3\` | Three 'a's |
+
+---
+
+## Edge Cases
+- Empty string → return 0
+- Character not in string → return 0
+- All characters match → return string length
+- Single character string → 0 or 1`,
     constraints: "Do NOT use loops. Your solution MUST be recursive.",
     difficulty: 6,
     estimatedMinutes: 10,
     points: 220,
+    xpReward: 220,
     starterCode: `public class Solution {
     public static int countChar(String s, char c) {
-        // Your recursive implementation here
-        // Check if first char matches, add 1 if so
-        // Then recurse on the rest of the string
+        // Base case: empty string has no characters
+
+        // Check if first character matches c
+        // If yes, count = 1 + countChar(rest, c)
+        // If no, count = 0 + countChar(rest, c)
 
         return 0; // Replace this
     }
@@ -434,10 +605,10 @@ export const week6RecursionFundamentals = [
       { input: "", expectedOutput: "3", isHidden: true, testCode: "System.out.println(countChar(\"abcabc\", 'c') + countChar(\"abc\", 'a'));" },
     ],
     hints: [
-      "Base case: empty string → return 0",
-      "Check if s.charAt(0) equals c, if so add 1",
-      "Recurse on s.substring(1) and add the results",
-      "Use ternary operator: (condition) ? 1 : 0"
+      "Base case: if the string is empty (length == 0), return 0.",
+      "Check: does s.charAt(0) equal c? Use the ternary operator: (condition) ? 1 : 0",
+      "Recursive step: add your count (0 or 1) to countChar(s.substring(1), c)",
+      "Trace: countChar(\"hello\", 'l') = 0 + 0 + 1 + 1 + 0 = 2"
     ],
     tags: ["recursion", "strings", "base-case", "recursion-step", "counting", "difficulty-6"],
   },

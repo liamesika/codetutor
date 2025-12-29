@@ -158,16 +158,17 @@ model Week {
 }
 
 model Topic {
-  id          String   @id @default(cuid())
-  weekId      String
-  title       String
-  slug        String
-  description String?  @db.Text
-  orderIndex  Int      @default(0)
-  isLocked    Boolean  @default(false)
-  isPublished Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  weekId        String
+  title         String
+  slug          String
+  description   String?  @db.Text
+  introMarkdown String?  @db.Text // Rich intro content for teaching (what, when, how, example)
+  orderIndex    Int      @default(0)
+  isLocked      Boolean  @default(false)
+  isPublished   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   week       Week             @relation(fields: [weekId], references: [id], onDelete: Cascade)
   lessons    Lesson[]

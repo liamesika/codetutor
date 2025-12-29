@@ -1,5 +1,6 @@
 // Week 7: Recursion Mastery - Arrays, Optimization & Advanced Patterns (9 questions)
 // Difficulty levels 7-15: Advanced recursive techniques
+// Updated with comprehensive prompt standard for self-teaching
 
 export const week7RecursionMastery = [
   // ===== Level 7: Max Value in Array =====
@@ -7,30 +8,59 @@ export const week7RecursionMastery = [
     title: "Find Maximum (Recursive)",
     slug: "max-value-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that finds the maximum value in an integer array WITHOUT using loops.
+    prompt: `## Concept
+To find the maximum value in an array recursively, we use a **helper method** with an index parameter:
+1. Start at index 0
+2. Compare current element with the max of the rest
+3. Base case: when at the last element, return it
 
-**Examples:**
-- maxValue([1, 5, 3, 9, 2]) → 9
-- maxValue([7]) → 7
-- maxValue([-5, -2, -10]) → -2
+This pattern is common for array recursion: **use a helper with an index**.
 
-**Requirements:**
-- Must use recursion (no loops)
-- Array will always have at least 1 element`,
+---
+
+## Task
+Write a recursive method \`maxValue(int[] arr)\` that returns the maximum value in the array.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops, no \`Arrays.stream()\`)
+- Array will always have **at least 1 element**
+- Use a helper method: \`maxValueHelper(int[] arr, int index)\`
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`maxValue([1, 5, 3, 9, 2])\` | \`9\` | 9 is the largest |
+| \`maxValue([7])\` | \`7\` | Single element |
+| \`maxValue([-5, -2, -10])\` | \`-2\` | -2 is largest (least negative) |
+
+---
+
+## Edge Cases
+- Single element → return that element
+- All same values → return that value
+- All negative → return the least negative
+- Maximum at start, middle, or end`,
     constraints: "Do NOT use loops or Arrays.stream(). Your solution MUST be recursive.",
     difficulty: 7,
     estimatedMinutes: 15,
     points: 250,
+    xpReward: 250,
     starterCode: `public class Solution {
     public static int maxValue(int[] arr) {
-        // Call helper with starting index
+        // Call helper with starting index 0
         return maxValueHelper(arr, 0);
     }
 
     private static int maxValueHelper(int[] arr, int index) {
-        // Your recursive implementation here
-        // Base case: what if we're at the last element?
-        // Recursive case: compare current with max of the rest
+        // Base case: when index is at the last element, return it
+
+        // Recursive case: compare current element with max of the rest
+        // Use Math.max(arr[index], maxValueHelper(arr, index + 1))
 
         return 0; // Replace this
     }
@@ -69,10 +99,10 @@ export const week7RecursionMastery = [
       { input: "", expectedOutput: "42", isHidden: true, testCode: "System.out.println(maxValue(new int[]{42}));" },
     ],
     hints: [
-      "Use a helper method with an index parameter to track position",
-      "Base case: when index is at the last element, return that element",
-      "Recursive case: compare arr[index] with the max of the rest",
-      "Use Math.max() to compare two values"
+      "Use a HELPER method with an index parameter to track your position in the array.",
+      "Base case: when index == arr.length - 1, you're at the last element - return it.",
+      "Recursive step: get max of rest with maxValueHelper(arr, index + 1), then compare with arr[index].",
+      "Use Math.max(a, b) to compare two integers."
     ],
     tags: ["recursion", "arrays", "base-case", "recursion-step", "difficulty-7"],
   },
@@ -82,28 +112,57 @@ export const week7RecursionMastery = [
     title: "Array Sum (Recursive)",
     slug: "array-sum-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that calculates the sum of all elements in an integer array.
+    prompt: `## Concept
+To sum all elements in an array recursively:
+1. Add current element to sum of the rest
+2. Base case: index past end of array → return 0
 
-**Examples:**
-- sumArray([1, 2, 3, 4, 5]) → 15
-- sumArray([10]) → 10
-- sumArray([-1, 1]) → 0
-- sumArray([]) → 0
+Formula: \`sum = arr[index] + sumHelper(arr, index + 1)\`
 
-**Requirements:**
-- Must use recursion (no loops)
-- Empty array should return 0`,
+---
+
+## Task
+Write a recursive method \`sumArray(int[] arr)\` that returns the sum of all elements.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops, no streams)
+- Empty array should return **0**
+- Use a helper method with an index parameter
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`sumArray([1, 2, 3, 4, 5])\` | \`15\` | 1+2+3+4+5 = 15 |
+| \`sumArray([10])\` | \`10\` | Single element |
+| \`sumArray([-1, 1])\` | \`0\` | -1 + 1 = 0 |
+| \`sumArray([])\` | \`0\` | Empty array = 0 |
+
+---
+
+## Edge Cases
+- Empty array → return 0
+- Single element → return that element
+- Negative numbers → works the same
+- Sum overflow for very large arrays (not tested)`,
     constraints: "Do NOT use loops or streams. Your solution MUST be recursive.",
     difficulty: 8,
     estimatedMinutes: 12,
     points: 270,
+    xpReward: 270,
     starterCode: `public class Solution {
     public static int sumArray(int[] arr) {
         return sumHelper(arr, 0);
     }
 
     private static int sumHelper(int[] arr, int index) {
-        // Your recursive implementation here
+        // Base case: past the end of the array
+
+        // Recursive case: current element + sum of rest
 
         return 0; // Replace this
     }
@@ -140,9 +199,10 @@ export const week7RecursionMastery = [
       { input: "", expectedOutput: "55", isHidden: true, testCode: "System.out.println(sumArray(new int[]{1,2,3,4,5,6,7,8,9,10}));" },
     ],
     hints: [
-      "Base case: when index >= arr.length, return 0",
-      "Recursive case: arr[index] + sumHelper(arr, index + 1)",
-      "Empty array is handled by the base case (index 0 >= length 0)"
+      "Base case: when index >= arr.length, return 0 (nothing left to add).",
+      "This handles empty arrays too! index 0 >= length 0 → return 0.",
+      "Recursive step: return arr[index] + sumHelper(arr, index + 1)",
+      "Trace: sum([1,2,3]) = 1 + sum([2,3]) = 1 + 2 + sum([3]) = 1 + 2 + 3 + 0 = 6"
     ],
     tags: ["recursion", "arrays", "base-case", "recursion-step", "difficulty-8"],
   },
@@ -152,40 +212,72 @@ export const week7RecursionMastery = [
     title: "Filter Strings by Length (Recursive)",
     slug: "filter-by-length-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that filters an array of strings, keeping only those with length >= minLen.
+    prompt: `## Concept
+Filtering an array recursively is a **two-pass** process:
+1. **Pass 1:** Count how many elements match (to create result array of correct size)
+2. **Pass 2:** Fill the result array with matching elements
 
-**Examples:**
-- filterByLength(["hi", "hello", "a", "world"], 3) → ["hello", "world"]
-- filterByLength(["abc", "de", "f"], 2) → ["abc", "de"]
-- filterByLength([], 5) → []
+This avoids using ArrayList or dynamic resizing.
 
-**Requirements:**
-- Must use recursion (no loops)
-- Return a new array with matching strings
-- Preserve original order`,
+---
+
+## Task
+Write a recursive method \`filterByLength(String[] arr, int minLen)\` that returns a new array containing only strings with length ≥ minLen.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops, no streams, no ArrayList)
+- Preserve original order
+- Return an empty array if no matches
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`filterByLength(["hi", "hello", "a", "world"], 3)\` | \`["hello", "world"]\` | Only length ≥ 3 |
+| \`filterByLength(["abc", "de", "f"], 2)\` | \`["abc", "de"]\` | Only length ≥ 2 |
+| \`filterByLength([], 5)\` | \`[]\` | Empty input → empty output |
+
+---
+
+## Edge Cases
+- Empty input array → empty result
+- No strings match → empty result
+- All strings match → return copy of input
+- minLen = 0 → all strings match`,
     constraints: "Do NOT use loops, streams, or ArrayList. Build result recursively.",
     difficulty: 9,
     estimatedMinutes: 18,
     points: 300,
+    xpReward: 300,
     starterCode: `import java.util.Arrays;
 
 public class Solution {
     public static String[] filterByLength(String[] arr, int minLen) {
-        // Count matching elements first, then build result
+        // Step 1: Count matching elements
         int count = countMatching(arr, minLen, 0);
+
+        // Step 2: Create result array of exact size
         String[] result = new String[count];
+
+        // Step 3: Fill result recursively
         fillResult(arr, minLen, 0, result, 0);
+
         return result;
     }
 
     private static int countMatching(String[] arr, int minLen, int index) {
         // Count strings with length >= minLen recursively
+
         return 0; // Replace this
     }
 
     private static void fillResult(String[] arr, int minLen, int srcIdx, String[] result, int destIdx) {
         // Fill result array with matching strings recursively
-        // Replace this
+
     }
 
     public static void main(String[] args) {
@@ -239,10 +331,10 @@ public class Solution {
       { input: "", expectedOutput: "[a, ab, abc]", isHidden: true, testCode: "System.out.println(Arrays.toString(filterByLength(new String[]{\"a\", \"ab\", \"abc\"}, 1)));" },
     ],
     hints: [
-      "Two-pass approach: first count matching elements, then fill result",
-      "countMatching: if index >= length return 0, else check current and recurse",
-      "fillResult: track both source index and destination index",
-      "Only increment destIdx when you add an element to result"
+      "Two-pass approach: first COUNT matching elements, then FILL the result array.",
+      "countMatching: base case index >= arr.length → return 0. Then check current and recurse.",
+      "fillResult: track BOTH source index (srcIdx) and destination index (destIdx).",
+      "Only increment destIdx when you actually add an element to the result."
     ],
     tags: ["recursion", "arrays", "strings", "filtering", "difficulty-9"],
   },
@@ -252,28 +344,58 @@ public class Solution {
     title: "Fibonacci with Memoization",
     slug: "fibonacci-memoization",
     type: "CODE",
-    prompt: `Improve the basic Fibonacci recursion using memoization to avoid recalculating the same values.
+    prompt: `## Concept
+**Memoization** is an optimization technique where we store results of expensive function calls and return the cached result when the same input occurs again.
 
-**Problem:** Basic recursive Fibonacci is very slow for large n because it recalculates the same values many times.
+**Problem with basic Fibonacci:**
+- \`fibonacci(40)\` makes over 300 million recursive calls!
+- Many are duplicates: fibonacci(5) gets calculated thousands of times
 
-**Solution:** Use an array to store already-computed values (memoization).
+**Solution:** Store computed values in an array (memo), check before computing.
 
-**Examples:**
-- fibonacci(10) → 55
-- fibonacci(40) → 102334155 (this would be very slow without memoization!)
-- fibonacci(0) → 0
+**Time complexity:** O(2^n) → O(n) with memoization!
 
-**Requirements:**
-- Use memoization with an array
-- Return -1 for negative inputs`,
+---
+
+## Task
+Write a memoized recursive method \`fibonacci(int n)\` that efficiently calculates Fibonacci numbers.
+
+---
+
+## Rules / Constraints
+- **MUST use memoization** (store computed values)
+- Return \`-1\` for negative inputs
+- Use a \`long[]\` memo array initialized to -1
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`fibonacci(10)\` | \`55\` | The 10th Fibonacci number |
+| \`fibonacci(40)\` | \`102334155\` | Instant with memo, timeout without! |
+| \`fibonacci(0)\` | \`0\` | F(0) = 0 |
+| \`fibonacci(-1)\` | \`-1\` | Invalid input |
+
+---
+
+## Edge Cases
+- \`n = 0\` → return 0
+- \`n = 1\` → return 1
+- \`n < 0\` → return -1
+- Large n (50+) → works with memoization`,
     constraints: "Your solution MUST use memoization. Basic recursion without memoization will timeout for large inputs.",
     difficulty: 10,
     estimatedMinutes: 15,
     points: 350,
+    xpReward: 350,
     starterCode: `public class Solution {
     public static long fibonacci(int n) {
         if (n < 0) return -1;
-        // Create memo array initialized to -1 (meaning "not computed yet")
+        if (n == 0) return 0;
+
+        // Create memo array, -1 means "not computed yet"
         long[] memo = new long[n + 1];
         for (int i = 0; i <= n; i++) {
             memo[i] = -1;
@@ -282,10 +404,13 @@ public class Solution {
     }
 
     private static long fibHelper(int n, long[] memo) {
-        // Your memoized implementation here
-        // 1. Check if already computed (memo[n] != -1)
-        // 2. Base cases
-        // 3. Compute, store in memo, and return
+        // Step 1: Check if already computed (memo[n] != -1)
+        //         If yes, return memo[n]
+
+        // Step 2: Base cases (n <= 1)
+
+        // Step 3: Compute recursively, store in memo[n], return
+        // memo[n] = fibHelper(n-1, memo) + fibHelper(n-2, memo)
 
         return 0; // Replace this
     }
@@ -337,10 +462,10 @@ public class Solution {
       { input: "", expectedOutput: "12586269025", isHidden: true, testCode: "System.out.println(fibonacci(50));" },
     ],
     hints: [
-      "Before computing, check if memo[n] already has a value (!= -1)",
-      "If memo[n] != -1, return memo[n] immediately (already computed)",
-      "Store the result in memo[n] before returning it",
-      "This changes O(2^n) to O(n) time complexity!"
+      "ALWAYS check memo first: if (memo[n] != -1) return memo[n]; — this is the key to memoization!",
+      "Base cases: for n <= 1, store memo[n] = n and return n.",
+      "Recursive case: compute, STORE in memo[n], then return memo[n].",
+      "This changes time complexity from O(2^n) to O(n) — huge improvement!"
     ],
     tags: ["recursion", "memoization", "optimization", "fibonacci", "dynamic-programming", "difficulty-10"],
   },
@@ -350,35 +475,64 @@ public class Solution {
     title: "Binary Search (Recursive)",
     slug: "binary-search-recursive",
     type: "CODE",
-    prompt: `Implement binary search recursively to find a target value in a sorted array.
+    prompt: `## Concept
+**Binary Search** is a divide-and-conquer algorithm for searching in a **sorted** array:
+1. Check the middle element
+2. If target == middle → found!
+3. If target < middle → search left half
+4. If target > middle → search right half
 
-**Binary Search:** Divide and conquer by checking the middle element.
-- If target == middle, found it!
-- If target < middle, search left half
-- If target > middle, search right half
+Each step eliminates half the remaining elements → O(log n) time.
 
-**Examples:**
-- binarySearch([1, 3, 5, 7, 9], 5) → 2 (index of 5)
-- binarySearch([1, 3, 5, 7, 9], 1) → 0
-- binarySearch([1, 3, 5, 7, 9], 6) → -1 (not found)
+---
 
-**Requirements:**
-- Must use recursion
-- Return index if found, -1 if not found
-- Array is guaranteed to be sorted`,
+## Task
+Write a recursive method \`binarySearch(int[] arr, int target)\` that returns the index of target, or -1 if not found.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** (no loops, no \`Arrays.binarySearch()\`)
+- Array is guaranteed to be **sorted in ascending order**
+- If multiple occurrences, return any valid index
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`binarySearch([1,3,5,7,9], 5)\` | \`2\` | 5 is at index 2 |
+| \`binarySearch([1,3,5,7,9], 1)\` | \`0\` | 1 is at index 0 |
+| \`binarySearch([1,3,5,7,9], 6)\` | \`-1\` | 6 not in array |
+| \`binarySearch([42], 42)\` | \`0\` | Single element match |
+
+---
+
+## Edge Cases
+- Empty array → return -1
+- Single element → check if matches
+- Target at start, middle, or end
+- Target not in array`,
     constraints: "Do NOT use loops or Arrays.binarySearch(). Your solution MUST be recursive.",
     difficulty: 11,
     estimatedMinutes: 15,
     points: 380,
+    xpReward: 380,
     starterCode: `public class Solution {
     public static int binarySearch(int[] arr, int target) {
         return binarySearchHelper(arr, target, 0, arr.length - 1);
     }
 
     private static int binarySearchHelper(int[] arr, int target, int left, int right) {
-        // Your recursive implementation here
-        // Base case: left > right means not found
-        // Find middle, compare, and recurse on appropriate half
+        // Base case: search space exhausted (left > right)
+
+        // Calculate middle index: left + (right - left) / 2
+
+        // Compare and recurse:
+        // If arr[mid] == target → found!
+        // If target < arr[mid] → search left half
+        // If target > arr[mid] → search right half
 
         return -1; // Replace this
     }
@@ -426,10 +580,10 @@ public class Solution {
       { input: "", expectedOutput: "0", isHidden: true, testCode: "System.out.println(binarySearch(new int[]{42}, 42));" },
     ],
     hints: [
-      "Calculate mid as: left + (right - left) / 2 (avoids integer overflow)",
-      "Base case: left > right means target is not in the array",
-      "If target < arr[mid], recurse on left half (left to mid-1)",
-      "If target > arr[mid], recurse on right half (mid+1 to right)"
+      "Calculate mid as: left + (right - left) / 2 — this avoids integer overflow for large arrays.",
+      "Base case: if left > right, the search space is empty → return -1.",
+      "If target < arr[mid], recurse on LEFT half: (left, mid - 1)",
+      "If target > arr[mid], recurse on RIGHT half: (mid + 1, right)"
     ],
     tags: ["recursion", "binary-search", "arrays", "divide-conquer", "difficulty-11"],
   },
@@ -439,20 +593,44 @@ public class Solution {
     title: "Fill Array Pattern (Recursive)",
     slug: "fill-array-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that creates an array of size n filled with a pattern: [1, 2, 3, ..., n].
+    prompt: `## Concept
+To fill an array with values 1, 2, 3, ..., n recursively:
+1. Create the array of size n
+2. Use a helper to fill each position
+3. At index i, set arr[i] = i + 1, then recurse
 
-**Examples:**
-- fillArray(5) → [1, 2, 3, 4, 5]
-- fillArray(1) → [1]
-- fillArray(0) → []
+---
 
-**Requirements:**
-- Must use recursion to fill the array
-- No loops allowed`,
+## Task
+Write a recursive method \`fillArray(int n)\` that returns an array \`[1, 2, 3, ..., n]\`.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** to fill the array (no loops)
+- For n ≤ 0, return an empty array
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`fillArray(5)\` | \`[1, 2, 3, 4, 5]\` | Five elements |
+| \`fillArray(1)\` | \`[1]\` | Single element |
+| \`fillArray(0)\` | \`[]\` | Empty array |
+
+---
+
+## Edge Cases
+- n = 0 → return empty array []
+- n < 0 → return empty array []
+- n = 1 → return [1]`,
     constraints: "Do NOT use loops. Build and fill the array recursively.",
     difficulty: 12,
     estimatedMinutes: 12,
     points: 400,
+    xpReward: 400,
     starterCode: `import java.util.Arrays;
 
 public class Solution {
@@ -464,8 +642,11 @@ public class Solution {
     }
 
     private static void fillHelper(int[] arr, int index) {
-        // Your recursive implementation here
-        // Fill arr[index] with index + 1, then recurse
+        // Base case: past end of array
+
+        // Fill current position: arr[index] = index + 1 (for 1-based values)
+
+        // Recurse to next position
 
     }
 
@@ -508,9 +689,10 @@ public class Solution {
       { input: "", expectedOutput: "[1, 2, 3]", isHidden: true, testCode: "System.out.println(Arrays.toString(fillArray(3)));" },
     ],
     hints: [
-      "Base case: when index >= arr.length, stop recursing",
-      "At each step: arr[index] = index + 1 (to get 1-based values)",
-      "Then call fillHelper(arr, index + 1)"
+      "Base case: when index >= arr.length, stop recursing (return without doing anything).",
+      "At each step: arr[index] = index + 1 (to get values 1, 2, 3, ... not 0, 1, 2, ...)",
+      "Then recurse: fillHelper(arr, index + 1)",
+      "The void return type means we modify the array in place."
     ],
     tags: ["recursion", "arrays", "pattern", "difficulty-12"],
   },
@@ -520,24 +702,52 @@ public class Solution {
     title: "Palindrome Check (Recursive)",
     slug: "palindrome-recursive",
     type: "CODE",
-    prompt: `Write a recursive method that checks if a string is a palindrome (reads the same forwards and backwards).
+    prompt: `## Concept
+A **palindrome** reads the same forwards and backwards (e.g., "racecar", "A man a plan a canal Panama").
 
-**Rules:**
-- Case-insensitive comparison ("Racecar" is a palindrome)
-- Only consider alphanumeric characters (ignore spaces, punctuation)
+To check recursively:
+1. Compare first and last characters
+2. If they match, check if the middle is a palindrome
+3. Base case: 0 or 1 characters → always a palindrome
 
-**Examples:**
-- isPalindrome("racecar") → true
-- isPalindrome("A man a plan a canal Panama") → true
-- isPalindrome("hello") → false
-- isPalindrome("") → true (empty is palindrome)
+**Preprocessing:** Remove non-alphanumeric characters, convert to lowercase.
 
-**Requirements:**
-- Must use recursion (no loops for the palindrome check)`,
+---
+
+## Task
+Write a recursive method \`isPalindrome(String s)\` that returns \`true\` if the string is a palindrome.
+
+---
+
+## Rules / Constraints
+- **Case-insensitive** comparison ("Racecar" is a palindrome)
+- **Ignore** spaces and punctuation
+- The palindrome checking logic **MUST be recursive**
+- You may use a loop for preprocessing
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`isPalindrome("racecar")\` | \`true\` | Classic palindrome |
+| \`isPalindrome("A man a plan a canal Panama")\` | \`true\` | Ignoring spaces/case |
+| \`isPalindrome("hello")\` | \`false\` | Not a palindrome |
+| \`isPalindrome("")\` | \`true\` | Empty is palindrome |
+
+---
+
+## Edge Cases
+- Empty string → true
+- Single character → true
+- All punctuation → true (empty after cleaning)
+- Case difference: "RaceCar" → true`,
     constraints: "The palindrome checking logic MUST be recursive. You may use a loop to preprocess the string.",
     difficulty: 13,
     estimatedMinutes: 20,
     points: 450,
+    xpReward: 450,
     starterCode: `public class Solution {
     public static boolean isPalindrome(String s) {
         // Preprocess: remove non-alphanumeric and convert to lowercase
@@ -552,9 +762,12 @@ public class Solution {
     }
 
     private static boolean isPalindromeHelper(String s, int left, int right) {
-        // Your recursive implementation here
-        // Compare characters at left and right indices
-        // Move inward recursively
+        // Base case: pointers have met or crossed (checked all pairs)
+
+        // Compare characters at left and right
+        // If different → not a palindrome
+
+        // If same → check the inner substring
 
         return false; // Replace this
     }
@@ -605,10 +818,10 @@ public class Solution {
       { input: "", expectedOutput: "false", isHidden: true, testCode: "System.out.println(isPalindrome(\"not a palindrome\"));" },
     ],
     hints: [
-      "Preprocess the string first: remove non-alphanumeric, convert to lowercase",
-      "Use two pointers: left starting at 0, right at length-1",
-      "Base case: left >= right means we've checked all pairs",
-      "If s.charAt(left) != s.charAt(right), return false immediately"
+      "Preprocess first: keep only letters/digits, convert to lowercase.",
+      "Use TWO pointers: left starts at 0, right at length-1.",
+      "Base case: left >= right means we've checked all character pairs → true.",
+      "If s.charAt(left) != s.charAt(right), return false immediately."
     ],
     tags: ["recursion", "strings", "palindrome", "two-pointers", "difficulty-13"],
   },
@@ -618,36 +831,69 @@ public class Solution {
     title: "Count Increasing Runs",
     slug: "count-increasing-runs",
     type: "CODE",
-    prompt: `Write a recursive method that counts the number of "increasing runs" in an array.
+    prompt: `## Concept
+An **increasing run** is a maximal contiguous subsequence where each element is strictly greater than the previous.
 
-**Definition:** An increasing run is a maximal contiguous subsequence where each element is strictly greater than the previous.
+Example: \`[1, 2, 3, 1, 2]\`
+- Run 1: [1, 2, 3] (indices 0-2)
+- Run 2: [1, 2] (indices 3-4)
+- Total: 2 runs
 
-**Examples:**
-- countIncreasingRuns([1, 2, 3, 1, 2]) → 2
-  - Run 1: [1, 2, 3]
-  - Run 2: [1, 2]
-- countIncreasingRuns([5, 4, 3, 2, 1]) → 5 (each element is its own run)
-- countIncreasingRuns([1, 2, 3, 4, 5]) → 1 (one continuous run)
-- countIncreasingRuns([]) → 0
-- countIncreasingRuns([7]) → 1
+Key insight: A new run starts whenever arr[i] ≤ arr[i-1].
 
-**Requirements:**
-- Must use recursion`,
+---
+
+## Task
+Write a recursive method \`countIncreasingRuns(int[] arr)\` that counts the number of increasing runs.
+
+---
+
+## Rules / Constraints
+- You **MUST use recursion** for the main counting logic
+- Empty array → 0 runs
+- Single element → 1 run
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`[1, 2, 3, 1, 2]\` | \`2\` | [1,2,3] and [1,2] |
+| \`[5, 4, 3, 2, 1]\` | \`5\` | Each element is its own run |
+| \`[1, 2, 3, 4, 5]\` | \`1\` | One continuous run |
+| \`[]\` | \`0\` | No elements, no runs |
+| \`[7]\` | \`1\` | Single element = 1 run |
+
+---
+
+## Edge Cases
+- Empty array → 0
+- Single element → 1
+- All equal elements \`[1,1,1]\` → 3 runs (each starts a new run)
+- Strictly increasing → 1 run
+- Strictly decreasing → n runs (each element its own)`,
     constraints: "Do NOT use loops for the main counting logic. Your solution MUST be recursive.",
     difficulty: 14,
     estimatedMinutes: 20,
     points: 480,
+    xpReward: 480,
     starterCode: `public class Solution {
     public static int countIncreasingRuns(int[] arr) {
         if (arr.length == 0) return 0;
-        // Start counting from index 1, first element starts a run
-        return 1 + countRunsHelper(arr, 1, false);
+        if (arr.length == 1) return 1;
+        // Start counting from index 1, with initial run count of 1
+        return countRunsHelper(arr, 1, 1);
     }
 
-    private static int countRunsHelper(int[] arr, int index, boolean wasIncreasing) {
-        // Your recursive implementation here
-        // Track whether the previous transition was increasing
-        // Count a new run when we see a "break" (not increasing)
+    private static int countRunsHelper(int[] arr, int index, int runCount) {
+        // Base case: past end of array
+
+        // Check if current element breaks the increasing sequence
+        // arr[index] <= arr[index-1] means a new run starts
+
+        // If new run starts, increment runCount
+        // Recurse with next index
 
         return 0; // Replace this
     }
@@ -696,13 +942,13 @@ public class Solution {
       { input: "", expectedOutput: "2\n5\n1\n0", isHidden: false },
       { input: "", expectedOutput: "1", isHidden: true, testCode: "System.out.println(countIncreasingRuns(new int[]{42}));" },
       { input: "", expectedOutput: "3", isHidden: true, testCode: "System.out.println(countIncreasingRuns(new int[]{1, 2, 1, 2, 1}));" },
-      { input: "", expectedOutput: "2", isHidden: true, testCode: "System.out.println(countIncreasingRuns(new int[]{1, 1, 1}));" },
+      { input: "", expectedOutput: "3", isHidden: true, testCode: "System.out.println(countIncreasingRuns(new int[]{1, 1, 1}));" },
     ],
     hints: [
-      "A new run starts when arr[index] <= arr[index-1]",
-      "Track the current run count as a parameter",
-      "Base case: when index >= arr.length, return the count",
-      "If not increasing, increment runCount and continue"
+      "A new run starts when arr[index] <= arr[index-1] (NOT strictly increasing).",
+      "Track the current run count as a parameter in the helper.",
+      "Base case: when index >= arr.length, return the final runCount.",
+      "Edge: equal elements like [1,1,1] → each equality starts a new run (3 runs total)."
     ],
     tags: ["recursion", "arrays", "counting", "sequences", "difficulty-14"],
   },
@@ -712,24 +958,55 @@ public class Solution {
     title: "Climb Stairs (Memoization)",
     slug: "climb-stairs-memoization",
     type: "CODE",
-    prompt: `You are climbing a staircase with n steps. Each time you can climb 1 or 2 steps.
-In how many distinct ways can you climb to the top?
+    prompt: `## Concept
+**Problem:** You're climbing a staircase with n steps. Each time you can climb **1 or 2 steps**. How many distinct ways can you reach the top?
 
-**Examples:**
-- climbStairs(1) → 1 (just take 1 step)
-- climbStairs(2) → 2 (1+1 or 2)
-- climbStairs(3) → 3 (1+1+1, 1+2, 2+1)
-- climbStairs(4) → 5
-- climbStairs(10) → 89
+**Insight:** This is the Fibonacci sequence in disguise!
+- To reach step n, you either:
+  - Came from step n-1 (took 1 step)
+  - Came from step n-2 (took 2 steps)
+- So: \`ways(n) = ways(n-1) + ways(n-2)\`
 
-**Requirements:**
-- Use recursion with memoization
-- Without memoization, large inputs will timeout!
-- Return 0 for n <= 0`,
+**Without memoization:** Exponential time O(2^n)
+**With memoization:** Linear time O(n)
+
+---
+
+## Task
+Write a memoized recursive method \`climbStairs(int n)\` that returns the number of distinct ways to climb n stairs.
+
+---
+
+## Rules / Constraints
+- Use **recursion with memoization**
+- Return \`0\` for n ≤ 0
+- Large n (30+) will timeout without memoization
+
+---
+
+## Examples
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| \`climbStairs(1)\` | \`1\` | Just 1 step |
+| \`climbStairs(2)\` | \`2\` | (1+1) or (2) |
+| \`climbStairs(3)\` | \`3\` | (1+1+1), (1+2), (2+1) |
+| \`climbStairs(4)\` | \`5\` | Five distinct ways |
+| \`climbStairs(10)\` | \`89\` | Fibonacci-like pattern |
+| \`climbStairs(0)\` | \`0\` | No stairs, no ways |
+
+---
+
+## Edge Cases
+- n ≤ 0 → return 0
+- n = 1 → return 1 (base case)
+- n = 2 → return 2 (base case)
+- Large n (30, 50) → works with memoization`,
     constraints: "Your solution MUST use memoization. Test cases include large n values.",
     difficulty: 15,
     estimatedMinutes: 18,
     points: 500,
+    xpReward: 500,
     starterCode: `public class Solution {
     public static long climbStairs(int n) {
         if (n <= 0) return 0;
@@ -741,9 +1018,14 @@ In how many distinct ways can you climb to the top?
     }
 
     private static long climbHelper(int n, long[] memo) {
-        // Your memoized recursive implementation here
-        // From step n, you could have come from n-1 (took 1 step) or n-2 (took 2 steps)
-        // So: ways(n) = ways(n-1) + ways(n-2)
+        // Step 1: Check memo (if memo[n] != -1, return it)
+
+        // Step 2: Base cases
+        // n == 1 → 1 way
+        // n == 2 → 2 ways
+
+        // Step 3: Recursive case with memoization
+        // memo[n] = climbHelper(n-1, memo) + climbHelper(n-2, memo)
 
         return 0; // Replace this
     }
@@ -803,9 +1085,9 @@ In how many distinct ways can you climb to the top?
     ],
     hints: [
       "This is essentially Fibonacci! ways(n) = ways(n-1) + ways(n-2)",
-      "Base cases: ways(1) = 1, ways(2) = 2",
-      "Check memo[n] first - if not -1, return it immediately",
-      "Store result in memo[n] before returning"
+      "Base cases are different though: ways(1) = 1, ways(2) = 2",
+      "ALWAYS check memo first: if (memo[n] != -1) return memo[n];",
+      "Store result in memo[n] before returning: memo[n] = ... ; return memo[n];"
     ],
     tags: ["recursion", "memoization", "dynamic-programming", "climbing-stairs", "difficulty-15"],
   },

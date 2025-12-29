@@ -32,6 +32,7 @@ import {
   BookOpen,
 } from "lucide-react"
 import { SubscriptionGate } from "@/components/subscription/subscription-gate"
+import { TopicIntro } from "@/components/practice/topic-intro"
 
 interface SubscriptionCheck {
   isLocked: boolean
@@ -44,6 +45,7 @@ interface TopicDetails {
   title: string
   slug: string
   description: string | null
+  introMarkdown: string | null
   week: {
     id: string
     weekNumber: number
@@ -235,6 +237,16 @@ export default function TopicPage({
             </Link>
           )}
         </div>
+
+        {/* Topic Intro Panel */}
+        {topic.introMarkdown && (
+          <TopicIntro
+            topicId={topic.id}
+            title={topic.title}
+            introMarkdown={topic.introMarkdown}
+            defaultExpanded={topic.stats.passedQuestions === 0}
+          />
+        )}
 
         {/* Lessons section */}
         {topic.lessons.length > 0 && (
