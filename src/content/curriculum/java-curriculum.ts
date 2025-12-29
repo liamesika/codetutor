@@ -43,6 +43,7 @@ export interface TopicData {
   slug: string
   title: string
   description: string
+  introMarkdown?: string
   lessons?: LessonData[]
   questions: QuestionData[]
 }

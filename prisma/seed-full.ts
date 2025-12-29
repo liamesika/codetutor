@@ -4,6 +4,8 @@ import { week2Questions } from "./questions/week2-strings"
 import { week3Functions } from "./questions/week3-functions"
 import { week4Arrays } from "./questions/week4-arrays"
 import { week5_2DArrays } from "./questions/week5-2darrays"
+import { week6RecursionFundamentals } from "./questions/week6-recursion-fundamentals"
+import { week7RecursionMastery } from "./questions/week7-recursion-mastery"
 import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
@@ -495,6 +497,266 @@ async function main() {
     },
   })
   await seedQuestions(topic5_4.id, week5_2DArrays.slice(45, 55) as SeedQuestion[])
+
+  // ==================== WEEK 6 ====================
+  console.log("Seeding Week 6 (Recursion Fundamentals)...")
+
+  const week6 = await prisma.week.upsert({
+    where: {
+      courseId_weekNumber: { courseId: course.id, weekNumber: 6 },
+    },
+    update: {},
+    create: {
+      courseId: course.id,
+      weekNumber: 6,
+      title: "Recursion — Fundamentals",
+      description: "Master recursive thinking with numbers and strings",
+      orderIndex: 5,
+    },
+  })
+
+  const topic6_1 = await prisma.topic.upsert({
+    where: { weekId_slug: { weekId: week6.id, slug: "recursion-fundamentals" } },
+    update: {
+      introMarkdown: `## What is Recursion?
+
+**Recursion** is a programming technique where a function calls itself to solve a problem. Instead of using loops, you break down a complex problem into smaller, identical subproblems.
+
+Every recursive function has two essential parts:
+- **Base case** – The simplest scenario where we return a result without calling ourselves again
+- **Recursive step** – Where we call ourselves with a "smaller" version of the problem
+
+## When to Use Recursion
+
+Use recursion when:
+- The problem can be broken into smaller versions of itself
+- There's a clear "base case" that stops the recursion
+- The solution builds naturally from smaller solutions
+- Tree/graph traversal is needed
+
+## How It Works: The Call Stack
+
+\`\`\`java
+// Computing factorial(3)
+factorial(3)
+  → 3 * factorial(2)
+      → 2 * factorial(1)
+          → 1 (base case!)
+      → 2 * 1 = 2
+  → 3 * 2 = 6
+\`\`\`
+
+Each call waits for its inner call to finish, then multiplies.
+
+## Mini Example: Sum 1 to N
+
+\`\`\`java
+public static int sumTo(int n) {
+    if (n == 1) return 1;      // Base case
+    return n + sumTo(n - 1);   // Recursive step
+}
+// sumTo(4) → 4 + 3 + 2 + 1 = 10
+\`\`\`
+
+**Key insight:** Trust that the recursive call works, then combine its result.`,
+    },
+    create: {
+      weekId: week6.id,
+      title: "Recursion — Numbers & Strings",
+      slug: "recursion-fundamentals",
+      description: "Learn base cases, recursion steps, and apply to numbers and strings",
+      introMarkdown: `## What is Recursion?
+
+**Recursion** is a programming technique where a function calls itself to solve a problem. Instead of using loops, you break down a complex problem into smaller, identical subproblems.
+
+Every recursive function has two essential parts:
+- **Base case** – The simplest scenario where we return a result without calling ourselves again
+- **Recursive step** – Where we call ourselves with a "smaller" version of the problem
+
+## When to Use Recursion
+
+Use recursion when:
+- The problem can be broken into smaller versions of itself
+- There's a clear "base case" that stops the recursion
+- The solution builds naturally from smaller solutions
+- Tree/graph traversal is needed
+
+## How It Works: The Call Stack
+
+\`\`\`java
+// Computing factorial(3)
+factorial(3)
+  → 3 * factorial(2)
+      → 2 * factorial(1)
+          → 1 (base case!)
+      → 2 * 1 = 2
+  → 3 * 2 = 6
+\`\`\`
+
+Each call waits for its inner call to finish, then multiplies.
+
+## Mini Example: Sum 1 to N
+
+\`\`\`java
+public static int sumTo(int n) {
+    if (n == 1) return 1;      // Base case
+    return n + sumTo(n - 1);   // Recursive step
+}
+// sumTo(4) → 4 + 3 + 2 + 1 = 10
+\`\`\`
+
+**Key insight:** Trust that the recursive call works, then combine its result.`,
+      orderIndex: 0,
+    },
+  })
+  await seedQuestions(topic6_1.id, week6RecursionFundamentals as SeedQuestion[])
+
+  // ==================== WEEK 7 ====================
+  console.log("Seeding Week 7 (Recursion Mastery)...")
+
+  const week7 = await prisma.week.upsert({
+    where: {
+      courseId_weekNumber: { courseId: course.id, weekNumber: 7 },
+    },
+    update: {},
+    create: {
+      courseId: course.id,
+      weekNumber: 7,
+      title: "Recursion — Mastery",
+      description: "Advanced recursion with arrays, optimization, and complex patterns",
+      orderIndex: 6,
+    },
+  })
+
+  const topic7_1 = await prisma.topic.upsert({
+    where: { weekId_slug: { weekId: week7.id, slug: "recursion-mastery" } },
+    update: {
+      introMarkdown: `## Recursion with Arrays
+
+When working with arrays recursively, we typically:
+- Process one element at a time
+- Use an **index parameter** to track our position
+- Base case: index reaches the array length (or start/end meet)
+
+## Common Array Recursion Patterns
+
+**Pattern 1: Accumulator Pattern**
+\`\`\`java
+// Sum all elements
+public static int sumArray(int[] arr, int index) {
+    if (index == arr.length) return 0;          // Base case
+    return arr[index] + sumArray(arr, index + 1); // Add current + rest
+}
+\`\`\`
+
+**Pattern 2: Search/Filter Pattern**
+\`\`\`java
+// Find max value
+public static int findMax(int[] arr, int index) {
+    if (index == arr.length - 1) return arr[index];
+    return Math.max(arr[index], findMax(arr, index + 1));
+}
+\`\`\`
+
+## Memoization: Speed Up Recursion
+
+Some recursive solutions recalculate the same values many times. **Memoization** stores results to avoid redundant work.
+
+\`\`\`java
+// Fibonacci without memoization: O(2^n) - very slow!
+// Fibonacci with memoization: O(n) - fast!
+static long[] memo = new long[100];
+public static long fib(int n) {
+    if (n <= 1) return n;
+    if (memo[n] != 0) return memo[n];  // Already computed?
+    memo[n] = fib(n-1) + fib(n-2);     // Store result
+    return memo[n];
+}
+\`\`\`
+
+## Binary Search: Divide and Conquer
+
+Recursion shines when dividing problems in half:
+\`\`\`java
+// Find target in sorted array
+public static int binarySearch(int[] arr, int target, int low, int high) {
+    if (low > high) return -1;  // Not found
+    int mid = (low + high) / 2;
+    if (arr[mid] == target) return mid;
+    if (arr[mid] > target) return binarySearch(arr, target, low, mid - 1);
+    return binarySearch(arr, target, mid + 1, high);
+}
+\`\`\`
+
+**Complexity:** O(log n) — each call eliminates half the array!`,
+    },
+    create: {
+      weekId: week7.id,
+      title: "Recursion — Arrays & Advanced Patterns",
+      slug: "recursion-mastery",
+      description: "Apply recursion to arrays, use memoization, and solve complex recursive problems",
+      introMarkdown: `## Recursion with Arrays
+
+When working with arrays recursively, we typically:
+- Process one element at a time
+- Use an **index parameter** to track our position
+- Base case: index reaches the array length (or start/end meet)
+
+## Common Array Recursion Patterns
+
+**Pattern 1: Accumulator Pattern**
+\`\`\`java
+// Sum all elements
+public static int sumArray(int[] arr, int index) {
+    if (index == arr.length) return 0;          // Base case
+    return arr[index] + sumArray(arr, index + 1); // Add current + rest
+}
+\`\`\`
+
+**Pattern 2: Search/Filter Pattern**
+\`\`\`java
+// Find max value
+public static int findMax(int[] arr, int index) {
+    if (index == arr.length - 1) return arr[index];
+    return Math.max(arr[index], findMax(arr, index + 1));
+}
+\`\`\`
+
+## Memoization: Speed Up Recursion
+
+Some recursive solutions recalculate the same values many times. **Memoization** stores results to avoid redundant work.
+
+\`\`\`java
+// Fibonacci without memoization: O(2^n) - very slow!
+// Fibonacci with memoization: O(n) - fast!
+static long[] memo = new long[100];
+public static long fib(int n) {
+    if (n <= 1) return n;
+    if (memo[n] != 0) return memo[n];  // Already computed?
+    memo[n] = fib(n-1) + fib(n-2);     // Store result
+    return memo[n];
+}
+\`\`\`
+
+## Binary Search: Divide and Conquer
+
+Recursion shines when dividing problems in half:
+\`\`\`java
+// Find target in sorted array
+public static int binarySearch(int[] arr, int target, int low, int high) {
+    if (low > high) return -1;  // Not found
+    int mid = (low + high) / 2;
+    if (arr[mid] == target) return mid;
+    if (arr[mid] > target) return binarySearch(arr, target, low, mid - 1);
+    return binarySearch(arr, target, mid + 1, high);
+}
+\`\`\`
+
+**Complexity:** O(log n) — each call eliminates half the array!`,
+      orderIndex: 0,
+    },
+  })
+  await seedQuestions(topic7_1.id, week7RecursionMastery as SeedQuestion[])
 
   // ==================== ACHIEVEMENTS ====================
   console.log("Seeding achievements...")
