@@ -4,7 +4,8 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { getUserRankData } from "@/lib/ranks"
 import { getDailyLoginStatus, getStreakMilestones } from "@/lib/daily-login"
-import { getUserProgress, calculateLevel } from "@/lib/progression"
+import { getUserProgress } from "@/lib/progression"
+import { getUserEntitlement, TIER_ACCESS } from "@/lib/entitlement"
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
     const userId = session.user.id
 
     // Fetch all profile data in parallel
-    const [user, progress, rankData, dailyStatus, achievements] = await Promise.all([
+    const [user, progress, rankData, dailyStatus, achievements, entitlement] = await Promise.all([
       db.user.findUnique({
         where: { id: userId },
         select: {
@@ -39,6 +40,7 @@ export async function GET() {
         orderBy: { earnedAt: "desc" },
         take: 10,
       }),
+      getUserEntitlement(userId),
     ])
 
     if (!user) {
@@ -93,6 +95,18 @@ export async function GET() {
         points: ua.achievement.points,
         earnedAt: ua.earnedAt,
       })),
+      entitlement: {
+        plan: entitlement.plan,
+        status: entitlement.status,
+        maxWeek: entitlement.tier.maxWeek === Infinity ? "unlimited" : entitlement.tier.maxWeek,
+        features: {
+          hasLearningExplanations: entitlement.tier.hasLearningExplanations,
+          hasMissions: entitlement.tier.hasMissions,
+          hasAnalytics: entitlement.tier.hasAnalytics,
+          hasAIMentor: entitlement.tier.hasAIMentor,
+          hasXPBoost: entitlement.tier.hasXPBoost,
+        },
+      },
     })
   } catch (error) {
     console.error("Profile data error:", error)

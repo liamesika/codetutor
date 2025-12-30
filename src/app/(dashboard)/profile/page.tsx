@@ -26,9 +26,16 @@ import {
   TrendingUp,
   Award,
   Sparkles,
+  ArrowRight,
+  BookOpen,
+  Check,
+  Lock,
+  Rocket,
 } from "lucide-react"
+import Link from "next/link"
+import { NeonButton } from "@/components/ui/neon-button"
 import { RANK_CONFIG } from "@/lib/ranks"
-import type { Rank } from "@prisma/client"
+import type { Rank, EntitlementPlan } from "@prisma/client"
 
 interface ProfileData {
   user: {
@@ -89,6 +96,53 @@ interface ProfileData {
     points: number
     earnedAt: string
   }>
+  entitlement: {
+    plan: EntitlementPlan
+    status: string | null
+    maxWeek: number | "unlimited"
+    features: {
+      hasLearningExplanations: boolean
+      hasMissions: boolean
+      hasAnalytics: boolean
+      hasAIMentor: boolean
+      hasXPBoost: boolean
+    }
+  }
+}
+
+// Plan configuration
+const PLAN_CONFIG: Record<EntitlementPlan, {
+  name: string
+  description: string
+  color: string
+  bgColor: string
+  borderColor: string
+  icon: typeof Crown
+}> = {
+  FREE: {
+    name: "Free",
+    description: "Week 1 access",
+    color: "#22D3EE",
+    bgColor: "rgba(34, 211, 238, 0.1)",
+    borderColor: "rgba(34, 211, 238, 0.3)",
+    icon: Zap,
+  },
+  BASIC: {
+    name: "Basic",
+    description: "Weeks 1–10 (practice-only)",
+    color: "#8B5CF6",
+    bgColor: "rgba(139, 92, 246, 0.1)",
+    borderColor: "rgba(139, 92, 246, 0.3)",
+    icon: BookOpen,
+  },
+  PRO: {
+    name: "Pro",
+    description: "Unlimited access + premium features",
+    color: "#F59E0B",
+    bgColor: "rgba(245, 158, 11, 0.1)",
+    borderColor: "rgba(245, 158, 11, 0.3)",
+    icon: Crown,
+  },
 }
 
 async function fetchProfile(): Promise<ProfileData> {
@@ -285,6 +339,184 @@ function AchievementBadge({
   )
 }
 
+function PlanCard({ entitlement }: { entitlement: ProfileData["entitlement"] }) {
+  const plan = entitlement.plan
+  const config = PLAN_CONFIG[plan]
+  const PlanIcon = config.icon
+  const isPro = plan === "PRO"
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.35 }}
+      className="mb-8"
+    >
+      <Card className="bg-[#1E1B4B]/30 border-[#4F46E5]/20 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="flex flex-col md:flex-row">
+            {/* Plan info section */}
+            <div className="flex-1 p-6">
+              <div className="flex items-start gap-4">
+                {/* Plan icon */}
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                  style={{
+                    backgroundColor: config.bgColor,
+                    border: `1px solid ${config.borderColor}`,
+                  }}
+                >
+                  <PlanIcon className="size-7" style={{ color: config.color }} />
+                </div>
+
+                {/* Plan details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm text-[#9CA3AF]">Current Plan</span>
+                    {isPro && (
+                      <Badge
+                        className="gap-1 text-xs"
+                        style={{
+                          backgroundColor: config.bgColor,
+                          borderColor: config.borderColor,
+                          color: config.color,
+                        }}
+                      >
+                        <Crown className="size-3" />
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                  <h3
+                    className="text-2xl font-bold mb-1"
+                    style={{ color: config.color }}
+                  >
+                    {config.name}
+                  </h3>
+                  <p className="text-sm text-[#9CA3AF]">{config.description}</p>
+
+                  {/* Feature highlights for PRO */}
+                  {isPro && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {entitlement.features.hasLearningExplanations && (
+                        <span className="inline-flex items-center gap-1 text-xs text-[#10B981] bg-[#10B981]/10 px-2 py-1 rounded-full">
+                          <Check className="size-3" /> Learning
+                        </span>
+                      )}
+                      {entitlement.features.hasMissions && (
+                        <span className="inline-flex items-center gap-1 text-xs text-[#10B981] bg-[#10B981]/10 px-2 py-1 rounded-full">
+                          <Check className="size-3" /> Missions
+                        </span>
+                      )}
+                      {entitlement.features.hasXPBoost && (
+                        <span className="inline-flex items-center gap-1 text-xs text-[#10B981] bg-[#10B981]/10 px-2 py-1 rounded-full">
+                          <Check className="size-3" /> XP Boost
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Upgrade CTA section (only for non-PRO) */}
+            {!isPro && (
+              <div
+                className="p-6 flex flex-col justify-center items-center gap-3 md:border-l border-t md:border-t-0 border-[#4F46E5]/20"
+                style={{
+                  background: "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(239, 68, 68, 0.05) 100%)",
+                }}
+              >
+                <div className="text-center md:text-left">
+                  <p className="text-sm text-[#9CA3AF] mb-1">Unlock all features</p>
+                  <p className="text-lg font-bold text-white">Upgrade to PRO</p>
+                </div>
+                <Link href="/pricing" className="w-full md:w-auto">
+                  <NeonButton
+                    className="w-full md:w-auto gap-2"
+                    rightIcon={<ArrowRight className="size-4" />}
+                  >
+                    <Rocket className="size-4" />
+                    Upgrade Now
+                  </NeonButton>
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="text-xs text-[#6B7280] hover:text-white transition-colors"
+                >
+                  Compare all plans →
+                </Link>
+              </div>
+            )}
+
+            {/* Manage plan section (for PRO users) */}
+            {isPro && (
+              <div className="p-6 flex flex-col justify-center items-center gap-2 md:border-l border-t md:border-t-0 border-[#4F46E5]/20">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center mb-1"
+                  style={{
+                    backgroundColor: "rgba(16, 185, 129, 0.1)",
+                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                  }}
+                >
+                  <Check className="size-6 text-[#10B981]" />
+                </div>
+                <p className="text-sm font-medium text-[#10B981]">You're on PRO</p>
+                <Link
+                  href="/pricing"
+                  className="text-xs text-[#6B7280] hover:text-white transition-colors"
+                >
+                  View plan details
+                </Link>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+function MobileUpgradeBar({ plan }: { plan: EntitlementPlan }) {
+  if (plan === "PRO") return null
+
+  return (
+    <motion.div
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.5 }}
+      className="fixed bottom-20 left-0 right-0 z-40 md:hidden px-4 pb-4"
+    >
+      <Link href="/pricing">
+        <div
+          className="flex items-center justify-between gap-3 p-4 rounded-2xl"
+          style={{
+            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%)",
+            border: "1px solid rgba(245, 158, 11, 0.3)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                backgroundColor: "rgba(245, 158, 11, 0.2)",
+              }}
+            >
+              <Rocket className="size-5 text-[#F59E0B]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">Upgrade to PRO</p>
+              <p className="text-xs text-[#9CA3AF]">Unlock all weeks & features</p>
+            </div>
+          </div>
+          <ArrowRight className="size-5 text-[#F59E0B]" />
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
 function ProfileSkeleton() {
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-8">
@@ -454,6 +686,9 @@ export default function ProfilePage() {
               />
             </div>
 
+            {/* Current Plan */}
+            <PlanCard entitlement={data.entitlement} />
+
             {/* Streak Milestones */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -543,6 +778,9 @@ export default function ProfilePage() {
             </motion.div>
           </div>
         ) : null}
+
+        {/* Mobile sticky upgrade bar */}
+        {data && <MobileUpgradeBar plan={data.entitlement.plan} />}
       </div>
     </DashboardShell>
   )
