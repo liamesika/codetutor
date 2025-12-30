@@ -12,6 +12,41 @@ import { db } from "@/lib/db"
 import { EntitlementPlan, EntitlementStatus } from "@prisma/client"
 import crypto from "crypto"
 
+// Valid plans in the system
+const VALID_PLANS = ["FREE", "BASIC", "PRO"] as const
+
+// Track if we've logged unknown plan warning (log only once per unknown plan)
+const loggedUnknownPlans = new Set<string>()
+
+/**
+ * Safely normalize a plan value - guards against legacy/invalid values
+ * Returns FREE for any unknown plan (with one-time warning log)
+ */
+export function normalizePlan(plan: string | null | undefined): EntitlementPlan {
+  if (!plan) return "FREE"
+
+  // Valid plan - return as-is
+  if (VALID_PLANS.includes(plan as typeof VALID_PLANS[number])) {
+    return plan as EntitlementPlan
+  }
+
+  // Legacy mapping: ELITE -> PRO
+  if (plan === "ELITE") {
+    return "PRO"
+  }
+
+  // Unknown plan - log once and treat as FREE
+  if (!loggedUnknownPlans.has(plan)) {
+    loggedUnknownPlans.add(plan)
+    console.warn(
+      `[ENTITLEMENT] Unknown plan value "${plan}" encountered - treating as FREE. ` +
+      `Run migration script: npx tsx prisma/migrate-legacy-plans.ts`
+    )
+  }
+
+  return "FREE"
+}
+
 // Tier-based access rules
 export const TIER_ACCESS = {
   FREE: {
@@ -157,8 +192,9 @@ export async function getUserEntitlement(userId: string) {
     }
   }
 
-  const plan = entitlement.plan
-  const tier = TIER_ACCESS[plan] || TIER_ACCESS.FREE
+  // Normalize plan to guard against legacy/invalid values
+  const plan = normalizePlan(entitlement.plan)
+  const tier = TIER_ACCESS[plan]
 
   return {
     status: entitlement.status,
@@ -174,8 +210,8 @@ export async function getUserEntitlement(userId: string) {
  * Get max week accessible by user's plan
  */
 export function getMaxWeekForPlan(plan: EntitlementPlan | null): number {
-  if (!plan) return TIER_ACCESS.FREE.maxWeek
-  return TIER_ACCESS[plan]?.maxWeek || TIER_ACCESS.FREE.maxWeek
+  const normalizedPlan = normalizePlan(plan)
+  return TIER_ACCESS[normalizedPlan].maxWeek
 }
 
 /**
