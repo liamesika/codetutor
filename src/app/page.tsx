@@ -180,6 +180,12 @@ export default function HomePage() {
             >
               How It Works
             </Link>
+            <Link
+              href="/reichman"
+              className="text-sm font-medium text-[#4F46E5] hover:text-[#22D3EE] transition-colors"
+            >
+              Reichman
+            </Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/login">
@@ -193,6 +199,33 @@ export default function HomePage() {
               </NeonButton>
             </Link>
           </div>
+        </div>
+        {/* Mobile nav */}
+        <div className="md:hidden border-t border-border/30 px-4 py-2 flex items-center justify-center gap-6 overflow-x-auto">
+          <Link
+            href="/demo"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            Demo
+          </Link>
+          <Link
+            href="/pricing"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="#features"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            Features
+          </Link>
+          <Link
+            href="/reichman"
+            className="text-xs font-medium text-[#4F46E5] whitespace-nowrap"
+          >
+            Reichman
+          </Link>
         </div>
       </header>
 
