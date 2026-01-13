@@ -13,20 +13,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // If email provided, upgrade that user to admin
+    // If email provided, upgrade that user to admin using raw SQL to avoid schema issues
     if (upgradeEmail) {
-      const user = await db.user.findUnique({
-        where: { email: upgradeEmail },
-      })
+      // Use raw SQL to avoid Prisma schema validation issues
+      const result = await db.$executeRaw`UPDATE "User" SET "role" = 'ADMIN' WHERE "email" = ${upgradeEmail}`
 
-      if (!user) {
+      if (result === 0) {
         return NextResponse.json({ error: "User not found", email: upgradeEmail }, { status: 404 })
       }
-
-      await db.user.update({
-        where: { id: user.id },
-        data: { role: "ADMIN" },
-      })
 
       return NextResponse.json({
         message: "User upgraded to admin successfully",
@@ -35,38 +29,31 @@ export async function POST(request: Request) {
       })
     }
 
-    // Check if admin already exists
-    const existingAdmin = await db.user.findUnique({
-      where: { email: "admin@codetutor.dev" },
-    })
+    // Check if admin already exists using raw query
+    const existingAdmin = await db.$queryRaw<{id: string, email: string, role: string}[]>`
+      SELECT id, email, role FROM "User" WHERE email = 'admin@codetutor.dev' LIMIT 1
+    `
 
-    if (existingAdmin) {
-      // Update to admin role if not already
-      if (existingAdmin.role !== "ADMIN") {
-        await db.user.update({
-          where: { id: existingAdmin.id },
-          data: { role: "ADMIN" },
-        })
+    if (existingAdmin.length > 0) {
+      if (existingAdmin[0].role !== "ADMIN") {
+        await db.$executeRaw`UPDATE "User" SET "role" = 'ADMIN' WHERE "email" = 'admin@codetutor.dev'`
         return NextResponse.json({ message: "Existing user upgraded to admin" })
       }
-      return NextResponse.json({ message: "Admin already exists", email: existingAdmin.email })
+      return NextResponse.json({ message: "Admin already exists", email: existingAdmin[0].email })
     }
 
-    // Create admin user
+    // Create admin user using raw SQL
     const hashedPassword = await bcrypt.hash("admin123", 12)
+    const id = `admin_${Date.now()}`
 
-    const admin = await db.user.create({
-      data: {
-        email: "admin@codetutor.dev",
-        name: "Admin User",
-        password: hashedPassword,
-        role: "ADMIN",
-      },
-    })
+    await db.$executeRaw`
+      INSERT INTO "User" (id, email, name, password, role, "createdAt", "updatedAt")
+      VALUES (${id}, 'admin@codetutor.dev', 'Admin User', ${hashedPassword}, 'ADMIN', NOW(), NOW())
+    `
 
     return NextResponse.json({
       message: "Admin created successfully",
-      email: admin.email,
+      email: "admin@codetutor.dev",
       note: "DELETE the /api/setup-admin route after use!"
     })
   } catch (error) {
