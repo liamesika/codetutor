@@ -7,10 +7,32 @@ import { db } from "@/lib/db"
 export async function POST(request: Request) {
   try {
     // Check for secret key to prevent unauthorized access
-    const { secret } = await request.json()
+    const { secret, email: upgradeEmail } = await request.json()
 
     if (secret !== process.env.ADMIN_SETUP_SECRET && secret !== "codetutor-setup-2024") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // If email provided, upgrade that user to admin
+    if (upgradeEmail) {
+      const user = await db.user.findUnique({
+        where: { email: upgradeEmail },
+      })
+
+      if (!user) {
+        return NextResponse.json({ error: "User not found", email: upgradeEmail }, { status: 404 })
+      }
+
+      await db.user.update({
+        where: { id: user.id },
+        data: { role: "ADMIN" },
+      })
+
+      return NextResponse.json({
+        message: "User upgraded to admin successfully",
+        email: upgradeEmail,
+        note: "You can now login with this email and access /admin"
+      })
     }
 
     // Check if admin already exists
