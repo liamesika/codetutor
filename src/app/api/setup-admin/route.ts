@@ -15,17 +15,20 @@ export async function POST(request: Request) {
 
     // If email provided, upgrade that user to admin using raw SQL to avoid schema issues
     if (upgradeEmail) {
-      // Use raw SQL to avoid Prisma schema validation issues
-      const result = await db.$executeRaw`UPDATE "User" SET "role" = 'ADMIN' WHERE "email" = ${upgradeEmail}`
+      // Hash password admin123
+      const hashedPw = await bcrypt.hash("admin123", 12)
+
+      // Use raw SQL to avoid Prisma schema validation issues - also reset password
+      const result = await db.$executeRaw`UPDATE "User" SET "role" = 'ADMIN', "password" = ${hashedPw} WHERE "email" = ${upgradeEmail}`
 
       if (result === 0) {
         return NextResponse.json({ error: "User not found", email: upgradeEmail }, { status: 404 })
       }
 
       return NextResponse.json({
-        message: "User upgraded to admin successfully",
+        message: "User upgraded to admin successfully and password reset to admin123",
         email: upgradeEmail,
-        note: "You can now login with this email and access /admin"
+        note: "You can now login with this email and password: admin123"
       })
     }
 
