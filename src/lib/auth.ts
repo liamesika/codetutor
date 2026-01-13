@@ -4,6 +4,16 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 
+// Type for raw SQL user query result
+type RawUser = {
+  id: string
+  email: string
+  name: string | null
+  image: string | null
+  password: string | null
+  role: string
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as NextAuthOptions["adapter"],
   session: {
@@ -24,9 +34,15 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials")
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        })
+        // Use raw SQL to avoid Prisma schema validation issues with studentExternalId
+        const users = await db.$queryRaw<RawUser[]>`
+          SELECT id, email, name, image, password, role
+          FROM "User"
+          WHERE email = ${credentials.email}
+          LIMIT 1
+        `
+
+        const user = users[0]
 
         if (!user || !user.password) {
           throw new Error("Invalid credentials")
