@@ -16,6 +16,9 @@ import {
   ChevronLeft,
   Shield,
   Brain,
+  ClipboardList,
+  GraduationCap,
+  Users,
 } from "lucide-react"
 
 const navItems = [
@@ -23,6 +26,21 @@ const navItems = [
     title: "Overview",
     href: "/admin",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Students",
+    href: "/admin/students",
+    icon: Users,
+  },
+  {
+    title: "Assignments",
+    href: "/admin/assignments",
+    icon: ClipboardList,
+  },
+  {
+    title: "Gradebook",
+    href: "/admin/gradebook",
+    icon: GraduationCap,
   },
   {
     title: "Curriculum",

@@ -117,6 +117,40 @@ async function main() {
     },
   })
 
+  // Create 30 demo students with realistic names
+  console.log("Creating demo students...")
+
+  const studentNames = [
+    "Emma Cohen", "Noam Levy", "Maya Friedman", "Daniel Shapiro", "Yael Goldberg",
+    "Omer Rosenberg", "Noa Katz", "Itai Schwartz", "Tamar Weiss", "Eitan Mizrahi",
+    "Shira Ben-David", "Amit Peretz", "Yonatan Levi", "Michal Avraham", "Ido Cohen",
+    "Liora Stern", "Ariel Blum", "Nirit Golan", "Ron Berkowitz", "Gal Feldman",
+    "Shai Rubin", "Ofir Carmel", "Hila Ofer", "Yuval Segal", "Dana Klein",
+    "Tomer Raz", "Shaked Mor", "Ori Navon", "Naomi Hadar", "Lior Yosef"
+  ]
+
+  const demoStudents: { id: string; email: string; name: string; studentExternalId: string }[] = []
+
+  for (let i = 0; i < studentNames.length; i++) {
+    const name = studentNames[i]
+    const email = `student${i + 1}@university.edu`
+    const studentExternalId = `STU${String(2024001 + i).padStart(7, '0')}` // e.g., STU2024001
+    const student = await prisma.user.upsert({
+      where: { email },
+      update: { name, studentExternalId },
+      create: {
+        email,
+        name,
+        password: hashedPassword,
+        role: "USER",
+        studentExternalId,
+      },
+    })
+    demoStudents.push({ id: student.id, email: student.email, name: student.name || name, studentExternalId })
+  }
+
+  console.log(`   Created ${demoStudents.length} demo students`)
+
   // Create course
   console.log("Creating course...")
 
@@ -160,6 +194,22 @@ async function main() {
       isActive: true,
     },
   })
+
+  // Enroll all demo students in the course
+  console.log("Enrolling demo students...")
+  for (const student of demoStudents) {
+    await prisma.userEnrollment.upsert({
+      where: {
+        userId_courseId: { userId: student.id, courseId: course.id },
+      },
+      update: {},
+      create: {
+        userId: student.id,
+        courseId: course.id,
+        isActive: true,
+      },
+    })
+  }
 
   // ==================== WEEK 1 ====================
   console.log("Seeding Week 1...")
@@ -847,6 +897,578 @@ public static int binarySearch(int[] arr, int target, int low, int high) {
       create: achievement,
     })
   }
+
+  // ==================== HOMEWORK ASSIGNMENTS ====================
+  console.log("Seeding homework assignments...")
+
+  // Get questions from each week for assignments
+  const hw1Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 1, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 5,
+  })
+
+  const hw2Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 2, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 5,
+  })
+
+  const hw3Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 3, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 4,
+  })
+
+  const hw4Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 4, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 5,
+  })
+
+  const hw5Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 5, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 4,
+  })
+
+  const hw6Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 6, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 4,
+  })
+
+  const hw7Questions = await prisma.question.findMany({
+    where: { topic: { week: { weekNumber: 7, courseId: course.id } }, isActive: true },
+    orderBy: { orderIndex: "asc" },
+    take: 4,
+  })
+
+  // Define semesters
+  const SEMESTER_FALL_2024 = "Fall 2024"
+  const SEMESTER_SPRING_2025 = "Spring 2025"
+
+  // Create Assignments for Fall 2024 (Weeks 1-4)
+  const assignment1 = await prisma.assignment.upsert({
+    where: { id: "demo-week1-hw" },
+    update: {
+      title: "Homework 1: Java Basics",
+      description: "Practice command line output, variables, and basic Java concepts.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-09-15"),
+    },
+    create: {
+      id: "demo-week1-hw",
+      weekId: week1.id,
+      title: "Homework 1: Java Basics",
+      description: "Practice command line output, variables, and basic Java concepts.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-09-15"),
+    },
+  })
+
+  const assignment2 = await prisma.assignment.upsert({
+    where: { id: "demo-week2-hw" },
+    update: {
+      title: "Homework 2: Strings & Control Flow",
+      description: "Practice string manipulation and conditional statements.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-09-22"),
+    },
+    create: {
+      id: "demo-week2-hw",
+      weekId: week2.id,
+      title: "Homework 2: Strings & Control Flow",
+      description: "Practice string manipulation and conditional statements.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-09-22"),
+    },
+  })
+
+  const assignment3 = await prisma.assignment.upsert({
+    where: { id: "demo-week3-hw" },
+    update: {
+      title: "Homework 3: Functions & Methods",
+      description: "Practice writing functions, parameters, and return values.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-09-29"),
+    },
+    create: {
+      id: "demo-week3-hw",
+      weekId: week3.id,
+      title: "Homework 3: Functions & Methods",
+      description: "Practice writing functions, parameters, and return values.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-09-29"),
+    },
+  })
+
+  const assignment4 = await prisma.assignment.upsert({
+    where: { id: "demo-week4-hw" },
+    update: {
+      title: "Homework 4: Arrays",
+      description: "Practice array creation, manipulation, and algorithms.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-10-06"),
+    },
+    create: {
+      id: "demo-week4-hw",
+      weekId: week4.id,
+      title: "Homework 4: Arrays",
+      description: "Practice array creation, manipulation, and algorithms.",
+      isPublished: true,
+      semester: SEMESTER_FALL_2024,
+      dueDate: new Date("2024-10-06"),
+    },
+  })
+
+  // Create Assignments for Spring 2025 (Weeks 5-7)
+  const assignment5 = await prisma.assignment.upsert({
+    where: { id: "demo-week5-hw" },
+    update: {
+      title: "Homework 5: 2D Arrays",
+      description: "Practice two-dimensional arrays and matrix operations.",
+      isPublished: true,
+      semester: SEMESTER_SPRING_2025,
+      dueDate: new Date("2025-01-20"),
+    },
+    create: {
+      id: "demo-week5-hw",
+      weekId: week5.id,
+      title: "Homework 5: 2D Arrays",
+      description: "Practice two-dimensional arrays and matrix operations.",
+      isPublished: true,
+      semester: SEMESTER_SPRING_2025,
+      dueDate: new Date("2025-01-20"),
+    },
+  })
+
+  const assignment6 = await prisma.assignment.upsert({
+    where: { id: "demo-week6-hw" },
+    update: {
+      title: "Homework 6: Recursion Fundamentals",
+      description: "Practice basic recursive functions and patterns.",
+      isPublished: true,
+      semester: SEMESTER_SPRING_2025,
+      dueDate: new Date("2025-01-27"),
+    },
+    create: {
+      id: "demo-week6-hw",
+      weekId: week6.id,
+      title: "Homework 6: Recursion Fundamentals",
+      description: "Practice basic recursive functions and patterns.",
+      isPublished: true,
+      semester: SEMESTER_SPRING_2025,
+      dueDate: new Date("2025-01-27"),
+    },
+  })
+
+  const assignment7 = await prisma.assignment.upsert({
+    where: { id: "demo-week7-hw" },
+    update: {
+      title: "Homework 7: Recursion Mastery",
+      description: "Advanced recursion with arrays and optimization.",
+      isPublished: true,
+      semester: SEMESTER_SPRING_2025,
+      dueDate: new Date("2025-02-03"),
+    },
+    create: {
+      id: "demo-week7-hw",
+      weekId: week7.id,
+      title: "Homework 7: Recursion Mastery",
+      description: "Advanced recursion with arrays and optimization.",
+      isPublished: true,
+      semester: SEMESTER_SPRING_2025,
+      dueDate: new Date("2025-02-03"),
+    },
+  })
+
+  const assignments = [
+    { assignment: assignment1, questions: hw1Questions },
+    { assignment: assignment2, questions: hw2Questions },
+    { assignment: assignment3, questions: hw3Questions },
+    { assignment: assignment4, questions: hw4Questions },
+    { assignment: assignment5, questions: hw5Questions },
+    { assignment: assignment6, questions: hw6Questions },
+    { assignment: assignment7, questions: hw7Questions },
+  ]
+
+  // Clear and recreate assignment questions
+  for (const { assignment, questions } of assignments) {
+    await prisma.assignmentQuestion.deleteMany({ where: { assignmentId: assignment.id } })
+    for (let i = 0; i < questions.length; i++) {
+      await prisma.assignmentQuestion.create({
+        data: {
+          assignmentId: assignment.id,
+          questionId: questions[i].id,
+          orderIndex: i,
+        },
+      })
+    }
+  }
+
+  const totalHwQuestions = hw1Questions.length + hw2Questions.length + hw3Questions.length +
+    hw4Questions.length + hw5Questions.length + hw6Questions.length + hw7Questions.length
+  console.log(`   📝 Created 7 assignments (${SEMESTER_FALL_2024}: 4, ${SEMESTER_SPRING_2025}: 3) with ${totalHwQuestions} total questions`)
+
+  // ==================== SEED REALISTIC SUBMISSIONS & GRADES ====================
+  console.log("Seeding student submissions and grades...")
+
+  // Clear existing submissions and attempts for demo students
+  const demoStudentIds = demoStudents.map(s => s.id)
+  await prisma.assignmentSubmission.deleteMany({
+    where: { userId: { in: demoStudentIds } }
+  })
+  await prisma.attemptTestResult.deleteMany({
+    where: { attempt: { userId: { in: demoStudentIds } } }
+  })
+  await prisma.attempt.deleteMany({
+    where: { userId: { in: demoStudentIds } }
+  })
+
+  // Helper to create pass attempt for a question
+  async function createPassAttempt(userId: string, questionId: string) {
+    await prisma.attempt.create({
+      data: {
+        userId,
+        questionId,
+        code: "// Solution code",
+        status: "PASS",
+        executionMs: Math.floor(Math.random() * 500) + 100,
+        pointsEarned: 10,
+      },
+    })
+  }
+
+  // Distribution for Assignment 1 (Week 1 - most submitted, varied grades)
+  // 22 submitted, 5 in progress, 3 not started
+  const a1Submitted = demoStudents.slice(0, 22)
+  const a1InProgress = demoStudents.slice(22, 27)
+  // a1NotStarted = demoStudents.slice(27, 30)
+
+  for (let i = 0; i < a1Submitted.length; i++) {
+    const student = a1Submitted[i]
+    // Realistic grade distribution: mostly good, some mediocre, few poor
+    let passedCount: number
+    if (i < 8) passedCount = 5      // 8 students: 100%
+    else if (i < 14) passedCount = 4 // 6 students: 80%
+    else if (i < 18) passedCount = 3 // 4 students: 60%
+    else if (i < 20) passedCount = 2 // 2 students: 40%
+    else passedCount = 1              // 2 students: 20%
+
+    // Create pass attempts
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw1Questions[q].id)
+    }
+
+    // Create submission
+    const grade = Math.round((passedCount / hw1Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment1.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date(Date.now() - Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000),
+        grade,
+      },
+    })
+  }
+
+  // In progress students for Assignment 1 (some questions passed, not submitted)
+  for (let i = 0; i < a1InProgress.length; i++) {
+    const student = a1InProgress[i]
+    const passedCount = Math.floor(Math.random() * 3) + 1 // 1-3 questions
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw1Questions[q].id)
+    }
+    // Create IN_PROGRESS submission
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment1.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  // Distribution for Assignment 2 (Week 2 - moderate submission)
+  // 15 submitted, 8 in progress, 7 not started
+  const a2Submitted = demoStudents.slice(0, 15)
+  const a2InProgress = demoStudents.slice(15, 23)
+
+  for (let i = 0; i < a2Submitted.length; i++) {
+    const student = a2Submitted[i]
+    let passedCount: number
+    if (i < 5) passedCount = 5       // 5 students: 100%
+    else if (i < 10) passedCount = 4 // 5 students: 80%
+    else if (i < 13) passedCount = 3 // 3 students: 60%
+    else passedCount = 2             // 2 students: 40%
+
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw2Questions[q].id)
+    }
+
+    const grade = Math.round((passedCount / hw2Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment2.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date(Date.now() - Math.floor(Math.random() * 3) * 24 * 60 * 60 * 1000),
+        grade,
+      },
+    })
+  }
+
+  for (let i = 0; i < a2InProgress.length; i++) {
+    const student = a2InProgress[i]
+    const passedCount = Math.floor(Math.random() * 2) + 1
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw2Questions[q].id)
+    }
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment2.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  // Distribution for Assignment 3 (Week 3)
+  // 18 submitted, 7 in progress, 5 not started
+  const a3Submitted = demoStudents.slice(0, 18)
+  const a3InProgress = demoStudents.slice(18, 25)
+
+  for (let i = 0; i < a3Submitted.length; i++) {
+    const student = a3Submitted[i]
+    let passedCount: number
+    if (i < 7) passedCount = 4       // 7 students: 100%
+    else if (i < 12) passedCount = 3 // 5 students: 75%
+    else if (i < 16) passedCount = 2 // 4 students: 50%
+    else passedCount = 1             // 2 students: 25%
+
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw3Questions[q].id)
+    }
+
+    const grade = Math.round((passedCount / hw3Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment3.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date(Date.now() - Math.floor(Math.random() * 2) * 24 * 60 * 60 * 1000),
+        grade,
+      },
+    })
+  }
+
+  for (let i = 0; i < a3InProgress.length; i++) {
+    const student = a3InProgress[i]
+    const passedCount = Math.floor(Math.random() * 2) + 1
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw3Questions[q].id)
+    }
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment3.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  // Distribution for Assignment 4 (Week 4 - Arrays)
+  // 16 submitted, 6 in progress, 8 not started
+  const a4Submitted = demoStudents.slice(0, 16)
+  const a4InProgress = demoStudents.slice(16, 22)
+
+  for (let i = 0; i < a4Submitted.length; i++) {
+    const student = a4Submitted[i]
+    let passedCount: number
+    if (i < 6) passedCount = 5       // 6 students: 100%
+    else if (i < 10) passedCount = 4 // 4 students: 80%
+    else if (i < 14) passedCount = 3 // 4 students: 60%
+    else passedCount = 2             // 2 students: 40%
+
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw4Questions[q].id)
+    }
+
+    const grade = Math.round((passedCount / hw4Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment4.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date("2024-10-05"),
+        grade,
+      },
+    })
+  }
+
+  for (let i = 0; i < a4InProgress.length; i++) {
+    const student = a4InProgress[i]
+    const passedCount = Math.floor(Math.random() * 3) + 1
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw4Questions[q].id)
+    }
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment4.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  // Distribution for Assignment 5 (Week 5 - 2D Arrays, Spring 2025)
+  // 12 submitted, 8 in progress, 10 not started
+  const a5Submitted = demoStudents.slice(0, 12)
+  const a5InProgress = demoStudents.slice(12, 20)
+
+  for (let i = 0; i < a5Submitted.length; i++) {
+    const student = a5Submitted[i]
+    let passedCount: number
+    if (i < 4) passedCount = 4       // 4 students: 100%
+    else if (i < 8) passedCount = 3  // 4 students: 75%
+    else passedCount = 2             // 4 students: 50%
+
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw5Questions[q].id)
+    }
+
+    const grade = Math.round((passedCount / hw5Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment5.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date("2025-01-19"),
+        grade,
+      },
+    })
+  }
+
+  for (let i = 0; i < a5InProgress.length; i++) {
+    const student = a5InProgress[i]
+    const passedCount = Math.floor(Math.random() * 2) + 1
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw5Questions[q].id)
+    }
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment5.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  // Distribution for Assignment 6 (Week 6 - Recursion Fundamentals)
+  // 8 submitted, 10 in progress, 12 not started
+  const a6Submitted = demoStudents.slice(0, 8)
+  const a6InProgress = demoStudents.slice(8, 18)
+
+  for (let i = 0; i < a6Submitted.length; i++) {
+    const student = a6Submitted[i]
+    let passedCount: number
+    if (i < 3) passedCount = 4       // 3 students: 100%
+    else if (i < 6) passedCount = 3  // 3 students: 75%
+    else passedCount = 2             // 2 students: 50%
+
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw6Questions[q].id)
+    }
+
+    const grade = Math.round((passedCount / hw6Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment6.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date("2025-01-26"),
+        grade,
+      },
+    })
+  }
+
+  for (let i = 0; i < a6InProgress.length; i++) {
+    const student = a6InProgress[i]
+    const passedCount = Math.floor(Math.random() * 2) + 1
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw6Questions[q].id)
+    }
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment6.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  // Distribution for Assignment 7 (Week 7 - Recursion Mastery, newest)
+  // 5 submitted, 8 in progress, 17 not started
+  const a7Submitted = demoStudents.slice(0, 5)
+  const a7InProgress = demoStudents.slice(5, 13)
+
+  for (let i = 0; i < a7Submitted.length; i++) {
+    const student = a7Submitted[i]
+    let passedCount: number
+    if (i < 2) passedCount = 4       // 2 students: 100%
+    else if (i < 4) passedCount = 3  // 2 students: 75%
+    else passedCount = 2             // 1 student: 50%
+
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw7Questions[q].id)
+    }
+
+    const grade = Math.round((passedCount / hw7Questions.length) * 100)
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment7.id,
+        userId: student.id,
+        status: "SUBMITTED",
+        submittedAt: new Date("2025-02-02"),
+        grade,
+      },
+    })
+  }
+
+  for (let i = 0; i < a7InProgress.length; i++) {
+    const student = a7InProgress[i]
+    const passedCount = Math.floor(Math.random() * 2) + 1
+    for (let q = 0; q < passedCount; q++) {
+      await createPassAttempt(student.id, hw7Questions[q].id)
+    }
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId: assignment7.id,
+        userId: student.id,
+        status: "IN_PROGRESS",
+      },
+    })
+  }
+
+  console.log("   ✅ Seeded realistic submission distribution across 7 assignments:")
+  console.log("      Fall 2024:")
+  console.log("        HW1: 22 submitted, 5 in-progress, 3 not-started")
+  console.log("        HW2: 15 submitted, 8 in-progress, 7 not-started")
+  console.log("        HW3: 18 submitted, 7 in-progress, 5 not-started")
+  console.log("        HW4: 16 submitted, 6 in-progress, 8 not-started")
+  console.log("      Spring 2025:")
+  console.log("        HW5: 12 submitted, 8 in-progress, 10 not-started")
+  console.log("        HW6: 8 submitted, 10 in-progress, 12 not-started")
+  console.log("        HW7: 5 submitted, 8 in-progress, 17 not-started")
 
   // Count questions
   const questionCount = await prisma.question.count()

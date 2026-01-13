@@ -32,6 +32,7 @@ import {
   Lock,
   Star,
   GitBranch,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react"
 import { getSafeIcon } from "@/lib/ui-contract"
@@ -43,6 +44,7 @@ import { DailyChallengeCard } from "@/components/progression/daily-challenge-car
 const dashboardTabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "weeks", label: "Weeks", icon: Calendar },
+  { id: "homework", label: "Homework", icon: ClipboardList },
   { id: "achievements", label: "Achievements", icon: Award },
   { id: "activity", label: "Activity", icon: Activity },
 ]
@@ -301,6 +303,225 @@ const sampleAchievements = [
   { id: "week-complete", title: "Week Master", description: "Complete an entire week", icon: Calendar, unlocked: true },
   { id: "perfect-topic", title: "Perfectionist", description: "100% on any topic", icon: Star, unlocked: false, progress: 85 },
 ]
+
+// Homework list component
+interface HomeworkAssignment {
+  id: string
+  title: string
+  description: string | null
+  dueDate: string | null
+  week: {
+    id: string
+    weekNumber: number
+    title: string
+  }
+  questions: {
+    questionId: string
+    isPassed: boolean
+    question: {
+      id: string
+      title: string
+      difficulty: number
+      points: number
+    }
+  }[]
+  submission: {
+    id: string
+    status: string
+    grade: number | null
+    submittedAt: string | null
+  } | null
+  progress: {
+    passed: number
+    total: number
+    percentage: number
+  }
+  status: string
+}
+
+function HomeworkList({
+  weeks,
+}: {
+  weeks: {
+    id: string
+    weekNumber: number
+    title: string
+  }[]
+}) {
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null)
+  const [assignments, setAssignments] = useState<HomeworkAssignment[]>([])
+  const [loading, setLoading] = useState(false)
+
+  // Fetch assignments for each week
+  useEffect(() => {
+    const fetchAllAssignments = async () => {
+      setLoading(true)
+      try {
+        const allAssignments: HomeworkAssignment[] = []
+        for (const week of weeks) {
+          const res = await fetch(`/api/assignments?weekNumber=${week.weekNumber}`)
+          if (res.ok) {
+            const data = await res.json()
+            allAssignments.push(...data)
+          }
+        }
+        setAssignments(allAssignments)
+      } catch (error) {
+        console.error("Failed to fetch assignments:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (weeks.length > 0) {
+      fetchAllAssignments()
+    }
+  }, [weeks])
+
+  const filteredAssignments = selectedWeek
+    ? assignments.filter((a) => a.week.weekNumber === selectedWeek)
+    : assignments
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="glass-card">
+            <CardContent className="p-6">
+              <div className="skeleton h-6 w-48 rounded mb-2" />
+              <div className="skeleton h-4 w-32 rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  if (assignments.length === 0) {
+    return (
+      <Card className="glass-card">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center mb-4">
+            <ClipboardList className="h-8 w-8 text-orange-500" />
+          </div>
+          <p className="text-muted-foreground text-center mb-2">
+            No homework assignments yet
+          </p>
+          <p className="text-sm text-muted-foreground text-center">
+            Your instructors will publish assignments here
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Week filter */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant={selectedWeek === null ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSelectedWeek(null)}
+        >
+          All Weeks
+        </Button>
+        {weeks.map((week) => (
+          <Button
+            key={week.id}
+            variant={selectedWeek === week.weekNumber ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedWeek(week.weekNumber)}
+          >
+            Week {week.weekNumber}
+          </Button>
+        ))}
+      </div>
+
+      {/* Assignments list */}
+      {filteredAssignments.map((assignment, index) => (
+        <motion.div
+          key={assignment.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.05 }}
+        >
+          <Link href={`/homework/${assignment.id}`}>
+            <Card className={cn(
+              "glass-card glass-card-hover overflow-hidden",
+              assignment.submission?.status === "SUBMITTED" && "border-green-500/30"
+            )}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline">Week {assignment.week.weekNumber}</Badge>
+                      {assignment.submission?.status === "SUBMITTED" ? (
+                        <Badge className="bg-green-500 gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Submitted
+                        </Badge>
+                      ) : assignment.status === "IN_PROGRESS" ? (
+                        <Badge variant="secondary" className="gap-1">
+                          <Clock className="h-3 w-3" />
+                          In Progress
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Not Started</Badge>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-lg mb-1">{assignment.title}</h3>
+                    {assignment.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                        {assignment.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>{assignment.progress.total} questions</span>
+                      {assignment.dueDate && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {assignment.submission?.grade !== null && assignment.submission?.grade !== undefined ? (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Grade</p>
+                        <p className={cn(
+                          "text-2xl font-bold",
+                          assignment.submission.grade >= 70 ? "text-green-500" :
+                          assignment.submission.grade >= 50 ? "text-yellow-500" :
+                          "text-red-500"
+                        )}>
+                          {assignment.submission.grade}%
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Progress</p>
+                        <p className="text-xl font-semibold">
+                          {assignment.progress.passed}/{assignment.progress.total}
+                        </p>
+                        <div className="w-20 h-2 bg-muted/50 rounded-full overflow-hidden mt-1">
+                          <div
+                            className="h-full gradient-neon rounded-full"
+                            style={{ width: `${assignment.progress.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -702,6 +923,22 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             )}
+          </div>
+        )
+
+      case "homework":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <ClipboardList className="h-4 w-4 text-orange-500" />
+                </div>
+                Homework Assignments
+              </h2>
+            </div>
+
+            <HomeworkList weeks={weeks} />
           </div>
         )
 

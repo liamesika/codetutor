@@ -10,15 +10,16 @@ datasource db {
 // ==================== AUTH MODELS ====================
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String?
+  role              UserRole  @default(USER)
+  studentExternalId String?   @unique // External student ID (e.g., university ID number)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   accounts                  Account[]
   sessions                  Session[]
@@ -47,6 +48,7 @@ model User {
   cognitiveProfile          CognitiveProfile?
   mistakeLogs               MistakeLog[]
   proMissions               ProMission[]
+  assignmentSubmissions     AssignmentSubmission[]
 
   @@index([email])
 }
@@ -149,8 +151,9 @@ model Week {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  topics Topic[]
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topics      Topic[]
+  assignments Assignment[]
 
   @@unique([courseId, weekNumber])
   @@index([courseId])
@@ -229,14 +232,15 @@ model Question {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  topic           Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  questionTags    QuestionTag[]
-  attempts        Attempt[]
-  hintUsages      HintUsage[]
-  drafts          CodeDraft[]
-  contentVersions ContentVersion[]
-  dailyChallenges DailyChallenge[]
-  mistakeLogs     MistakeLog[]
+  topic               Topic                @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questionTags        QuestionTag[]
+  attempts            Attempt[]
+  hintUsages          HintUsage[]
+  drafts              CodeDraft[]
+  contentVersions     ContentVersion[]
+  dailyChallenges     DailyChallenge[]
+  mistakeLogs         MistakeLog[]
+  assignmentQuestions AssignmentQuestion[]
 
   @@unique([topicId, slug])
   @@index([topicId])
@@ -1111,4 +1115,65 @@ enum ProMissionType {
   SPEED_CHALLENGE       // Improve solve time
   ACCURACY_FOCUS        // Focus on accuracy not speed
   BURNOUT_PREVENTION    // Light/fun tasks when at risk
+}
+
+// ==================== HOMEWORK / ASSIGNMENT SYSTEM ====================
+
+model Assignment {
+  id          String    @id @default(cuid())
+  weekId      String
+  title       String
+  description String?   @db.Text
+  dueDate     DateTime?
+  semester    String?   // e.g., "Fall 2024", "Spring 2025"
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  week        Week                   @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  questions   AssignmentQuestion[]
+  submissions AssignmentSubmission[]
+
+  @@index([weekId])
+  @@index([isPublished])
+  @@index([semester])
+}
+
+model AssignmentQuestion {
+  id           String @id @default(cuid())
+  assignmentId String
+  questionId   String
+  orderIndex   Int    @default(0)
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, questionId])
+  @@index([assignmentId])
+  @@index([questionId])
+}
+
+model AssignmentSubmission {
+  id           String                     @id @default(cuid())
+  assignmentId String
+  userId       String
+  status       AssignmentSubmissionStatus @default(IN_PROGRESS)
+  submittedAt  DateTime?
+  grade        Int?                       // 0-100 numeric grade
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, userId])
+  @@index([assignmentId])
+  @@index([userId])
+  @@index([status])
+}
+
+enum AssignmentSubmissionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
 }
