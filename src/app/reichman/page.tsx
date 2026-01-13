@@ -374,7 +374,7 @@ export default function ReichmanPage() {
             <motion.div {...fadeInUp}>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#4F46E5]/10 border border-[#4F46E5]/30 text-sm font-medium text-foreground mb-6">
                 <GraduationCap className="h-4 w-4 text-[#4F46E5]" />
-                Dean Pitch — CodeTutor for Reichman University
+                CodeTutor for Reichman University
               </div>
             </motion.div>
 
