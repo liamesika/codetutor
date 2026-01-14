@@ -12,6 +12,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Create Assignment table if it doesn't exist
+    await db.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "Assignment" (
+        id TEXT PRIMARY KEY,
+        "weekId" TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        "dueDate" TIMESTAMP,
+        semester TEXT,
+        "isPublished" BOOLEAN DEFAULT false,
+        "createdAt" TIMESTAMP DEFAULT NOW(),
+        "updatedAt" TIMESTAMP DEFAULT NOW()
+      )
+    `
+
+    // Create AssignmentQuestion table if it doesn't exist
+    await db.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "AssignmentQuestion" (
+        id TEXT PRIMARY KEY,
+        "assignmentId" TEXT NOT NULL,
+        "questionId" TEXT NOT NULL,
+        "orderIndex" INTEGER DEFAULT 0
+      )
+    `
+
+    // Create AssignmentSubmission table if it doesn't exist
+    await db.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "AssignmentSubmission" (
+        id TEXT PRIMARY KEY,
+        "assignmentId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        status TEXT DEFAULT 'IN_PROGRESS',
+        "submittedAt" TIMESTAMP,
+        grade INTEGER,
+        "createdAt" TIMESTAMP DEFAULT NOW(),
+        "updatedAt" TIMESTAMP DEFAULT NOW()
+      )
+    `
+
+    // Add studentExternalId column to User if it doesn't exist
+    await db.$executeRaw`
+      ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "studentExternalId" TEXT
+    `
+
     const hashedPassword = await bcrypt.hash("demo123", 12)
 
     // Define the 10 demo students
