@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -45,12 +45,15 @@ import {
   TrendingUp,
   AlertTriangle,
   BarChart3,
+  Download,
+  Filter,
 } from "lucide-react"
 
 interface Student {
   id: string
   email: string
   name: string | null
+  studentExternalId?: string | null
 }
 
 interface GradeEntry {
@@ -144,7 +147,6 @@ type SortField = "name" | "email" | "status" | "grade" | "submittedAt"
 type SortDirection = "asc" | "desc"
 
 export default function AdminGradebookPage() {
-  const [selectedWeek, setSelectedWeek] = useState<string>("all")
   const [selectedAssignment, setSelectedAssignment] = useState<string>("all")
   const [viewingSubmission, setViewingSubmission] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -174,78 +176,112 @@ export default function AdminGradebookPage() {
     enabled: !!viewingSubmission,
   })
 
-  // Compute unique weeks for filter
-  const weeks = useMemo(() => {
-    if (!data?.gradebook) return []
-    return [...new Set(data.gradebook.map((g) => g.assignment.weekNumber))].sort()
-  }, [data?.gradebook])
+  // Get selected assignment data
+  const selectedAssignmentData = useMemo(() => {
+    if (!data?.gradebook || selectedAssignment === "all") return null
+    return data.gradebook.find((g) => g.assignment.id === selectedAssignment)
+  }, [data?.gradebook, selectedAssignment])
 
-  // Filter assignments by week
-  const filteredGradebook = useMemo(() => {
-    if (!data?.gradebook) return []
-    let filtered = data.gradebook
-    if (selectedWeek !== "all") {
-      filtered = filtered.filter((g) => g.assignment.weekNumber === parseInt(selectedWeek))
-    }
-    if (selectedAssignment !== "all") {
-      filtered = filtered.filter((g) => g.assignment.id === selectedAssignment)
-    }
-    return filtered
-  }, [data?.gradebook, selectedWeek, selectedAssignment])
-
-  // Compute overall KPIs
+  // Compute KPIs based on selection
   const kpis = useMemo(() => {
     if (!data?.gradebook || data.gradebook.length === 0) {
-      return { totalStudents: 0, totalSubmissions: 0, avgGrade: null, missingCount: 0, submissionRate: 0 }
+      return { totalStudents: 0, submitted: 0, missing: 0, avgGrade: null, medianGrade: null, submissionRate: 0 }
     }
 
     const totalStudents = data.students.length
-    const totalSubmissions = data.gradebook.reduce((acc, g) => acc + g.stats.submitted, 0)
+
+    if (selectedAssignment !== "all" && selectedAssignmentData) {
+      // Single assignment KPIs
+      const grades = selectedAssignmentData.grades
+      const submitted = grades.filter((g) => g.status === "SUBMITTED").length
+      const missing = grades.filter((g) => g.status === "NOT_STARTED").length
+      const submittedGrades = grades.filter((g) => g.grade !== null).map((g) => g.grade as number).sort((a, b) => a - b)
+
+      const avgGrade = submittedGrades.length > 0
+        ? Math.round(submittedGrades.reduce((a, b) => a + b, 0) / submittedGrades.length)
+        : null
+
+      const medianGrade = submittedGrades.length > 0
+        ? submittedGrades.length % 2 === 0
+          ? Math.round((submittedGrades[submittedGrades.length / 2 - 1] + submittedGrades[submittedGrades.length / 2]) / 2)
+          : submittedGrades[Math.floor(submittedGrades.length / 2)]
+        : null
+
+      const submissionRate = totalStudents > 0 ? Math.round((submitted / totalStudents) * 100) : 0
+
+      return { totalStudents, submitted, missing, avgGrade, medianGrade, submissionRate }
+    }
+
+    // All assignments KPIs
+    const submitted = data.gradebook.reduce((acc, g) => acc + g.stats.submitted, 0)
+    const missing = data.gradebook.reduce((acc, g) => acc + g.stats.notStarted, 0)
     const totalPossibleSubmissions = totalStudents * data.gradebook.length
-    const missingCount = data.gradebook.reduce((acc, g) => acc + g.stats.notStarted, 0)
 
     const allGrades = data.gradebook
       .flatMap((g) => g.grades)
       .filter((g) => g.grade !== null)
       .map((g) => g.grade as number)
+      .sort((a, b) => a - b)
 
     const avgGrade = allGrades.length > 0
       ? Math.round(allGrades.reduce((a, b) => a + b, 0) / allGrades.length)
       : null
 
+    const medianGrade = allGrades.length > 0
+      ? allGrades.length % 2 === 0
+        ? Math.round((allGrades[allGrades.length / 2 - 1] + allGrades[allGrades.length / 2]) / 2)
+        : allGrades[Math.floor(allGrades.length / 2)]
+      : null
+
     const submissionRate = totalPossibleSubmissions > 0
-      ? Math.round((totalSubmissions / totalPossibleSubmissions) * 100)
+      ? Math.round((submitted / totalPossibleSubmissions) * 100)
       : 0
 
-    return { totalStudents, totalSubmissions, avgGrade, missingCount, submissionRate }
-  }, [data])
+    return { totalStudents, submitted, missing, avgGrade, medianGrade, submissionRate }
+  }, [data, selectedAssignment, selectedAssignmentData])
 
-  // Sort and filter grades for selected assignment
+  // Sort and filter grades
   const sortedAndFilteredGrades = useMemo(() => {
-    if (filteredGradebook.length === 0) return []
+    if (!data?.gradebook) return []
 
-    // Flatten all grades across filtered assignments
-    const allGrades = filteredGradebook.flatMap((entry) =>
-      entry.grades.map((g) => ({
+    // Get grades based on selection
+    let allGrades: Array<GradeEntry & { assignmentId: string; assignmentTitle: string; weekNumber: number }>
+
+    if (selectedAssignment !== "all" && selectedAssignmentData) {
+      allGrades = selectedAssignmentData.grades.map((g) => ({
         ...g,
-        assignmentId: entry.assignment.id,
-        assignmentTitle: entry.assignment.title,
-        weekNumber: entry.assignment.weekNumber,
+        assignmentId: selectedAssignmentData.assignment.id,
+        assignmentTitle: selectedAssignmentData.assignment.title,
+        weekNumber: selectedAssignmentData.assignment.weekNumber,
       }))
-    )
+    } else {
+      allGrades = data.gradebook.flatMap((entry) =>
+        entry.grades.map((g) => ({
+          ...g,
+          assignmentId: entry.assignment.id,
+          assignmentTitle: entry.assignment.title,
+          weekNumber: entry.assignment.weekNumber,
+        }))
+      )
+    }
 
     // Apply search filter
     let filtered = allGrades.filter((g) => {
       const searchLower = searchQuery.toLowerCase()
       return (
         g.student.name?.toLowerCase().includes(searchLower) ||
-        g.student.email.toLowerCase().includes(searchLower)
+        g.student.email.toLowerCase().includes(searchLower) ||
+        g.student.id.toLowerCase().includes(searchLower)
       )
     })
 
     // Apply status filter
     if (statusFilter !== "all") {
-      filtered = filtered.filter((g) => g.status === statusFilter)
+      if (statusFilter === "MISSING") {
+        filtered = filtered.filter((g) => g.status === "NOT_STARTED")
+      } else {
+        filtered = filtered.filter((g) => g.status === statusFilter)
+      }
     }
 
     // Apply grade filter
@@ -285,7 +321,7 @@ export default function AdminGradebookPage() {
     })
 
     return filtered
-  }, [filteredGradebook, searchQuery, statusFilter, gradeFilter, sortField, sortDirection])
+  }, [data?.gradebook, selectedAssignment, selectedAssignmentData, searchQuery, statusFilter, gradeFilter, sortField, sortDirection])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -295,6 +331,54 @@ export default function AdminGradebookPage() {
       setSortDirection("asc")
     }
   }
+
+  // Export CSV function
+  const exportCSV = useCallback(() => {
+    if (sortedAndFilteredGrades.length === 0) return
+
+    const headers = [
+      "studentExternalId",
+      "studentName",
+      "studentEmail",
+      "assignmentTitle",
+      "weekNumber",
+      "status",
+      "grade",
+      "submittedAt",
+    ]
+
+    const rows = sortedAndFilteredGrades.map((g) => [
+      g.student.studentExternalId || "",
+      g.student.name || "",
+      g.student.email,
+      g.assignmentTitle,
+      g.weekNumber.toString(),
+      g.status,
+      g.grade !== null ? g.grade.toString() : "",
+      g.submittedAt ? new Date(g.submittedAt).toISOString() : "",
+    ])
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")),
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+
+    const assignmentName = selectedAssignment !== "all" && selectedAssignmentData
+      ? selectedAssignmentData.assignment.title.replace(/[^a-z0-9]/gi, "-").toLowerCase()
+      : "all-assignments"
+    const date = new Date().toISOString().split("T")[0]
+
+    link.href = url
+    link.download = `codetutor-gradebook-${assignmentName}-${date}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, [sortedAndFilteredGrades, selectedAssignment, selectedAssignmentData])
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />
@@ -309,8 +393,8 @@ export default function AdminGradebookPage() {
     return (
       <div className="p-6 space-y-6">
         <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
@@ -320,143 +404,152 @@ export default function AdminGradebookPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gradebook</h1>
-          <p className="text-muted-foreground">
-            View student submissions and grades for all assignments
+          <h1 className="text-xl md:text-2xl font-bold">Gradebook</h1>
+          <p className="text-sm text-muted-foreground">
+            View student submissions and grades
           </p>
         </div>
+        <Button onClick={exportCSV} disabled={sortedAndFilteredGrades.length === 0} className="gap-2">
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
+      {/* Assignment Selector - Prominent */}
+      <Card className="border-[#4F46E5]/30 bg-[#4F46E5]/5">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Filter className="h-4 w-4 text-[#4F46E5]" />
+              Assignment:
+            </div>
+            <Select value={selectedAssignment} onValueChange={setSelectedAssignment}>
+              <SelectTrigger className="w-full sm:w-[300px] bg-background">
+                <SelectValue placeholder="Select assignment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Assignments</SelectItem>
+                {data?.gradebook.map((g) => (
+                  <SelectItem key={g.assignment.id} value={g.assignment.id}>
+                    Week {g.assignment.weekNumber}: {g.assignment.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-blue-500" />
-              Total Students
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-blue-500" />
+              Students
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{kpis.totalStudents}</div>
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl md:text-3xl font-bold">{kpis.totalStudents}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              Submissions
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              Submitted
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{kpis.totalSubmissions}</div>
-            <p className="text-xs text-muted-foreground">{kpis.submissionRate}% rate</p>
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl md:text-3xl font-bold text-green-500">{kpis.submitted}</div>
+            <p className="text-[10px] md:text-xs text-muted-foreground">{kpis.submissionRate}% rate</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-purple-500" />
-              Average Grade
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
+              Missing
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl md:text-3xl font-bold text-orange-500">{kpis.missing}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 text-purple-500" />
+              Average
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl md:text-3xl font-bold">
               {kpis.avgGrade !== null ? `${kpis.avgGrade}%` : "—"}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-              Missing
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <BarChart3 className="h-3.5 w-3.5 text-cyan-500" />
+              Median
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-500">{kpis.missingCount}</div>
-            <p className="text-xs text-muted-foreground">not started</p>
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl md:text-3xl font-bold">
+              {kpis.medianGrade !== null ? `${kpis.medianGrade}%` : "—"}
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-cyan-500" />
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <FileQuestion className="h-3.5 w-3.5 text-gray-500" />
               Assignments
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{data?.totalAssignments || 0}</div>
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl md:text-3xl font-bold">{data?.totalAssignments || 0}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters Row */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 items-center">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex flex-col md:flex-row flex-wrap gap-3 md:gap-4 md:items-center">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or email..."
+                placeholder="Search name, email, ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
 
-            {/* Week Filter */}
-            <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Week" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Weeks</SelectItem>
-                {weeks.map((week) => (
-                  <SelectItem key={week} value={week.toString()}>
-                    Week {week}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Assignment Filter */}
-            <Select value={selectedAssignment} onValueChange={setSelectedAssignment}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Assignment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Assignments</SelectItem>
-                {(selectedWeek !== "all"
-                  ? data?.gradebook.filter((g) => g.assignment.weekNumber === parseInt(selectedWeek))
-                  : data?.gradebook
-                )?.map((g) => (
-                  <SelectItem key={g.assignment.id} value={g.assignment.id}>
-                    {g.assignment.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full md:w-[140px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="SUBMITTED">Submitted</SelectItem>
                 <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                <SelectItem value="MISSING">Missing</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Grade Filter */}
             <Select value={gradeFilter} onValueChange={setGradeFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full md:w-[140px]">
                 <SelectValue placeholder="Grade" />
               </SelectTrigger>
               <SelectContent>
@@ -472,143 +565,151 @@ export default function AdminGradebookPage() {
 
       {/* Main Gradebook Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Student Grades</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">
+            {selectedAssignment !== "all" && selectedAssignmentData
+              ? selectedAssignmentData.assignment.title
+              : "All Grades"}
+          </CardTitle>
           <CardDescription>
             {sortedAndFilteredGrades.length} records
             {searchQuery && ` matching "${searchQuery}"`}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort("name")}
-                >
-                  <div className="flex items-center">
-                    Student
-                    <SortIcon field="name" />
-                  </div>
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort("email")}
-                >
-                  <div className="flex items-center">
-                    Email
-                    <SortIcon field="email" />
-                  </div>
-                </TableHead>
-                {selectedAssignment === "all" && <TableHead>Assignment</TableHead>}
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort("status")}
-                >
-                  <div className="flex items-center">
-                    Status
-                    <SortIcon field="status" />
-                  </div>
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort("grade")}
-                >
-                  <div className="flex items-center">
-                    Grade
-                    <SortIcon field="grade" />
-                  </div>
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort("submittedAt")}
-                >
-                  <div className="flex items-center">
-                    Submitted
-                    <SortIcon field="submittedAt" />
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedAndFilteredGrades.map((grade, index) => (
-                <TableRow key={`${grade.assignmentId}-${grade.student.id}-${index}`}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <span className="font-medium">{grade.student.name || "—"}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {grade.student.email}
-                  </TableCell>
-                  {selectedAssignment === "all" && (
-                    <TableCell>
-                      <Badge variant="outline">
-                        W{grade.weekNumber}: {grade.assignmentTitle}
-                      </Badge>
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <StatusBadge status={grade.status} />
-                  </TableCell>
-                  <TableCell>
-                    {grade.grade !== null ? (
-                      <span
-                        className={`font-bold ${
-                          grade.grade >= 70
-                            ? "text-green-500"
-                            : grade.grade >= 50
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`}
-                      >
-                        {grade.grade}%
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {grade.submittedAt ? (
-                      <span className="text-sm">
-                        {new Date(grade.submittedAt).toLocaleDateString()}{" "}
-                        {new Date(grade.submittedAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {grade.submissionId && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setViewingSubmission(grade.submissionId)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {sortedAndFilteredGrades.length === 0 && (
+        <CardContent className="p-0 md:p-6 md:pt-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No matching records found
-                  </TableCell>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                    onClick={() => handleSort("name")}
+                  >
+                    <div className="flex items-center">
+                      Student
+                      <SortIcon field="name" />
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
+                    onClick={() => handleSort("email")}
+                  >
+                    <div className="flex items-center">
+                      Email
+                      <SortIcon field="email" />
+                    </div>
+                  </TableHead>
+                  {selectedAssignment === "all" && (
+                    <TableHead className="hidden lg:table-cell">Assignment</TableHead>
+                  )}
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort("status")}
+                  >
+                    <div className="flex items-center">
+                      Status
+                      <SortIcon field="status" />
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort("grade")}
+                  >
+                    <div className="flex items-center">
+                      Grade
+                      <SortIcon field="grade" />
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
+                    onClick={() => handleSort("submittedAt")}
+                  >
+                    <div className="flex items-center">
+                      Submitted
+                      <SortIcon field="submittedAt" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {sortedAndFilteredGrades.map((grade, index) => (
+                  <TableRow key={`${grade.assignmentId}-${grade.student.id}-${index}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <User className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-medium text-sm block truncate">{grade.student.name || "—"}</span>
+                          <span className="text-xs text-muted-foreground md:hidden truncate block">{grade.student.email}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden md:table-cell text-sm">
+                      {grade.student.email}
+                    </TableCell>
+                    {selectedAssignment === "all" && (
+                      <TableCell className="hidden lg:table-cell">
+                        <Badge variant="outline" className="text-xs">
+                          W{grade.weekNumber}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <StatusBadge status={grade.status} />
+                    </TableCell>
+                    <TableCell>
+                      {grade.grade !== null ? (
+                        <span
+                          className={`font-bold text-sm ${
+                            grade.grade >= 70
+                              ? "text-green-500"
+                              : grade.grade >= 50
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {grade.grade}%
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {grade.submittedAt ? (
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(grade.submittedAt).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {grade.submissionId && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setViewingSubmission(grade.submissionId)}
+                          className="h-8 px-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="hidden md:inline ml-1">View</span>
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {sortedAndFilteredGrades.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No matching records found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -660,7 +761,7 @@ export default function AdminGradebookPage() {
                               : "text-red-500"
                           }`}
                         >
-                          {submissionDetail.submission.grade}%
+                          {submissionDetail.submission.grade ?? "—"}%
                         </p>
                       </div>
                       <div className="text-right">
@@ -761,23 +862,23 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "SUBMITTED":
       return (
-        <Badge className="bg-green-500 gap-1">
+        <Badge className="bg-green-500 gap-1 text-xs">
           <CheckCircle2 className="h-3 w-3" />
-          Submitted
+          <span className="hidden sm:inline">Submitted</span>
         </Badge>
       )
     case "IN_PROGRESS":
       return (
-        <Badge variant="secondary" className="gap-1">
+        <Badge variant="secondary" className="gap-1 text-xs">
           <Clock className="h-3 w-3" />
-          In Progress
+          <span className="hidden sm:inline">In Progress</span>
         </Badge>
       )
     default:
       return (
-        <Badge variant="outline" className="gap-1">
+        <Badge variant="outline" className="gap-1 text-xs text-orange-500 border-orange-500/50">
           <XCircle className="h-3 w-3" />
-          Not Started
+          <span className="hidden sm:inline">Missing</span>
         </Badge>
       )
   }

@@ -1,16 +1,15 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
-import { useRef } from "react"
+import { useRef, memo } from "react"
 import { motion, useInView, useReducedMotion } from "framer-motion"
 import { useSession } from "next-auth/react"
 import { NeonButton } from "@/components/ui/neon-button"
+import { SiteHeader } from "@/components/shared/site-header"
 import { LegalFooter } from "@/components/shared/legal-footer"
 import { cn } from "@/lib/utils"
 import {
   ArrowRight,
-  Play,
   Lightbulb,
   AlertTriangle,
   Target,
@@ -99,8 +98,8 @@ const timelineSteps = [
   },
 ]
 
-// Timeline Step Component
-function TimelineStep({
+// Memoized Timeline Step Component - prevents re-renders
+const TimelineStep = memo(function TimelineStep({
   step,
   heading,
   body,
@@ -108,6 +107,7 @@ function TimelineStep({
   icon: Icon,
   index,
   isLeft,
+  totalSteps,
 }: {
   step: number
   heading: string
@@ -116,132 +116,192 @@ function TimelineStep({
   icon: React.ComponentType<{ className?: string }>
   index: number
   isLeft: boolean
+  totalSteps: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px 0px -100px 0px" })
+  const isInView = useInView(ref, { once: true, amount: 0.3 })
   const shouldReduceMotion = useReducedMotion()
-
-  const cardInitial = shouldReduceMotion ? undefined : { opacity: 0, y: 30, x: isLeft ? -20 : 20 }
-  const cardAnimate = shouldReduceMotion
-    ? undefined
-    : isInView
-      ? { opacity: 1, y: 0, x: 0 }
-      : { opacity: 0, y: 30, x: isLeft ? -20 : 20 }
-  const cardTransition = shouldReduceMotion ? undefined : { duration: 0.6, delay: 0.1, ease: "easeOut" as const }
 
   return (
     <div
       ref={ref}
       className={cn(
-        "relative flex items-start gap-4 md:gap-8",
-        // Desktop: alternate left/right
-        "md:w-[calc(50%-2rem)]",
-        isLeft ? "md:mr-auto md:pr-8 md:text-right" : "md:ml-auto md:pl-8 md:text-left",
-        // Mobile: all on one side
-        "w-full pl-12 md:pl-0"
+        "relative",
+        // Mobile: single column with line on left
+        "pl-14 md:pl-0",
+        // Desktop: alternating layout
+        "md:flex md:items-start",
+        isLeft ? "md:flex-row" : "md:flex-row-reverse"
       )}
     >
-      {/* Mobile: Line marker on left */}
-      <div className="absolute left-0 top-0 md:hidden">
-        <motion.div
+      {/* Mobile timeline marker - fixed position */}
+      <div className="absolute left-0 top-0 md:hidden flex flex-col items-center">
+        <div
           className={cn(
-            "w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-500",
+            "w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold z-10 bg-background transition-colors duration-300",
             isInView
-              ? "border-[#4F46E5] bg-[#4F46E5]/20 text-[#4F46E5]"
-              : "border-border bg-background text-muted-foreground"
-          )}
-          animate={isInView && !shouldReduceMotion ? { scale: [1, 1.1, 1] } : {}}
-          transition={{ duration: 0.5 }}
-        >
-          {String(step).padStart(2, "0")}
-        </motion.div>
-        {index < timelineSteps.length - 1 && (
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 w-0.5 h-[calc(100%+2rem)] bg-border" />
-        )}
-      </div>
-
-      {/* Desktop: Center line marker */}
-      <div
-        className={cn(
-          "absolute top-0 hidden md:flex items-center justify-center",
-          isLeft ? "-right-12" : "-left-12"
-        )}
-      >
-        <motion.div
-          className={cn(
-            "w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-500 z-10 bg-background",
-            isInView
-              ? "border-[#4F46E5] text-[#4F46E5] shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+              ? "border-[#4F46E5] text-[#4F46E5]"
               : "border-border text-muted-foreground"
           )}
-          animate={isInView && !shouldReduceMotion ? { scale: [1, 1.15, 1] } : {}}
-          transition={{ duration: 0.5 }}
         >
           {String(step).padStart(2, "0")}
-        </motion.div>
-        {/* Pulse effect */}
-        {isInView && !shouldReduceMotion && (
-          <motion.div
-            className="absolute w-10 h-10 rounded-full border-2 border-[#4F46E5]/50"
-            initial={{ scale: 1, opacity: 0.8 }}
-            animate={{ scale: 1.8, opacity: 0 }}
-            transition={{ duration: 1, repeat: 1 }}
-          />
+        </div>
+        {/* Connecting line */}
+        {index < totalSteps - 1 && (
+          <div className="w-0.5 h-full min-h-[8rem] bg-border absolute top-10 left-1/2 -translate-x-1/2" />
         )}
       </div>
 
-      {/* Card Content */}
-      <motion.div
-        className={cn(
-          "flex-1 p-6 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500",
-          isInView && "border-[#4F46E5]/30 bg-card/80 shadow-[0_0_30px_rgba(79,70,229,0.1)]"
+      {/* Desktop layout spacer + marker */}
+      <div className="hidden md:flex md:w-[calc(50%-2.5rem)] md:justify-end">
+        {isLeft && (
+          <motion.div
+            className="w-full pr-8"
+            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <TimelineCard
+              step={step}
+              heading={heading}
+              body={body}
+              whyItMatters={whyItMatters}
+              Icon={Icon}
+              isInView={isInView}
+              alignRight
+            />
+          </motion.div>
         )}
-        initial={cardInitial}
-        animate={cardAnimate}
-        transition={cardTransition}
+      </div>
+
+      {/* Desktop center marker */}
+      <div className="hidden md:flex items-center justify-center w-20 shrink-0 relative">
+        <div
+          className={cn(
+            "w-12 h-12 rounded-full border-2 flex items-center justify-center text-sm font-bold z-10 bg-background transition-all duration-300",
+            isInView
+              ? "border-[#4F46E5] text-[#4F46E5] shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+              : "border-border text-muted-foreground"
+          )}
+        >
+          {String(step).padStart(2, "0")}
+        </div>
+        {/* Center line segment */}
+        {index < totalSteps - 1 && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-0.5 h-[calc(100%+3rem)] bg-gradient-to-b from-[#4F46E5]/40 to-border" />
+        )}
+      </div>
+
+      {/* Desktop right side content */}
+      <div className="hidden md:flex md:w-[calc(50%-2.5rem)]">
+        {!isLeft && (
+          <motion.div
+            className="w-full pl-8"
+            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, x: 20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <TimelineCard
+              step={step}
+              heading={heading}
+              body={body}
+              whyItMatters={whyItMatters}
+              Icon={Icon}
+              isInView={isInView}
+            />
+          </motion.div>
+        )}
+      </div>
+
+      {/* Mobile card - simple fade in, no x movement to prevent layout shift */}
+      <motion.div
+        className="md:hidden w-full"
+        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 15 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {/* Icon */}
-        <div
-          className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all duration-500",
-            isInView ? "bg-[#4F46E5]/20" : "bg-muted",
-            isLeft ? "md:ml-auto" : ""
-          )}
-        >
-          <Icon
-            className={cn(
-              "w-5 h-5 transition-colors duration-500",
-              isInView ? "text-[#4F46E5]" : "text-muted-foreground"
-            )}
-          />
-        </div>
-
-        {/* Heading */}
-        <h3
-          className={cn(
-            "text-lg md:text-xl font-semibold mb-3 transition-colors duration-500",
-            isInView ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          {heading}
-        </h3>
-
-        {/* Body */}
-        <p className="text-sm md:text-base text-muted-foreground mb-4 leading-relaxed">{body}</p>
-
-        {/* Why it matters */}
-        <div
-          className={cn(
-            "flex items-start gap-2 pt-3 border-t border-border/50",
-            isLeft ? "md:justify-end" : ""
-          )}
-        >
-          <span className="text-xs font-medium text-[#22D3EE] uppercase tracking-wide shrink-0">
-            Why it matters:
-          </span>
-          <span className="text-xs text-muted-foreground">{whyItMatters}</span>
-        </div>
+        <TimelineCard
+          step={step}
+          heading={heading}
+          body={body}
+          whyItMatters={whyItMatters}
+          Icon={Icon}
+          isInView={isInView}
+        />
       </motion.div>
+    </div>
+  )
+})
+
+// Card component
+function TimelineCard({
+  heading,
+  body,
+  whyItMatters,
+  Icon,
+  isInView,
+  alignRight,
+}: {
+  step: number
+  heading: string
+  body: string
+  whyItMatters: string
+  Icon: React.ComponentType<{ className?: string }>
+  isInView: boolean
+  alignRight?: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        "p-5 md:p-6 rounded-2xl border bg-card/80 backdrop-blur-sm transition-all duration-300",
+        isInView
+          ? "border-[#4F46E5]/30 shadow-[0_0_30px_rgba(79,70,229,0.08)]"
+          : "border-border/50"
+      )}
+    >
+      {/* Icon */}
+      <div
+        className={cn(
+          "w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors duration-300",
+          isInView ? "bg-[#4F46E5]/15" : "bg-muted",
+          alignRight && "md:ml-auto"
+        )}
+      >
+        <Icon
+          className={cn(
+            "w-5 h-5 transition-colors duration-300",
+            isInView ? "text-[#4F46E5]" : "text-muted-foreground"
+          )}
+        />
+      </div>
+
+      {/* Heading */}
+      <h3
+        className={cn(
+          "text-base md:text-lg font-semibold mb-2 transition-colors duration-300",
+          alignRight && "md:text-right"
+        )}
+      >
+        {heading}
+      </h3>
+
+      {/* Body */}
+      <p className={cn("text-sm text-muted-foreground mb-4 leading-relaxed", alignRight && "md:text-right")}>
+        {body}
+      </p>
+
+      {/* Why it matters */}
+      <div
+        className={cn(
+          "flex items-start gap-2 pt-3 border-t border-border/50",
+          alignRight && "md:flex-row-reverse md:text-right"
+        )}
+      >
+        <span className="text-xs font-medium text-[#22D3EE] uppercase tracking-wide shrink-0">
+          Why it matters:
+        </span>
+        <span className="text-xs text-muted-foreground">{whyItMatters}</span>
+      </div>
     </div>
   )
 }
@@ -250,128 +310,27 @@ export default function ReichmanPage() {
   const { data: session } = useSession()
   const shouldReduceMotion = useReducedMotion()
   const heroRef = useRef<HTMLDivElement>(null)
-  const heroInView = useInView(heroRef, { once: true })
-
-  const fadeInUp = shouldReduceMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.5 },
-      }
+  const heroInView = useInView(heroRef, { once: true, amount: 0.3 })
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <Image
-              src="/images/logo.png"
-              alt="CodeTutor"
-              width={150}
-              height={40}
-              className="h-10 w-auto"
-              priority
-            />
-          </Link>
-          <nav className="hidden md:flex items-center gap-8">
-            <Link
-              href="/demo"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-            >
-              <Play className="h-3.5 w-3.5" />
-              Try Demo
-            </Link>
-            <Link
-              href="/pricing"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/#features"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="/reichman"
-              className="text-sm font-medium text-[#4F46E5] hover:text-[#22D3EE] transition-colors"
-            >
-              Reichman
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            {session?.user ? (
-              <Link href="/dashboard">
-                <NeonButton variant="primary" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                  Dashboard
-                </NeonButton>
-              </Link>
-            ) : (
-              <>
-                <Link href="/login">
-                  <NeonButton variant="ghost" size="sm">
-                    Log in
-                  </NeonButton>
-                </Link>
-                <Link href="/signup">
-                  <NeonButton variant="primary" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    Get Started
-                  </NeonButton>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-        {/* Mobile nav */}
-        <div className="md:hidden border-t border-border/30 px-4 py-2 flex items-center justify-center gap-6 overflow-x-auto">
-          <Link
-            href="/demo"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            Demo
-          </Link>
-          <Link
-            href="/pricing"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/reichman"
-            className="text-xs font-medium text-[#4F46E5] whitespace-nowrap"
-          >
-            Reichman
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
+      {/* Shared Header with Mobile Drawer */}
+      <SiteHeader />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section ref={heroRef} className="relative py-16 md:py-24 px-4 overflow-hidden">
-          {/* Background */}
+        <section ref={heroRef} className="relative py-12 md:py-20 px-4 overflow-hidden">
+          {/* Background - simplified for performance */}
           <div className="absolute inset-0 -z-10">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.1),transparent_60%)]" />
-            {!shouldReduceMotion && (
-              <motion.div
-                className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#4F46E5]/10 rounded-full blur-3xl"
-                animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.2, 0.3, 0.2],
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            )}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.08),transparent_60%)]" />
           </div>
 
           <div className="container mx-auto max-w-4xl text-center">
-            <motion.div {...fadeInUp}>
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 15 }}
+              animate={heroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.4 }}
+            >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#4F46E5]/10 border border-[#4F46E5]/30 text-sm font-medium text-foreground mb-6">
                 <GraduationCap className="h-4 w-4 text-[#4F46E5]" />
                 CodeTutor for Reichman University
@@ -379,10 +338,10 @@ export default function ReichmanPage() {
             </motion.div>
 
             <motion.h1
-              className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 30 }}
+              className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-5"
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
               Transforming CS Education
               <br />
@@ -390,10 +349,10 @@ export default function ReichmanPage() {
             </motion.h1>
 
             <motion.p
-              className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8"
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 30 }}
+              className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8"
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
             >
               A 10-step narrative showing how CodeTutor brings innovation into learning,
               improves measurement accuracy, and positions Reichman as a leader in modern CS assessment.
@@ -401,9 +360,9 @@ export default function ReichmanPage() {
 
             <motion.div
               className="flex flex-col sm:flex-row gap-3 justify-center"
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 30 }}
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
               <Link href="#timeline">
                 <NeonButton variant="primary" size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
@@ -420,61 +379,58 @@ export default function ReichmanPage() {
         </section>
 
         {/* Timeline Section */}
-        <section id="timeline" className="py-16 md:py-24 px-4 scroll-mt-20">
+        <section id="timeline" className="py-12 md:py-20 px-4 scroll-mt-16">
           <div className="container mx-auto max-w-5xl">
             <motion.div
-              className="text-center mb-16"
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+              className="text-center mb-12 md:mb-16"
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.4 }}
             >
-              <h2 className="text-2xl md:text-4xl font-bold mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-3">
                 The <span className="gradient-neon-text">10-Step</span> Vision
               </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
+              <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">
                 A strategic narrative for modernizing CS education at Reichman University
               </p>
             </motion.div>
 
             {/* Timeline container */}
-            <div className="relative">
-              {/* Desktop center line */}
-              <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#4F46E5]/50 via-[#4F46E5]/30 to-transparent -translate-x-1/2" />
-
-              {/* Steps */}
-              <div className="space-y-8 md:space-y-12">
-                {timelineSteps.map((step, index) => (
-                  <TimelineStep
-                    key={step.step}
-                    {...step}
-                    index={index}
-                    isLeft={index % 2 === 0}
-                  />
-                ))}
-              </div>
+            <div className="relative space-y-6 md:space-y-10">
+              {timelineSteps.map((step, index) => (
+                <TimelineStep
+                  key={`step-${step.step}`}
+                  {...step}
+                  index={index}
+                  isLeft={index % 2 === 0}
+                  totalSteps={timelineSteps.length}
+                />
+              ))}
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-24 px-4 bg-card/30">
+        <section className="py-12 md:py-20 px-4 bg-card/30">
           <div className="container mx-auto max-w-3xl">
             <motion.div
-              className="text-center p-8 md:p-12 rounded-3xl border border-border/50 bg-background/50 backdrop-blur-sm"
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+              className="text-center p-6 md:p-10 rounded-3xl border border-border/50 bg-background/50 backdrop-blur-sm"
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.4 }}
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(79,70,229,0.4)]">
-                <Rocket className="h-7 w-7 text-white" />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#4F46E5] to-[#22D3EE] flex items-center justify-center mx-auto mb-5 shadow-[0_0_25px_rgba(79,70,229,0.35)]">
+                <Rocket className="h-6 w-6 md:h-7 md:w-7 text-white" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3">
                 Ready for a <span className="gradient-neon-text">Pilot</span>?
               </h2>
-              <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+              <p className="text-sm md:text-base text-muted-foreground mb-6 max-w-lg mx-auto">
                 See the system in action. Explore the admin gradebook or experience the student homework flow firsthand.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   href={
                     session?.user?.role === "ADMIN"
@@ -500,7 +456,7 @@ export default function ReichmanPage() {
                   </NeonButton>
                 </Link>
               </div>
-              <p className="text-xs text-muted-foreground mt-6">
+              <p className="text-xs text-muted-foreground mt-5">
                 Admin access required for gradebook. Login as admin@codetutor.dev / admin123 for demo.
               </p>
             </motion.div>
