@@ -170,6 +170,7 @@ export default function AdminGradebookPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [gradeFilter, setGradeFilter] = useState<string>("all")
+  const [weekFilter, setWeekFilter] = useState<string>("all")
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
@@ -310,6 +311,12 @@ export default function AdminGradebookPage() {
       }
     }
 
+    // Apply week/assignment number filter
+    if (weekFilter !== "all" && selectedAssignment === "all") {
+      const weekNum = parseInt(weekFilter, 10)
+      filtered = filtered.filter((g) => g.weekNumber === weekNum)
+    }
+
     // Sort
     filtered.sort((a, b) => {
       let comparison = 0
@@ -336,7 +343,7 @@ export default function AdminGradebookPage() {
     })
 
     return filtered
-  }, [data?.gradebook, selectedAssignment, selectedAssignmentData, searchQuery, statusFilter, gradeFilter, sortField, sortDirection])
+  }, [data?.gradebook, selectedAssignment, selectedAssignmentData, searchQuery, statusFilter, gradeFilter, weekFilter, sortField, sortDirection])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -589,6 +596,25 @@ export default function AdminGradebookPage() {
                   <SelectItem value="missing">No Grade</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Assignment Number Filter - only show when "All Assignments" is selected */}
+              {selectedAssignment === "all" && data?.gradebook && data.gradebook.length > 0 && (
+                <Select value={weekFilter} onValueChange={setWeekFilter}>
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Assignment #" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Weeks</SelectItem>
+                    {[...new Set(data.gradebook.map(g => g.assignment.weekNumber))]
+                      .sort((a, b) => a - b)
+                      .map((weekNum) => (
+                        <SelectItem key={weekNum} value={weekNum.toString()}>
+                          Week {weekNum}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </CardContent>
         </Card>
