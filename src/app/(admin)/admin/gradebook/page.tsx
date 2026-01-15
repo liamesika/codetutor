@@ -47,6 +47,7 @@ import {
   BarChart3,
   Download,
   Filter,
+  GraduationCap,
 } from "lucide-react"
 
 interface Student {
@@ -146,6 +147,23 @@ interface SubmissionDetail {
 type SortField = "name" | "email" | "status" | "grade" | "submittedAt"
 type SortDirection = "asc" | "desc"
 
+// Grade color helper
+function getGradeColor(grade: number | null): string {
+  if (grade === null) return "text-gray-400"
+  if (grade >= 90) return "text-green-600 dark:text-green-400"
+  if (grade >= 75) return "text-blue-600 dark:text-blue-400"
+  if (grade >= 60) return "text-orange-600 dark:text-orange-400"
+  return "text-red-600 dark:text-red-400"
+}
+
+function getGradeBadgeClass(grade: number | null): string {
+  if (grade === null) return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+  if (grade >= 90) return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+  if (grade >= 75) return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+  if (grade >= 60) return "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
+  return "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+}
+
 export default function AdminGradebookPage() {
   const [selectedAssignment, setSelectedAssignment] = useState<string>("all")
   const [viewingSubmission, setViewingSubmission] = useState<string | null>(null)
@@ -191,7 +209,6 @@ export default function AdminGradebookPage() {
     const totalStudents = data.students.length
 
     if (selectedAssignment !== "all" && selectedAssignmentData) {
-      // Single assignment KPIs
       const grades = selectedAssignmentData.grades
       const submitted = grades.filter((g) => g.status === "SUBMITTED").length
       const missing = grades.filter((g) => g.status === "NOT_STARTED").length
@@ -212,7 +229,6 @@ export default function AdminGradebookPage() {
       return { totalStudents, submitted, missing, avgGrade, medianGrade, submissionRate }
     }
 
-    // All assignments KPIs
     const submitted = data.gradebook.reduce((acc, g) => acc + g.stats.submitted, 0)
     const missing = data.gradebook.reduce((acc, g) => acc + g.stats.notStarted, 0)
     const totalPossibleSubmissions = totalStudents * data.gradebook.length
@@ -244,7 +260,6 @@ export default function AdminGradebookPage() {
   const sortedAndFilteredGrades = useMemo(() => {
     if (!data?.gradebook) return []
 
-    // Get grades based on selection
     let allGrades: Array<GradeEntry & { assignmentId: string; assignmentTitle: string; weekNumber: number }>
 
     if (selectedAssignment !== "all" && selectedAssignmentData) {
@@ -391,11 +406,12 @@ export default function AdminGradebookPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-8 w-48" />
+      <div className="p-4 md:p-6 lg:p-8 space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-20 w-full" />
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-24" />
+            <Skeleton key={i} className="h-28" />
           ))}
         </div>
         <Skeleton className="h-96 w-full" />
@@ -404,317 +420,331 @@ export default function AdminGradebookPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold">Gradebook</h1>
-          <p className="text-sm text-muted-foreground">
-            View student submissions and grades
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <GraduationCap className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold">Gradebook</h1>
+          </div>
+          <p className="text-muted-foreground ml-[52px]">
+            View and export student submissions and grades
           </p>
         </div>
-        <Button onClick={exportCSV} disabled={sortedAndFilteredGrades.length === 0} className="gap-2">
+        <Button onClick={exportCSV} disabled={sortedAndFilteredGrades.length === 0} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
           <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </div>
 
-      {/* Assignment Selector - Prominent */}
-      <Card className="border-[#4F46E5]/30 bg-[#4F46E5]/5">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Filter className="h-4 w-4 text-[#4F46E5]" />
-              Assignment:
-            </div>
-            <Select value={selectedAssignment} onValueChange={setSelectedAssignment}>
-              <SelectTrigger className="w-full sm:w-[300px] bg-background">
-                <SelectValue placeholder="Select assignment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Assignments</SelectItem>
-                {data?.gradebook.map((g) => (
-                  <SelectItem key={g.assignment.id} value={g.assignment.id}>
-                    Week {g.assignment.weekNumber}: {g.assignment.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">
-        <Card>
-          <CardHeader className="pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-blue-500" />
-              Students
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-2xl md:text-3xl font-bold">{kpis.totalStudents}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-              Submitted
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-2xl md:text-3xl font-bold text-green-500">{kpis.submitted}</div>
-            <p className="text-[10px] md:text-xs text-muted-foreground">{kpis.submissionRate}% rate</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
-              Missing
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-2xl md:text-3xl font-bold text-orange-500">{kpis.missing}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5 text-purple-500" />
-              Average
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-2xl md:text-3xl font-bold">
-              {kpis.avgGrade !== null ? `${kpis.avgGrade}%` : "—"}
+      {/* Section 1: Assignment Focus */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-5 bg-purple-500 rounded-full" />
+          <h2 className="text-lg font-semibold">Assignment Focus</h2>
+        </div>
+        <Card className="border-purple-200 dark:border-purple-800/50 bg-purple-50/30 dark:bg-purple-950/20">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+                <Filter className="h-4 w-4" />
+                Select Assignment:
+              </div>
+              <Select value={selectedAssignment} onValueChange={setSelectedAssignment}>
+                <SelectTrigger className="w-full sm:w-[350px] bg-background border-purple-200 dark:border-purple-800">
+                  <SelectValue placeholder="Select assignment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assignments</SelectItem>
+                  {data?.gradebook.map((g) => (
+                    <SelectItem key={g.assignment.id} value={g.assignment.id}>
+                      Week {g.assignment.weekNumber}: {g.assignment.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
-              <BarChart3 className="h-3.5 w-3.5 text-cyan-500" />
-              Median
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-2xl md:text-3xl font-bold">
-              {kpis.medianGrade !== null ? `${kpis.medianGrade}%` : "—"}
+      </section>
+
+      {/* Section 2: Class KPIs */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-5 bg-emerald-500 rounded-full" />
+          <h2 className="text-lg font-semibold">Class KPIs</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200/50 dark:border-blue-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
+                <Users className="h-4 w-4" />
+                <span className="text-xs font-medium">Students</span>
+              </div>
+              <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{kpis.totalStudents}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200/50 dark:border-green-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-1">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-xs font-medium">Submitted</span>
+              </div>
+              <p className="text-3xl font-bold text-green-700 dark:text-green-300">{kpis.submitted}</p>
+              <p className="text-xs text-green-600/70 dark:text-green-400/70">{kpis.submissionRate}% rate</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200/50 dark:border-orange-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 mb-1">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-xs font-medium">Missing</span>
+              </div>
+              <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{kpis.missing}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200/50 dark:border-purple-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 mb-1">
+                <TrendingUp className="h-4 w-4" />
+                <span className="text-xs font-medium">Average</span>
+              </div>
+              <p className={`text-3xl font-bold ${getGradeColor(kpis.avgGrade)}`}>
+                {kpis.avgGrade !== null ? `${kpis.avgGrade}%` : "—"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 dark:from-cyan-950/30 dark:to-cyan-900/20 border-cyan-200/50 dark:border-cyan-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 mb-1">
+                <BarChart3 className="h-4 w-4" />
+                <span className="text-xs font-medium">Median</span>
+              </div>
+              <p className={`text-3xl font-bold ${getGradeColor(kpis.medianGrade)}`}>
+                {kpis.medianGrade !== null ? `${kpis.medianGrade}%` : "—"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20 border-slate-200/50 dark:border-slate-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
+                <FileQuestion className="h-4 w-4" />
+                <span className="text-xs font-medium">Assignments</span>
+              </div>
+              <p className="text-3xl font-bold text-slate-700 dark:text-slate-300">{data?.totalAssignments || 0}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Section 3: Student Performance Table */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-5 bg-indigo-500 rounded-full" />
+          <h2 className="text-lg font-semibold">Student Performance Table</h2>
+        </div>
+
+        {/* Filters */}
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row flex-wrap gap-3 md:items-center">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search name, email, ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full md:w-[150px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                  <SelectItem value="MISSING">Missing</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={gradeFilter} onValueChange={setGradeFilter}>
+                <SelectTrigger className="w-full md:w-[150px]">
+                  <SelectValue placeholder="Grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Grades</SelectItem>
+                  <SelectItem value="passing">Passing (60+)</SelectItem>
+                  <SelectItem value="failing">Failing (&lt;60)</SelectItem>
+                  <SelectItem value="missing">No Grade</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
+
+        {/* Table */}
         <Card>
-          <CardHeader className="pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
-              <FileQuestion className="h-3.5 w-3.5 text-gray-500" />
-              Assignments
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-2xl md:text-3xl font-bold">{data?.totalAssignments || 0}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters Row */}
-      <Card>
-        <CardContent className="p-3 md:p-4">
-          <div className="flex flex-col md:flex-row flex-wrap gap-3 md:gap-4 md:items-center">
-            {/* Search */}
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search name, email, ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          <CardHeader className="pb-3 border-b">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">
+                  {selectedAssignment !== "all" && selectedAssignmentData
+                    ? selectedAssignmentData.assignment.title
+                    : "All Grades"}
+                </CardTitle>
+                <CardDescription>
+                  {sortedAndFilteredGrades.length} records
+                  {searchQuery && ` matching "${searchQuery}"`}
+                </CardDescription>
+              </div>
             </div>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[140px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="MISSING">Missing</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Grade Filter */}
-            <Select value={gradeFilter} onValueChange={setGradeFilter}>
-              <SelectTrigger className="w-full md:w-[140px]">
-                <SelectValue placeholder="Grade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Grades</SelectItem>
-                <SelectItem value="passing">Passing (60+)</SelectItem>
-                <SelectItem value="failing">Failing (&lt;60)</SelectItem>
-                <SelectItem value="missing">No Grade</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Gradebook Table */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
-            {selectedAssignment !== "all" && selectedAssignmentData
-              ? selectedAssignmentData.assignment.title
-              : "All Grades"}
-          </CardTitle>
-          <CardDescription>
-            {sortedAndFilteredGrades.length} records
-            {searchQuery && ` matching "${searchQuery}"`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0 md:p-6 md:pt-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead
-                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap"
-                    onClick={() => handleSort("name")}
-                  >
-                    <div className="flex items-center">
-                      Student
-                      <SortIcon field="name" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
-                    onClick={() => handleSort("email")}
-                  >
-                    <div className="flex items-center">
-                      Email
-                      <SortIcon field="email" />
-                    </div>
-                  </TableHead>
-                  {selectedAssignment === "all" && (
-                    <TableHead className="hidden lg:table-cell">Assignment</TableHead>
-                  )}
-                  <TableHead
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleSort("status")}
-                  >
-                    <div className="flex items-center">
-                      Status
-                      <SortIcon field="status" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleSort("grade")}
-                  >
-                    <div className="flex items-center">
-                      Grade
-                      <SortIcon field="grade" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
-                    onClick={() => handleSort("submittedAt")}
-                  >
-                    <div className="flex items-center">
-                      Submitted
-                      <SortIcon field="submittedAt" />
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedAndFilteredGrades.map((grade, index) => (
-                  <TableRow key={`${grade.assignmentId}-${grade.student.id}-${index}`}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                          <User className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-medium text-sm block truncate">{grade.student.name || "—"}</span>
-                          <span className="text-xs text-muted-foreground md:hidden truncate block">{grade.student.email}</span>
-                        </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                      onClick={() => handleSort("name")}
+                    >
+                      <div className="flex items-center">
+                        Student
+                        <SortIcon field="name" />
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground hidden md:table-cell text-sm">
-                      {grade.student.email}
-                    </TableCell>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
+                      onClick={() => handleSort("email")}
+                    >
+                      <div className="flex items-center">
+                        Email
+                        <SortIcon field="email" />
+                      </div>
+                    </TableHead>
                     {selectedAssignment === "all" && (
-                      <TableCell className="hidden lg:table-cell">
-                        <Badge variant="outline" className="text-xs">
-                          W{grade.weekNumber}
-                        </Badge>
-                      </TableCell>
+                      <TableHead className="hidden lg:table-cell">Assignment</TableHead>
                     )}
-                    <TableCell>
-                      <StatusBadge status={grade.status} />
-                    </TableCell>
-                    <TableCell>
-                      {grade.grade !== null ? (
-                        <span
-                          className={`font-bold text-sm ${
-                            grade.grade >= 70
-                              ? "text-green-500"
-                              : grade.grade >= 50
-                              ? "text-yellow-500"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {grade.grade}%
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {grade.submittedAt ? (
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(grade.submittedAt).toLocaleDateString()}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {grade.submissionId && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setViewingSubmission(grade.submissionId)}
-                          className="h-8 px-2"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="hidden md:inline ml-1">View</span>
-                        </Button>
-                      )}
-                    </TableCell>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleSort("status")}
+                    >
+                      <div className="flex items-center">
+                        Status
+                        <SortIcon field="status" />
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleSort("grade")}
+                    >
+                      <div className="flex items-center">
+                        Grade
+                        <SortIcon field="grade" />
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
+                      onClick={() => handleSort("submittedAt")}
+                    >
+                      <div className="flex items-center">
+                        Submitted
+                        <SortIcon field="submittedAt" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-                {sortedAndFilteredGrades.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      No matching records found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {sortedAndFilteredGrades.map((grade, index) => (
+                    <TableRow key={`${grade.assignmentId}-${grade.student.id}-${index}`} className="hover:bg-muted/30">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/50 dark:to-indigo-900/50 flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-medium text-sm block truncate">{grade.student.name || "—"}</span>
+                            <span className="text-xs text-muted-foreground md:hidden truncate block">{grade.student.email}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground hidden md:table-cell text-sm">
+                        {grade.student.email}
+                      </TableCell>
+                      {selectedAssignment === "all" && (
+                        <TableCell className="hidden lg:table-cell">
+                          <Badge variant="outline" className="text-xs font-normal">
+                            W{grade.weekNumber}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <StatusBadge status={grade.status} />
+                      </TableCell>
+                      <TableCell>
+                        {grade.grade !== null ? (
+                          <span className={`font-bold text-sm px-2 py-1 rounded ${getGradeBadgeClass(grade.grade)}`}>
+                            {grade.grade}%
+                          </span>
+                        ) : (
+                          <Badge variant="outline" className="text-gray-500 border-gray-300 bg-gray-50 dark:bg-gray-900">
+                            MISSING
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {grade.submittedAt ? (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(grade.submittedAt).toLocaleDateString()}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {grade.submissionId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewingSubmission(grade.submissionId)}
+                            className="h-8 px-2 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                          >
+                            <Eye className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            <span className="hidden md:inline ml-1">View</span>
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {sortedAndFilteredGrades.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                        <FileQuestion className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                        <p>No matching records found</p>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {(!data?.gradebook || data.gradebook.length === 0) && (
-        <Card>
+        <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <FileQuestion className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold">No Assignments Yet</h3>
@@ -747,26 +777,18 @@ export default function AdminGradebookPage() {
             <ScrollArea className="flex-1">
               <div className="space-y-4 pr-4">
                 {/* Summary */}
-                <Card>
+                <Card className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
                   <CardContent className="pt-4">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm text-muted-foreground">Grade</p>
-                        <p
-                          className={`text-3xl font-bold ${
-                            (submissionDetail.submission.grade || 0) >= 70
-                              ? "text-green-500"
-                              : (submissionDetail.submission.grade || 0) >= 50
-                              ? "text-yellow-500"
-                              : "text-red-500"
-                          }`}
-                        >
+                        <p className={`text-4xl font-bold ${getGradeColor(submissionDetail.submission.grade)}`}>
                           {submissionDetail.submission.grade ?? "—"}%
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-muted-foreground">Questions Passed</p>
-                        <p className="text-xl font-semibold">
+                        <p className="text-2xl font-semibold">
                           {submissionDetail.summary.passed} / {submissionDetail.summary.total}
                         </p>
                       </div>
@@ -778,7 +800,7 @@ export default function AdminGradebookPage() {
                 <div className="space-y-3">
                   <h3 className="font-semibold">Question Results</h3>
                   {submissionDetail.questionResults.map((qr, index) => (
-                    <Card key={qr.question.id}>
+                    <Card key={qr.question.id} className={qr.isPassed ? "border-green-200 dark:border-green-800" : "border-red-200 dark:border-red-800"}>
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm flex items-center gap-2">
@@ -791,7 +813,7 @@ export default function AdminGradebookPage() {
                           </CardTitle>
                           <div className="flex gap-2">
                             <Badge variant="outline">Lv.{qr.question.difficulty}</Badge>
-                            <Badge variant={qr.isPassed ? "default" : "destructive"}>
+                            <Badge className={qr.isPassed ? "bg-green-500" : "bg-red-500"}>
                               {qr.isPassed ? "PASSED" : "FAILED"}
                             </Badge>
                           </div>
@@ -862,23 +884,23 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "SUBMITTED":
       return (
-        <Badge className="bg-green-500 gap-1 text-xs">
+        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800 gap-1 text-xs">
           <CheckCircle2 className="h-3 w-3" />
           <span className="hidden sm:inline">Submitted</span>
         </Badge>
       )
     case "IN_PROGRESS":
       return (
-        <Badge variant="secondary" className="gap-1 text-xs">
+        <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800 gap-1 text-xs">
           <Clock className="h-3 w-3" />
           <span className="hidden sm:inline">In Progress</span>
         </Badge>
       )
     default:
       return (
-        <Badge variant="outline" className="gap-1 text-xs text-orange-500 border-orange-500/50">
+        <Badge className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700 gap-1 text-xs">
           <XCircle className="h-3 w-3" />
-          <span className="hidden sm:inline">Missing</span>
+          <span className="hidden sm:inline">Not Started</span>
         </Badge>
       )
   }
