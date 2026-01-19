@@ -215,12 +215,29 @@ export function getMaxWeekForPlan(plan: EntitlementPlan | null): number {
 }
 
 /**
+ * Check if user is an admin (has ADMIN role)
+ */
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  })
+  return user?.role === "ADMIN"
+}
+
+/**
  * Check if user can access specific week content
+ * Admin users bypass all restrictions and have full access
  */
 export async function canAccessWeek(
   userId: string,
   weekNumber: number
 ): Promise<{ allowed: boolean; reason?: string; requiredPlan?: EntitlementPlan }> {
+  // Admin bypass - admins can access all weeks regardless of entitlement
+  if (await isUserAdmin(userId)) {
+    return { allowed: true }
+  }
+
   const entitlement = await getUserEntitlement(userId)
   const maxWeek = entitlement.tier.maxWeek
 

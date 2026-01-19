@@ -28,15 +28,21 @@ export async function GET() {
     }
 
     // Log session state for debugging
+    const userRole = (session?.user as { role?: string })?.role
+    const isAdmin = userRole === "ADMIN"
+
     console.log(`[COURSES API][${requestId}] Session state:`, {
       hasSession: !!session,
       hasUser: !!session?.user,
       userId: session?.user?.id || "MISSING",
+      role: userRole || "USER",
+      isAdmin,
     })
 
     // Get user's entitlement to determine access (with defensive handling)
-    let userPlan: EntitlementPlan = "FREE"
-    let userMaxWeek: number = TIER_ACCESS.FREE.maxWeek
+    // ADMIN users bypass all entitlement restrictions and get full access
+    let userPlan: EntitlementPlan = isAdmin ? "PRO" : "FREE"
+    let userMaxWeek: number = isAdmin ? Infinity : TIER_ACCESS.FREE.maxWeek
     let entitlementDebug: {
       status: string | null
       plan: string | null
@@ -45,7 +51,8 @@ export async function GET() {
       grantedAt: string | null
     } | null = null
 
-    if (session?.user?.id) {
+    // Skip entitlement check for admins - they always get full access
+    if (session?.user?.id && !isAdmin) {
       try {
         const entitlement = await getUserEntitlement(session.user.id)
         userPlan = entitlement?.plan ?? "FREE"
@@ -56,6 +63,15 @@ export async function GET() {
         // Continue with FREE tier defaults - don't crash
         userPlan = "FREE"
         userMaxWeek = TIER_ACCESS.FREE.maxWeek
+      }
+    } else if (isAdmin) {
+      // Set admin-specific debug info
+      entitlementDebug = {
+        status: "ADMIN_BYPASS",
+        plan: "PRO",
+        hasAccess: true,
+        expiresAt: null,
+        grantedAt: null,
       }
     }
 

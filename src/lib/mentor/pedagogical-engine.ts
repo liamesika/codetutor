@@ -425,7 +425,7 @@ export async function generatePedagogicalFeedback(
     mistakeType: mistakeLog.mistakeType,
     skillArea: mistakeLog.skillArea,
     questionTitle: attempt.question.title,
-    questionDescription: attempt.question.description || undefined,
+    questionDescription: attempt.question.prompt || undefined,
   }
 
   // Find the best matching conceptual pattern
