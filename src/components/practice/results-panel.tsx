@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,8 +24,10 @@ import {
   Loader2,
   Home,
   RefreshCw,
+  Brain,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { MentorPanel } from "@/components/mentor/mentor-panel"
 
 interface TestResult {
   testIndex: number
@@ -63,6 +65,10 @@ interface ResultsPanelProps {
   onBackToWeek?: () => void
   nextError?: string | null
   isLoadingNext?: boolean
+  // Mentor integration
+  questionId?: string
+  assignmentId?: string
+  code?: string
 }
 
 // Derive state from result - SINGLE SOURCE OF TRUTH
@@ -95,8 +101,12 @@ export function ResultsPanel({
   onBackToWeek,
   nextError,
   isLoadingNext,
+  questionId,
+  assignmentId,
+  code,
 }: ResultsPanelProps) {
   const nextButtonRef = useRef<HTMLButtonElement>(null)
+  const [showMentor, setShowMentor] = useState(false)
   const state = deriveResultState(result, isLoading)
 
   // Derive test counts from actual test results
@@ -768,6 +778,27 @@ export function ResultsPanel({
             </motion.div>
           )}
 
+          {/* AI Mentor Panel */}
+          {showMentor && questionId && code && result && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <MentorPanel
+                questionId={questionId}
+                assignmentId={assignmentId}
+                code={code}
+                testResults={result.testResults}
+                compileError={result.compileError}
+                runtimeError={result.stderr}
+                stderr={result.stderr}
+                executionMs={result.executionMs}
+                status={result.status}
+                onClose={() => setShowMentor(false)}
+              />
+            </motion.div>
+          )}
+
           {/* Action buttons - sticky on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -775,31 +806,47 @@ export function ResultsPanel({
             transition={{ delay: 0.2 }}
             className="pt-4 space-y-4 sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 -mb-4"
           >
+            {/* Ask Mentor Button - only show if not already showing mentor panel */}
+            {!showMentor && questionId && code && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  onClick={() => setShowMentor(true)}
+                  className="w-full gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6"
+                  size="lg"
+                >
+                  <Brain className="h-5 w-5" />
+                  Ask AI Mentor
+                </Button>
+              </motion.div>
+            )}
+
             {/* Next steps guidance */}
-            <Card className="border-border/50 bg-accent/30">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                    <ChevronRight className="h-4 w-4 text-primary" />
+            {!showMentor && (
+              <Card className="border-border/50 bg-accent/30">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                      <ChevronRight className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium text-sm">Next Steps</span>
                   </div>
-                  <span className="font-medium text-sm">Next Steps</span>
-                </div>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">1</span>
-                    Review the failing test cases above
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">2</span>
-                    Compare expected vs actual output
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">3</span>
-                    Check for edge cases and off-by-one errors
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+                  <ul className="text-sm text-muted-foreground space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">1</span>
+                      Review the failing test cases above
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">2</span>
+                      Compare expected vs actual output
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">3</span>
+                      Check for edge cases and off-by-one errors
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Primary CTA: Try Again */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

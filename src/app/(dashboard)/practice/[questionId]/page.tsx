@@ -715,6 +715,8 @@ export default function PracticePage({
                 onBackToWeek={handleBackToWeek}
                 nextError={nextError}
                 isLoadingNext={isLoadingNext}
+                questionId={questionId}
+                code={code}
               />
             </TabsContent>
             <TabsContent value="solution" className="flex-1 mt-0 overflow-y-auto min-h-0">
@@ -817,6 +819,8 @@ export default function PracticePage({
               onBackToWeek={handleBackToWeek}
               nextError={nextError}
               isLoadingNext={isLoadingNext}
+              questionId={questionId}
+              code={code}
             />
           </TabsContent>
 
@@ -896,6 +900,8 @@ export default function PracticePage({
                 onBackToWeek={handleBackToWeek}
                 nextError={nextError}
                 isLoadingNext={isLoadingNext}
+                questionId={questionId}
+                code={code}
               />
             </div>
           </SheetContent>

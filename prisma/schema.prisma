@@ -49,6 +49,7 @@ model User {
   mistakeLogs               MistakeLog[]
   proMissions               ProMission[]
   assignmentSubmissions     AssignmentSubmission[]
+  mentorMessages            MentorMessage[]
 
   @@index([email])
 }
@@ -151,9 +152,11 @@ model Week {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  topics      Topic[]
-  assignments Assignment[]
+  course         Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topics         Topic[]
+  assignments    Assignment[]
+  mentorMessages MentorMessage[]
+  mentorConfig   MentorConfig?
 
   @@unique([courseId, weekNumber])
   @@index([courseId])
@@ -241,6 +244,7 @@ model Question {
   dailyChallenges     DailyChallenge[]
   mistakeLogs         MistakeLog[]
   assignmentQuestions AssignmentQuestion[]
+  mentorMessages      MentorMessage[]
 
   @@unique([topicId, slug])
   @@index([topicId])
@@ -1250,4 +1254,77 @@ enum AssignmentSubmissionStatus {
   NOT_STARTED
   IN_PROGRESS
   SUBMITTED
+}
+
+// ==================== AI MENTOR SYSTEM ====================
+
+model MentorMessage {
+  id              String    @id @default(cuid())
+  userId          String
+  questionId      String
+  assignmentId    String?
+  weekId          String
+
+  // Input snapshot (what was sent to mentor)
+  inputSnapshot   Json      // code, testResults, allowedTopics, errorSignals
+
+  // Mentor response
+  output          Json      // structured mentor response
+  errorCategory   MentorErrorCategory
+  confidence      Int       @default(50)  // 0-100
+
+  // Classification metadata
+  preClassification Json?   // preliminary classifier output before AI
+
+  // Rate limiting / tracking
+  responseTimeMs  Int?
+  modelUsed       String?
+  tokensUsed      Int?
+
+  createdAt       DateTime  @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  week     Week     @relation(fields: [weekId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([weekId])
+  @@index([createdAt])
+  @@index([errorCategory])
+}
+
+enum MentorErrorCategory {
+  SYNTAX
+  LOGIC
+  EDGE_CASE
+  TIMEOUT
+  OUTPUT_FORMAT
+  NULL_HANDLING
+  OFF_BY_ONE
+  TYPE_ERROR
+  RUNTIME_ERROR
+  OTHER
+}
+
+model MentorConfig {
+  id              String    @id @default(cuid())
+  courseId        String?
+  weekId          String?   @unique
+
+  // Feature toggles
+  mentorEnabled   Boolean   @default(true)
+  maxCallsPerDay  Int       @default(50)
+
+  // Prompt customization
+  systemPromptOverride String? @db.Text
+  allowedModels   String[]  @default(["gpt-4o-mini"])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  week Week? @relation(fields: [weekId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([weekId])
 }

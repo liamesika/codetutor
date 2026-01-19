@@ -79,6 +79,7 @@ export const RATE_LIMITS = {
   submission: { windowMs: 60000, maxRequests: 30 }, // 30 per minute
   api: { windowMs: 60000, maxRequests: 100 }, // 100 per minute general
   demo: { windowMs: 60000, maxRequests: 5 }, // 5 per minute for demo (stricter)
+  mentor: { windowMs: 60000, maxRequests: 10 }, // 10 mentor calls per minute
 }
 
 export async function checkExecutionRateLimit(userId: string): Promise<RateLimitResult> {
@@ -99,4 +100,8 @@ export async function checkApiRateLimit(userId: string): Promise<RateLimitResult
 
 export async function checkDemoRateLimit(clientId: string): Promise<RateLimitResult> {
   return checkRateLimit(`ratelimit:demo:${clientId}`, RATE_LIMITS.demo)
+}
+
+export async function checkMentorRateLimit(userId: string): Promise<RateLimitResult> {
+  return checkRateLimit(`ratelimit:mentor:${userId}`, RATE_LIMITS.mentor)
 }
