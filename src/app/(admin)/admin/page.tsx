@@ -14,7 +14,6 @@ import {
   GraduationCap,
   ArrowRight,
   TrendingUp,
-  Calendar,
   Clock,
   BarChart3,
 } from "lucide-react"
@@ -218,9 +217,9 @@ export default function AdminDashboard() {
                 Review student submissions, grades, and performance. Export data to CSV for academic reporting.
               </p>
               <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-                {stats?.avgGradeOverall !== null && (
+                {stats?.avgGradeOverall !== null && stats?.avgGradeOverall !== undefined && (
                   <Badge variant="secondary" className="text-xs">
-                    Avg: {stats.avgGradeOverall}%
+                    Avg: {stats?.avgGradeOverall}%
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-xs">
@@ -327,7 +326,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Class Average</p>
                   <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {stats?.avgGradeOverall !== null ? `${stats.avgGradeOverall}%` : "—"}
+                    {stats?.avgGradeOverall !== null && stats?.avgGradeOverall !== undefined ? `${stats.avgGradeOverall}%` : "—"}
                   </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-emerald-500/50" />
