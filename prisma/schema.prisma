@@ -330,6 +330,7 @@ model Attempt {
   question    Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
   testResults AttemptTestResult[]
   mistakeLogs MistakeLog[]
+  pedagogicalFeedback PedagogicalFeedback[]
 
   @@index([userId])
   @@index([questionId])
@@ -1043,11 +1044,84 @@ model MistakeLog {
   question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
   attempt  Attempt?  @relation(fields: [attemptId], references: [id], onDelete: SetNull)
 
+  // Pedagogical feedback
+  pedagogicalFeedback PedagogicalFeedback?
+
   @@index([userId])
   @@index([questionId])
   @@index([mistakeType])
   @@index([createdAt])
   @@index([topicId])
+}
+
+// Pedagogical analysis of mistakes - turns errors into learning opportunities
+model PedagogicalFeedback {
+  id              String    @id @default(cuid())
+  mistakeLogId    String    @unique
+  attemptId       String?
+
+  // Conceptual classification (beyond technical)
+  conceptualCategory  ConceptualMistakeCategory
+  subcategory         String?                       // More specific classification
+
+  // Learning-oriented feedback
+  explanation         String    @db.Text            // What went wrong (natural language)
+  whyItMatters        String?   @db.Text            // Why this concept is important
+  guidingQuestion     String?   @db.Text            // Socratic question to prompt thinking
+  hint                String?   @db.Text            // Subtle hint (not the solution)
+
+  // Remediation suggestions
+  suggestedTopic      String?                       // Topic to revisit
+  suggestedResources  Json?                         // Links, lessons, examples
+  relatedConcepts     String[]                      // Related concepts to review
+
+  // Pattern detection
+  misconceptionId     String?                       // Links to known misconception patterns
+  commonMistakeRank   Int?                          // How common this mistake is (1=very common)
+
+  // AI enhancement (for future)
+  aiGenerated         Boolean   @default(false)
+  aiModel             String?
+  aiConfidence        Float?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  mistakeLog    MistakeLog @relation(fields: [mistakeLogId], references: [id], onDelete: Cascade)
+  attempt       Attempt?   @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+
+  @@index([conceptualCategory])
+  @@index([attemptId])
+  @@index([misconceptionId])
+}
+
+// Conceptual mistake categories (pedagogical, not technical)
+enum ConceptualMistakeCategory {
+  LOOP_BOUNDARY           // Off-by-one, wrong termination condition
+  LOOP_INITIALIZATION     // Wrong starting value
+  LOOP_INCREMENT          // Wrong step/increment
+  CONDITION_LOGIC         // Wrong boolean logic (AND/OR confusion)
+  CONDITION_BOUNDARY      // Wrong comparison (<= vs <)
+  ARRAY_INDEXING          // Array index errors
+  ARRAY_SIZE              // Wrong array size/length usage
+  STRING_MANIPULATION     // String method misuse
+  TYPE_CONVERSION         // Type casting issues
+  NULL_HANDLING           // Not checking for null
+  EDGE_CASE_EMPTY         // Empty input not handled
+  EDGE_CASE_SINGLE        // Single element not handled
+  EDGE_CASE_BOUNDARY      // Min/max values not handled
+  ALGORITHM_APPROACH      // Wrong algorithm choice
+  ALGORITHM_INCOMPLETE    // Missing step in algorithm
+  OUTPUT_FORMAT           // Wrong output format
+  INPUT_PARSING           // Wrong input parsing
+  VARIABLE_SCOPE          // Variable scope issues
+  RECURSION_BASE          // Missing/wrong base case
+  RECURSION_PROGRESS      // Not making progress toward base case
+  METHOD_SIGNATURE        // Wrong method parameters/return
+  OPERATOR_PRECEDENCE     // Math operator precedence
+  INTEGER_OVERFLOW        // Integer overflow issues
+  FLOATING_POINT          // Floating point precision
+  PROBLEM_MISREAD         // Misunderstood requirements
 }
 
 enum MistakeType {

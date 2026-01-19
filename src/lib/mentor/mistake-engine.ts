@@ -309,20 +309,21 @@ async function checkRecurring(
 
 /**
  * Log a mistake to the database and update cognitive profile
+ * Returns the created mistake log for further processing
  */
 export async function logMistake(
   userId: string,
   attemptId: string,
   questionId: string,
   classification: MistakeClassification
-): Promise<void> {
+): Promise<{ id: string } | null> {
   const attempt = await db.attempt.findUnique({
     where: { id: attemptId },
     include: { question: true },
   })
 
   // Create mistake log
-  await db.mistakeLog.create({
+  const mistakeLog = await db.mistakeLog.create({
     data: {
       userId,
       questionId,
@@ -336,6 +337,7 @@ export async function logMistake(
       topicId: attempt?.question.topicId,
       skillArea: classification.skillArea,
     },
+    select: { id: true },
   })
 
   // Update cognitive profile mistake frequency
@@ -359,6 +361,8 @@ export async function logMistake(
       },
     })
   }
+
+  return mistakeLog
 }
 
 /**
@@ -462,7 +466,7 @@ export async function resolveMistake(
 }
 
 /**
- * Process a failed attempt - classify and log mistake
+ * Process a failed attempt - classify, log mistake, and generate pedagogical feedback
  */
 export async function processfailedAttempt(
   userId: string,
@@ -472,7 +476,18 @@ export async function processfailedAttempt(
   const classification = await classifyMistake(attemptId)
 
   if (classification) {
-    await logMistake(userId, attemptId, questionId, classification)
+    const mistakeLog = await logMistake(userId, attemptId, questionId, classification)
+
+    // Generate pedagogical feedback (non-blocking)
+    if (mistakeLog) {
+      import("./pedagogical-engine").then(({ generatePedagogicalFeedback }) => {
+        generatePedagogicalFeedback(attemptId, mistakeLog.id).catch((err) => {
+          console.error("[Pedagogical] Failed to generate feedback:", err)
+        })
+      }).catch((err) => {
+        console.error("[Pedagogical] Failed to import engine:", err)
+      })
+    }
   }
 
   return classification

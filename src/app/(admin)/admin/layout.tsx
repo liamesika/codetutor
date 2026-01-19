@@ -21,6 +21,7 @@ import {
   Brain,
   Menu,
   X,
+  Lightbulb,
 } from "lucide-react"
 
 const navSections = [
@@ -76,6 +77,11 @@ const navSections = [
         title: "Analytics",
         href: "/admin/analytics",
         icon: BarChart3,
+      },
+      {
+        title: "Mistake Insights",
+        href: "/admin/mistake-insights",
+        icon: Lightbulb,
       },
       {
         title: "Adaptive Algorithm",
