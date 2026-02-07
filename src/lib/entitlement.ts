@@ -92,13 +92,13 @@ export const PLAN_PRICING = {
   },
   BASIC: {
     priceUSD: 9.99,
-    priceILS: 30,
-    period: "month",
+    priceILS: 79,
+    period: "one-time",
   },
   PRO: {
     priceUSD: 21.90,
-    priceILS: 75,
-    period: "month",
+    priceILS: 149,
+    period: "one-time",
   },
 } as const
 

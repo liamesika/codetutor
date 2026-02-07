@@ -11,7 +11,7 @@ const PLANS = [
   {
     id: "basic",
     name: "Basic",
-    price: 30,
+    price: 79,
     currency: "ILS",
     features: [
       "Full access to all weeks",
@@ -24,7 +24,7 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: 50,
+    price: 149,
     currency: "ILS",
     features: [
       "Everything in Basic",

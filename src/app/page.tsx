@@ -67,7 +67,7 @@ const en = {
   basic: {
     name: "BASIC",
     desc: "Full marathon access",
-    price: "30",
+    price: "79",
     features: [
       "All 10 days of content",
       "87+ practice questions",
@@ -81,7 +81,7 @@ const en = {
   pro: {
     name: "PRO",
     desc: "Marathon + AI Mentor",
-    price: "75",
+    price: "149",
     badge: "RECOMMENDED",
     features: [
       "Everything in Basic",
@@ -161,7 +161,7 @@ const he = {
   basic: {
     name: "BASIC",
     desc: "גישה מלאה למרתון",
-    price: "30",
+    price: "79",
     features: [
       "כל 10 ימי התוכן",
       "87+ שאלות תרגול",
@@ -175,7 +175,7 @@ const he = {
   pro: {
     name: "PRO",
     desc: "מרתון + AI Mentor",
-    price: "75",
+    price: "149",
     badge: "מומלץ",
     features: [
       "הכל ב-Basic",

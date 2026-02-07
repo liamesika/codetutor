@@ -16,7 +16,7 @@ export const PLANS: Record<string, {
   basic: {
     id: "basic",
     name: "Basic",
-    price: 30,
+    price: 79,
     currency: "ILS",
     features: [
       "Full access to all weeks",
@@ -28,7 +28,7 @@ export const PLANS: Record<string, {
   pro: {
     id: "pro",
     name: "Pro",
-    price: 50,
+    price: 149,
     currency: "ILS",
     features: [
       "Everything in Basic",
