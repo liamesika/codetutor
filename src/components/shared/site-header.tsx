@@ -22,7 +22,6 @@ const publicLinks: NavLink[] = [
   { href: "/demo", label: "Try Demo", icon: <Play className="h-4 w-4" /> },
   { href: "/pricing", label: "Pricing" },
   { href: "/#features", label: "Features" },
-  { href: "/reichman", label: "Reichman", highlight: true },
 ]
 
 export function SiteHeader() {

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { Inter, JetBrains_Mono, Rubik } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 
@@ -12,6 +12,12 @@ const inter = Inter({
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+})
+
+const rubik = Rubik({
+  variable: "--font-rubik",
+  subsets: ["hebrew", "latin"],
   display: "swap",
 })
 
@@ -54,7 +60,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased overflow-x-hidden`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${rubik.variable} font-sans antialiased overflow-x-hidden`}
       >
         <Providers>{children}</Providers>
       </body>
