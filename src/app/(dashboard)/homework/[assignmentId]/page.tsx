@@ -20,6 +20,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { useCourses } from "@/lib/hooks"
+import { getCourseDisplay } from "@/lib/course-config"
 import {
   ArrowLeft,
   CheckCircle2,
@@ -79,6 +81,9 @@ export default function HomeworkAssignmentPage({
   const { assignmentId } = use(params)
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { data: courses } = useCourses()
+  const activeCourse = courses?.find((c) => c.isEnrolled && !c.isLocked)
+  const courseDisplay = getCourseDisplay(activeCourse?.slug)
   const [showSubmitDialog, setShowSubmitDialog] = useState(false)
   const [showResultDialog, setShowResultDialog] = useState(false)
   const [submittedGrade, setSubmittedGrade] = useState<number | null>(null)
@@ -176,7 +181,7 @@ export default function HomeworkAssignmentPage({
               Back
             </Link>
             <div className="flex items-center gap-3 mb-2">
-              <Badge variant="outline">Week {assignment.week.weekNumber}</Badge>
+              <Badge variant="outline">{courseDisplay.unitLabel} {assignment.week.weekNumber}</Badge>
               {isSubmitted ? (
                 <Badge className="bg-green-500 gap-1">
                   <CheckCircle2 className="h-3 w-3" />

@@ -24,6 +24,7 @@ interface DashboardShellProps {
   children: React.ReactNode
   weeks?: Week[]
   currentCourse?: string
+  courseSlug?: string
   userStats?: {
     streak: number
     totalPoints: number
@@ -36,6 +37,7 @@ export function DashboardShell({
   children,
   weeks = [],
   currentCourse,
+  courseSlug,
   userStats,
   hideSidebar = false,
   className,
@@ -54,6 +56,7 @@ export function DashboardShell({
             <Sidebar
               weeks={weeks}
               currentCourse={currentCourse}
+              courseSlug={courseSlug}
               isLoading={weeks.length === 0}
             />
           </aside>

@@ -24,6 +24,7 @@ import {
   GitBranch,
   User,
 } from "lucide-react"
+import { getCourseDisplay } from "@/lib/course-config"
 
 interface Topic {
   id: string
@@ -46,10 +47,12 @@ interface Week {
 interface SidebarProps {
   weeks: Week[]
   currentCourse?: string
+  courseSlug?: string
   isLoading?: boolean
 }
 
-export function Sidebar({ weeks, currentCourse, isLoading }: SidebarProps) {
+export function Sidebar({ weeks, currentCourse, courseSlug, isLoading }: SidebarProps) {
+  const courseDisplay = getCourseDisplay(courseSlug)
   const pathname = usePathname()
   const [expandedWeeks, setExpandedWeeks] = useState<string[]>(() => {
     // Auto-expand the first unlocked week
@@ -180,7 +183,7 @@ export function Sidebar({ weeks, currentCourse, isLoading }: SidebarProps) {
                       <ChevronRight className="h-4 w-4" />
                     )}
                     <span className="flex-1 text-left font-medium">
-                      Week {week.weekNumber}
+                      {courseDisplay.unitLabel} {week.weekNumber}
                     </span>
                     {week.progress !== undefined && week.progress > 0 && (
                       <Badge

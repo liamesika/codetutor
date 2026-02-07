@@ -33,21 +33,31 @@ import {
   Star,
   GitBranch,
   ClipboardList,
+  FileText,
   type LucideIcon,
 } from "lucide-react"
 import { getSafeIcon } from "@/lib/ui-contract"
 import { formatDistanceToNow } from "date-fns"
 import { ProgressHeader } from "@/components/progression/progress-header"
 import { DailyChallengeCard } from "@/components/progression/daily-challenge-card"
+import { getCourseDisplay } from "@/lib/course-config"
 
 // Tab configuration
-const dashboardTabs = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "weeks", label: "Weeks", icon: Calendar },
-  { id: "homework", label: "Homework", icon: ClipboardList },
-  { id: "achievements", label: "Achievements", icon: Award },
-  { id: "activity", label: "Activity", icon: Activity },
-]
+function getDashboardTabs(unitLabelPlural: string, hasExams: boolean) {
+  const tabs = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "weeks", label: unitLabelPlural, icon: Calendar },
+    { id: "homework", label: "Homework", icon: ClipboardList },
+  ]
+  if (hasExams) {
+    tabs.push({ id: "exams", label: "Exams", icon: FileText })
+  }
+  tabs.push(
+    { id: "achievements", label: "Achievements", icon: Award },
+    { id: "activity", label: "Activity", icon: Activity },
+  )
+  return tabs
+}
 
 function StatCard({
   title,
@@ -102,6 +112,7 @@ function WeekProgress({
   courseId,
   index = 0,
   expanded = false,
+  unitLabel = "Week",
 }: {
   week: {
     id: string
@@ -119,6 +130,7 @@ function WeekProgress({
   courseId: string
   index?: number
   expanded?: boolean
+  unitLabel?: string
 }) {
   const completedTopics = week.topics.filter((t) => t.isCompleted).length
   const isComplete = week.progress === 100
@@ -137,7 +149,7 @@ function WeekProgress({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                Week {week.weekNumber}
+                {unitLabel} {week.weekNumber}
                 {isComplete && (
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                 )}
@@ -341,12 +353,16 @@ interface HomeworkAssignment {
 
 function HomeworkList({
   weeks,
+  unitLabel = "Week",
+  unitLabelPlural = "Weeks",
 }: {
   weeks: {
     id: string
     weekNumber: number
     title: string
   }[]
+  unitLabel?: string
+  unitLabelPlural?: string
 }) {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null)
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([])
@@ -423,7 +439,7 @@ function HomeworkList({
           size="sm"
           onClick={() => setSelectedWeek(null)}
         >
-          All Weeks
+          All {unitLabelPlural}
         </Button>
         {weeks.map((week) => (
           <Button
@@ -432,7 +448,7 @@ function HomeworkList({
             size="sm"
             onClick={() => setSelectedWeek(week.weekNumber)}
           >
-            Week {week.weekNumber}
+            {unitLabel} {week.weekNumber}
           </Button>
         ))}
       </div>
@@ -454,7 +470,7 @@ function HomeworkList({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline">Week {assignment.week.weekNumber}</Badge>
+                      <Badge variant="outline">{unitLabel} {assignment.week.weekNumber}</Badge>
                       {assignment.submission?.status === "SUBMITTED" ? (
                         <Badge className="bg-green-500 gap-1">
                           <CheckCircle2 className="h-3 w-3" />
@@ -565,6 +581,8 @@ export default function DashboardPage() {
 
   const activeCourse = courses?.find((c) => c.isEnrolled && !c.isLocked)
   const weeks = activeCourse?.weeks || []
+  const courseDisplay = getCourseDisplay(activeCourse?.slug)
+  const dashboardTabs = getDashboardTabs(courseDisplay.unitLabelPlural, courseDisplay.hasExams)
 
   // Tab content renderer
   const renderTabContent = () => {
@@ -713,6 +731,7 @@ export default function DashboardPage() {
                         week={week}
                         courseId={activeCourse?.id || ""}
                         index={index}
+                        unitLabel={courseDisplay.unitLabel}
                       />
                     ))}
                   </div>
@@ -749,7 +768,7 @@ export default function DashboardPage() {
                       onClick={() => setActiveTab("weeks")}
                       className="gap-2 hover:bg-primary/10"
                     >
-                      View All Weeks
+                      View All {courseDisplay.unitLabelPlural}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </motion.div>
@@ -872,7 +891,7 @@ export default function DashboardPage() {
                 <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Calendar className="h-4 w-4 text-primary" />
                 </div>
-                All Weeks
+                All {courseDisplay.unitLabelPlural}
               </h2>
               {activeCourse && (
                 <Badge variant="outline" className="bg-accent/50">
@@ -905,6 +924,7 @@ export default function DashboardPage() {
                     courseId={activeCourse?.id || ""}
                     index={index}
                     expanded
+                    unitLabel={courseDisplay.unitLabel}
                   />
                 ))}
               </div>
@@ -938,7 +958,35 @@ export default function DashboardPage() {
               </h2>
             </div>
 
-            <HomeworkList weeks={weeks} />
+            <HomeworkList weeks={weeks} unitLabel={courseDisplay.unitLabel} unitLabelPlural={courseDisplay.unitLabelPlural} />
+          </div>
+        )
+
+      case "exams":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-blue-500" />
+                </div>
+                Past Exams
+              </h2>
+            </div>
+
+            <Card className="glass-card">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-4">
+                  <FileText className="h-8 w-8 text-blue-500" />
+                </div>
+                <p className="text-muted-foreground text-center mb-2">
+                  Past exams are coming soon
+                </p>
+                <p className="text-sm text-muted-foreground text-center">
+                  Practice exams from previous semesters will appear here
+                </p>
+              </CardContent>
+            </Card>
           </div>
         )
 
@@ -1058,6 +1106,7 @@ export default function DashboardPage() {
     <DashboardShell
       weeks={weeks}
       currentCourse={activeCourse?.name}
+      courseSlug={activeCourse?.slug}
       userStats={
         stats
           ? { streak: stats.streak, totalPoints: stats.totalPoints }
@@ -1081,7 +1130,7 @@ export default function DashboardPage() {
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
             </h1>
             <p className="text-muted-foreground mt-2">
-              Continue your Java learning journey
+              {courseDisplay.subtitle}
             </p>
           </div>
           {stats?.weakTopics && stats.weakTopics.length > 0 && (

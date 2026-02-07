@@ -45,20 +45,20 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>
 
 const freeFeatures = [
-  { icon: Code2, text: "Week 1 Java Fundamentals" },
+  { icon: Code2, text: "Day 1 — Fundamentals Preview" },
   { icon: Zap, text: "Real-time code execution" },
   { icon: Target, text: "Progress tracking" },
 ]
 
 const basicFeatures = [
-  { icon: BookOpen, text: "Weeks 1-10 curriculum" },
+  { icon: BookOpen, text: "All 10 days + past exams" },
   { icon: Code2, text: "All exercises & practice" },
   { icon: Target, text: "XP / Levels / Streak" },
 ]
 
 const proFeatures = [
-  { icon: BookOpen, text: "All weeks (unlimited)" },
-  { icon: Sparkles, text: "Learning explanations" },
+  { icon: BookOpen, text: "All 10 days + past exams" },
+  { icon: Sparkles, text: "AI-powered explanations" },
   { icon: Shield, text: "Missions & AI Mentor" },
 ]
 
@@ -182,10 +182,10 @@ function SignupFormContent() {
           </h1>
           <p className="text-lg text-[#9CA3AF]">
             {isPro
-              ? "Get full access to all curriculum weeks and PRO features."
+              ? "All 10 days, past exams, and AI Mentor — everything you need."
               : isBasic
-              ? "Access Weeks 1-10 with all exercises and practice."
-              : "Begin mastering Java fundamentals with Week 1 content."}
+              ? "All 10 days of practice plus past exams to ace your test."
+              : "Preview Day 1 fundamentals and see what the marathon offers."}
           </p>
         </div>
 

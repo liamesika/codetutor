@@ -41,11 +41,11 @@ export async function GET(req: NextRequest) {
     const userId = session.user.id
 
     // Parse URL defensively
-    let courseSlug = "java-weeks-1-5"
+    let courseSlug = "cs-exam-marathon"
     let topicId: string | null = null
     try {
       const { searchParams } = new URL(req.url)
-      courseSlug = searchParams.get("course") || "java-weeks-1-5"
+      courseSlug = searchParams.get("course") || "cs-exam-marathon"
       topicId = searchParams.get("topicId")
     } catch (urlError) {
       console.error(`[NEXT-QUESTION API][${requestId}] URL parsing failed:`, urlError)

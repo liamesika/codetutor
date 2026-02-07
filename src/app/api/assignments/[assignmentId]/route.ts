@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { canAccessWeek } from "@/lib/subscription"
 
 // GET - Get single assignment details for student
 export async function GET(
@@ -59,6 +60,15 @@ export async function GET(
       return NextResponse.json(
         { error: "Assignment not found" },
         { status: 404 }
+      )
+    }
+
+    // Entitlement check - verify user can access this assignment's week
+    const access = await canAccessWeek(session.user.id, assignment.week.weekNumber)
+    if (!access.allowed) {
+      return NextResponse.json(
+        { error: access.reason || "Content locked", weekNumber: assignment.week.weekNumber },
+        { status: 403 }
       )
     }
 

@@ -11,6 +11,7 @@
     "db:seed": "npx tsx prisma/seed-full.ts",
     "db:reset": "prisma db push --force-reset && npx tsx prisma/seed-full.ts",
     "seed:curriculum": "npx tsx prisma/seed-curriculum.ts",
+    "seed:marathon": "npx tsx prisma/seed-marathon.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",

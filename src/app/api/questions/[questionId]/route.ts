@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { canAccessQuestion } from "@/lib/subscription"
 
 export async function GET(
   req: NextRequest,
@@ -39,6 +40,17 @@ export async function GET(
         { error: "Question not found" },
         { status: 404 }
       )
+    }
+
+    // Entitlement check - verify user can access this question's week
+    if (session?.user?.id) {
+      const access = await canAccessQuestion(session.user.id, questionId)
+      if (!access.allowed) {
+        return NextResponse.json(
+          { error: access.reason || "Content locked", weekNumber: access.weekNumber },
+          { status: 403 }
+        )
+      }
     }
 
     // Get user's draft and hint usage if logged in

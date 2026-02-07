@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { canAccessTopic } from "@/lib/subscription"
 
 export async function GET(
   req: NextRequest,
@@ -49,6 +50,17 @@ export async function GET(
         { error: "Topic not found" },
         { status: 404 }
       )
+    }
+
+    // Entitlement check - verify user can access this topic's week
+    if (session?.user?.id) {
+      const access = await canAccessTopic(session.user.id, topicId)
+      if (!access.allowed) {
+        return NextResponse.json(
+          { error: access.reason || "Content locked", weekNumber: access.weekNumber },
+          { status: 403 }
+        )
+      }
     }
 
     // Get user's attempts if logged in

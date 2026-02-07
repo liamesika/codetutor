@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Auto-enroll in Java Weeks 1-5 course
+    // Auto-enroll in CS Exam Marathon course
     const course = await db.course.findUnique({
-      where: { slug: "java-weeks-1-5" },
+      where: { slug: "cs-exam-marathon" },
     })
 
     if (course) {
