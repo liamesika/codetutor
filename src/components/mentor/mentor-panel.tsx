@@ -23,8 +23,11 @@ import {
   Sparkles,
   Target,
   X,
+  Crown,
+  Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 interface TestResult {
   testIndex: number
@@ -107,6 +110,7 @@ export function MentorPanel({
   onClose,
 }: MentorPanelProps) {
   const [revealedHints, setRevealedHints] = useState<number>(0)
+  const [proRequired, setProRequired] = useState(false)
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -125,6 +129,14 @@ export function MentorPanel({
           status,
         }),
       })
+
+      if (res.status === 403) {
+        const data = await res.json()
+        if (data.code === "PRO_REQUIRED") {
+          setProRequired(true)
+          throw new Error("PRO_REQUIRED")
+        }
+      }
 
       if (!res.ok) {
         const error = await res.json()
@@ -168,8 +180,55 @@ export function MentorPanel({
       </CardHeader>
 
       <CardContent className="p-4 space-y-4">
+        {/* PRO upgrade prompt */}
+        {proRequired && (
+          <div className="text-center py-6">
+            <motion.div
+              className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
+              style={{
+                background: "linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(79, 70, 229, 0.2) 100%)",
+                boxShadow: "0 0 30px rgba(139, 92, 246, 0.3)",
+              }}
+              animate={{
+                boxShadow: [
+                  "0 0 20px rgba(139, 92, 246, 0.3)",
+                  "0 0 40px rgba(139, 92, 246, 0.5)",
+                  "0 0 20px rgba(139, 92, 246, 0.3)",
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Crown className="h-8 w-8 text-purple-400" />
+            </motion.div>
+            <h3 className="text-lg font-bold mb-2">AI Mentor is a PRO Feature</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed max-w-xs mx-auto">
+              Upgrade to PRO to get personalized AI-powered feedback,
+              progressive hints, and guided debugging for every question.
+            </p>
+            <div className="space-y-2 mb-6 text-left max-w-xs mx-auto">
+              {[
+                "Personalized error diagnosis",
+                "Progressive hints (no spoilers)",
+                "Guided reasoning questions",
+                "All 10 days + exams access",
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Zap className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                  {feature}
+                </div>
+              ))}
+            </div>
+            <Link href="/upgrade">
+              <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full">
+                <Crown className="h-4 w-4" />
+                Upgrade to PRO
+              </Button>
+            </Link>
+          </div>
+        )}
+
         {/* Initial state - Ask Mentor button */}
-        {!mutation.data && !mutation.isPending && (
+        {!proRequired && !mutation.data && !mutation.isPending && !mutation.isError && (
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground mb-4">
               Stuck? Get guided feedback without revealing the solution.
@@ -185,15 +244,15 @@ export function MentorPanel({
         )}
 
         {/* Loading state */}
-        {mutation.isPending && (
+        {!proRequired && mutation.isPending && (
           <div className="text-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-purple-500 mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">Analyzing your code...</p>
           </div>
         )}
 
-        {/* Error state */}
-        {mutation.isError && (
+        {/* Error state (non-PRO errors only) */}
+        {!proRequired && mutation.isError && (
           <div className="text-center py-4">
             <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-2" />
             <p className="text-sm text-red-600 dark:text-red-400 mb-3">

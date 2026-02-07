@@ -25,6 +25,7 @@ import {
   Home,
   RefreshCw,
   Brain,
+  Crown,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MentorPanel } from "@/components/mentor/mentor-panel"
@@ -816,6 +817,10 @@ export function ResultsPanel({
                 >
                   <Brain className="h-5 w-5" />
                   Ask AI Mentor
+                  <Badge variant="secondary" className="ml-1 bg-white/20 text-white border-0 text-[10px] px-1.5 py-0">
+                    <Crown className="h-2.5 w-2.5 mr-0.5" />
+                    PRO
+                  </Badge>
                 </Button>
               </motion.div>
             )}

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { analyzeMistake, MentorInput } from "@/lib/mentor/mentor-service"
+import { checkProAccess } from "@/lib/entitlement"
 
 // Force Node.js runtime for OpenAI
 export const runtime = "nodejs"
@@ -42,11 +43,20 @@ export async function POST(req: NextRequest) {
 
     const userId = session.user.id
 
-    // 2. Parse and validate input
+    // 2. PRO access check
+    const hasProAccess = await checkProAccess(userId)
+    if (!hasProAccess) {
+      return NextResponse.json(
+        { error: "PRO subscription required", code: "PRO_REQUIRED" },
+        { status: 403 }
+      )
+    }
+
+    // 3. Parse and validate input
     const body = await req.json()
     const validatedInput = analyzeSchema.parse(body)
 
-    // 3. Get question with topic and week info
+    // 4. Get question with topic and week info
     const question = await db.question.findUnique({
       where: { id: validatedInput.questionId },
       include: {
@@ -164,6 +174,15 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // PRO access check
+    const hasProAccess = await checkProAccess(session.user.id)
+    if (!hasProAccess) {
+      return NextResponse.json(
+        { error: "PRO subscription required", code: "PRO_REQUIRED" },
+        { status: 403 }
+      )
     }
 
     const { searchParams } = new URL(req.url)
