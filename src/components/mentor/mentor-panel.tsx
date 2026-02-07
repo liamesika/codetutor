@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +26,7 @@ import {
   X,
   Crown,
   Zap,
+  Send,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -68,7 +70,17 @@ interface MentorResponse {
     hiddenTestsFailed: boolean
     commonPattern: string | null
   }
+  questionTitle: string
+  questionPrompt: string
 }
+
+interface ChatMessage {
+  id: string
+  role: "user" | "assistant"
+  content: string
+}
+
+const MAX_FOLLOWUPS = 10
 
 const categoryColors: Record<string, string> = {
   SYNTAX: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
@@ -84,16 +96,16 @@ const categoryColors: Record<string, string> = {
 }
 
 const categoryLabels: Record<string, string> = {
-  SYNTAX: "Syntax Error",
-  LOGIC: "Logic Error",
-  EDGE_CASE: "Edge Case",
-  TIMEOUT: "Timeout",
-  OUTPUT_FORMAT: "Output Format",
-  NULL_HANDLING: "Null Handling",
-  OFF_BY_ONE: "Off-by-One",
-  TYPE_ERROR: "Type Error",
-  RUNTIME_ERROR: "Runtime Error",
-  OTHER: "Other",
+  SYNTAX: "שגיאת תחביר",
+  LOGIC: "שגיאת לוגיקה",
+  EDGE_CASE: "מקרה קצה",
+  TIMEOUT: "חריגת זמן",
+  OUTPUT_FORMAT: "פורמט פלט",
+  NULL_HANDLING: "טיפול ב-null",
+  OFF_BY_ONE: "שגיאת Off-by-One",
+  TYPE_ERROR: "שגיאת טיפוס",
+  RUNTIME_ERROR: "שגיאת ריצה",
+  OTHER: "אחר",
 }
 
 export function MentorPanel({
@@ -111,6 +123,22 @@ export function MentorPanel({
 }: MentorPanelProps) {
   const [revealedHints, setRevealedHints] = useState<number>(0)
   const [proRequired, setProRequired] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState("")
+  const chatScrollRef = useRef<HTMLDivElement>(null)
+
+  // Reset chat when code changes (new submission)
+  useEffect(() => {
+    setChatMessages([])
+    setChatInput("")
+  }, [code])
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
+    }
+  }, [chatMessages])
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -147,8 +175,56 @@ export function MentorPanel({
     },
   })
 
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      // Build history: initial analysis summary + all follow-ups
+      const history: { role: "user" | "assistant"; content: string }[] = []
+
+      if (mutation.data) {
+        history.push({
+          role: "assistant",
+          content: `אבחון: ${mutation.data.shortDiagnosis}\nכיוון חשיבה: ${mutation.data.reasoningHint}\nשאלות מנחות: ${mutation.data.guidingQuestions.join(", ")}`,
+        })
+      }
+
+      for (const msg of chatMessages) {
+        history.push({ role: msg.role, content: msg.content })
+      }
+
+      const res = await fetch("/api/mentor/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId,
+          message,
+          code,
+          questionTitle: mutation.data?.questionTitle || "",
+          questionPrompt: mutation.data?.questionPrompt || "",
+          history,
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || "Failed to get response")
+      }
+
+      return res.json() as Promise<{ message: string }>
+    },
+    onSuccess: (data, message) => {
+      setChatMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "user", content: message },
+        { id: crypto.randomUUID(), role: "assistant", content: data.message },
+      ])
+      setChatInput("")
+    },
+  })
+
   const handleAskMentor = () => {
     setRevealedHints(0)
+    setChatMessages([])
+    setChatInput("")
     mutation.mutate()
   }
 
@@ -158,8 +234,17 @@ export function MentorPanel({
     }
   }
 
+  const handleSendChat = () => {
+    const msg = chatInput.trim()
+    if (msg && !chatMutation.isPending) {
+      chatMutation.mutate(msg)
+    }
+  }
+
+  const userFollowUpCount = Math.floor(chatMessages.length / 2)
+
   return (
-    <Card className={cn("border-purple-200 dark:border-purple-800 overflow-hidden", className)}>
+    <Card className={cn("border-purple-200 dark:border-purple-800 overflow-hidden", className)} dir="rtl">
       <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -168,7 +253,7 @@ export function MentorPanel({
             </div>
             <div>
               <CardTitle className="text-base">AI Mentor</CardTitle>
-              <p className="text-xs text-muted-foreground">Get personalized help</p>
+              <p className="text-xs text-muted-foreground">קבלו עזרה מותאמת אישית</p>
             </div>
           </div>
           {onClose && (
@@ -200,17 +285,17 @@ export function MentorPanel({
             >
               <Crown className="h-8 w-8 text-purple-400" />
             </motion.div>
-            <h3 className="text-lg font-bold mb-2">AI Mentor is a PRO Feature</h3>
+            <h3 className="text-lg font-bold mb-2">AI Mentor הוא פיצ&#39;ר PRO</h3>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed max-w-xs mx-auto">
-              Upgrade to PRO to get personalized AI-powered feedback,
-              progressive hints, and guided debugging for every question.
+              שדרגו ל-PRO כדי לקבל משוב מותאם אישית מבוסס AI,
+              רמזים מדורגים, וניפוי באגים מודרך לכל שאלה.
             </p>
-            <div className="space-y-2 mb-6 text-left max-w-xs mx-auto">
+            <div className="space-y-2 mb-6 text-right max-w-xs mx-auto">
               {[
-                "Personalized error diagnosis",
-                "Progressive hints (no spoilers)",
-                "Guided reasoning questions",
-                "All 10 days + exams access",
+                "אבחון שגיאות מותאם אישית",
+                "רמזים מדורגים (בלי ספוילרים)",
+                "שאלות חשיבה מנחות",
+                "גישה לכל 10 הימים + בחינות",
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Zap className="h-3.5 w-3.5 text-purple-500 shrink-0" />
@@ -218,10 +303,10 @@ export function MentorPanel({
                 </div>
               ))}
             </div>
-            <Link href="/upgrade">
+            <Link href="/pricing">
               <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full">
                 <Crown className="h-4 w-4" />
-                Upgrade to PRO
+                שדרגו ל-PRO
               </Button>
             </Link>
           </div>
@@ -231,14 +316,14 @@ export function MentorPanel({
         {!proRequired && !mutation.data && !mutation.isPending && !mutation.isError && (
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground mb-4">
-              Stuck? Get guided feedback without revealing the solution.
+              תקועים? קבלו משוב מכוון בלי לחשוף את הפתרון.
             </p>
             <Button
               onClick={handleAskMentor}
               className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
               <Sparkles className="h-4 w-4" />
-              Ask Mentor
+              שאלו את המנטור
             </Button>
           </div>
         )}
@@ -247,19 +332,19 @@ export function MentorPanel({
         {!proRequired && mutation.isPending && (
           <div className="text-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-purple-500 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Analyzing your code...</p>
+            <p className="text-sm text-muted-foreground">מנתח את הקוד שלכם...</p>
           </div>
         )}
 
-        {/* Error state (non-PRO errors only) */}
+        {/* Error state */}
         {!proRequired && mutation.isError && (
           <div className="text-center py-4">
             <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-2" />
             <p className="text-sm text-red-600 dark:text-red-400 mb-3">
-              {mutation.error instanceof Error ? mutation.error.message : "Failed to get feedback"}
+              {mutation.error instanceof Error ? mutation.error.message : "שגיאה בקבלת משוב"}
             </p>
             <Button variant="outline" size="sm" onClick={handleAskMentor}>
-              Try Again
+              נסו שוב
             </Button>
           </div>
         )}
@@ -278,7 +363,7 @@ export function MentorPanel({
                 <Badge className={cn("text-xs", categoryColors[mutation.data.errorCategory])}>
                   {categoryLabels[mutation.data.errorCategory] || mutation.data.errorCategory}
                 </Badge>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground" dir="ltr">
                   {mutation.data.testAnalysis.passedTests}/{mutation.data.testAnalysis.totalTests} tests passed
                 </span>
               </div>
@@ -295,7 +380,7 @@ export function MentorPanel({
                 </div>
                 <div>
                   <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-1">
-                    Thinking Direction
+                    כיוון חשיבה
                   </p>
                   <p className="text-sm text-muted-foreground">{mutation.data.reasoningHint}</p>
                 </div>
@@ -308,7 +393,7 @@ export function MentorPanel({
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2">
-                    Ask Yourself
+                    שאלו את עצמכם
                   </p>
                   <ul className="space-y-2">
                     {mutation.data.guidingQuestions.map((q, i) => (
@@ -327,7 +412,7 @@ export function MentorPanel({
                   <AccordionTrigger className="text-sm py-2 hover:no-underline">
                     <div className="flex items-center gap-2">
                       <Lightbulb className="h-4 w-4 text-green-500" />
-                      <span>Progressive Hints ({revealedHints}/{mutation.data.progressiveHints.length})</span>
+                      <span>רמזים מדורגים ({revealedHints}/{mutation.data.progressiveHints.length})</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="space-y-3 pt-2">
@@ -349,13 +434,13 @@ export function MentorPanel({
                       >
                         <div className="flex items-start gap-2">
                           <span className="text-xs font-bold text-green-600 dark:text-green-400">
-                            Hint {i + 1}:
+                            רמז {i + 1}:
                           </span>
                           {i < revealedHints ? (
                             <span>{hint}</span>
                           ) : (
                             <span className="text-muted-foreground italic">
-                              Click to reveal...
+                              לחצו לחשיפה...
                             </span>
                           )}
                         </div>
@@ -370,7 +455,7 @@ export function MentorPanel({
                         className="w-full gap-2"
                       >
                         <Lightbulb className="h-4 w-4" />
-                        Reveal Hint {revealedHints + 1}
+                        גלה רמז {revealedHints + 1}
                       </Button>
                     )}
                   </AccordionContent>
@@ -384,7 +469,7 @@ export function MentorPanel({
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-medium text-indigo-700 dark:text-indigo-400 mb-2">
-                    Next Steps
+                    צעדים הבאים
                   </p>
                   <ul className="space-y-1.5">
                     {mutation.data.nextActions.map((action, i) => (
@@ -406,8 +491,91 @@ export function MentorPanel({
                   className="w-full gap-2 text-muted-foreground"
                 >
                   <Sparkles className="h-4 w-4" />
-                  Ask Again (after changes)
+                  שאלו שוב (אחרי שינויים)
                 </Button>
+              </div>
+
+              {/* Follow-up Chat Section */}
+              <div className="border-t pt-4 space-y-3">
+                <p className="text-xs font-medium text-muted-foreground">
+                  יש שאלות המשך? דברו עם המנטור
+                </p>
+
+                {/* Chat messages */}
+                {chatMessages.length > 0 && (
+                  <div
+                    ref={chatScrollRef}
+                    className="max-h-72 overflow-y-auto space-y-2 scroll-smooth"
+                  >
+                    {chatMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={cn(
+                          "p-3 rounded-lg text-sm max-w-[85%]",
+                          msg.role === "user"
+                            ? "bg-purple-100 dark:bg-purple-900/30 ms-auto"
+                            : "bg-muted me-auto"
+                        )}
+                      >
+                        {msg.role === "assistant" ? (
+                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                        ) : (
+                          <p>{msg.content}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Chat loading */}
+                {chatMutation.isPending && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>חושב...</span>
+                  </div>
+                )}
+
+                {/* Chat error */}
+                {chatMutation.isError && (
+                  <p className="text-xs text-red-500">
+                    {chatMutation.error instanceof Error ? chatMutation.error.message : "שגיאה"}
+                  </p>
+                )}
+
+                {/* Chat input */}
+                {userFollowUpCount < MAX_FOLLOWUPS && (
+                  <div className="flex gap-2">
+                    <Textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="שאלו שאלת המשך..."
+                      className="min-h-[40px] max-h-24 resize-none text-sm"
+                      dir="rtl"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault()
+                          handleSendChat()
+                        }
+                      }}
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={handleSendChat}
+                      disabled={!chatInput.trim() || chatMutation.isPending}
+                      className="shrink-0 h-10 w-10"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Follow-up counter */}
+                {chatMessages.length > 0 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {userFollowUpCount}/{MAX_FOLLOWUPS} שאלות המשך
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
@@ -445,7 +613,7 @@ export function MentorButton({
       ) : (
         <Brain className="h-4 w-4 text-purple-500" />
       )}
-      {isLoading ? "Analyzing..." : "Ask Mentor"}
+      {isLoading ? "מנתח..." : "שאלו את המנטור"}
     </Button>
   )
 }

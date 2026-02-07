@@ -139,6 +139,8 @@ export async function POST(req: NextRequest) {
       nextActions: response.nextActions,
       confidence: response.confidence,
       testAnalysis: response.preClassification.testAnalysis,
+      questionTitle: question.title,
+      questionPrompt: question.prompt,
     })
   } catch (error) {
     if (error instanceof z.ZodError) {

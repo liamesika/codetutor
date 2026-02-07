@@ -81,7 +81,9 @@ export interface MentorResponse {
 }
 
 // System prompt with guardrails
-const SYSTEM_PROMPT = `You are an Intro to Computer Science teaching assistant for first-year university students learning Java.
+const SYSTEM_PROMPT = `You MUST respond entirely in Hebrew (עברית). Exception: code snippets, variable names, method names, error names (like NullPointerException), and programming keywords remain in English. All explanatory text, hints, questions, and feedback must be in Hebrew.
+
+You are an Intro to Computer Science teaching assistant for first-year university students learning Java.
 
 CORE PRINCIPLES:
 1. NEVER provide the full solution or complete code
@@ -472,6 +474,119 @@ export async function analyzeMistake(input: MentorInput): Promise<MentorResponse
   })
 
   return finalResponse
+}
+
+// Chat system prompt for follow-up conversations
+const CHAT_SYSTEM_PROMPT = `You MUST respond entirely in Hebrew (עברית). Code snippets, variable names, method names, error names, and programming keywords remain in English.
+
+You are a follow-up tutor for a first-year CS student learning Java. You already provided an initial code analysis. Now the student has follow-up questions.
+
+RULES:
+1. NEVER provide the full solution or complete code
+2. Guide through reasoning, not answers
+3. Only reference concepts from these topics: {allowedTopics}
+4. Keep responses concise (2-4 paragraphs max)
+5. Small code snippets (1-3 lines) are OK for illustration
+6. Be encouraging but honest
+7. If the student asks for the solution directly, redirect them to think about the problem differently
+
+STUDENT'S CODE:
+\`\`\`java
+{code}
+\`\`\`
+
+PROBLEM: {questionTitle}
+{questionPrompt}
+
+ALLOWED TOPICS: {allowedTopics}
+CURRENT DAY: {weekNumber}`
+
+/**
+ * Chat input for follow-up conversations
+ */
+export interface MentorChatInput {
+  userId: string
+  questionId: string
+  weekId: string
+  message: string
+  code: string
+  questionTitle: string
+  questionPrompt: string
+  allowedTopics: string[]
+  weekNumber: number
+  history: { role: "user" | "assistant"; content: string }[]
+}
+
+/**
+ * Check for full solution in free-form text
+ */
+function containsFullSolutionText(text: string): boolean {
+  const codeBlocks = text.match(/```[\s\S]*?```/g) || []
+  for (const block of codeBlocks) {
+    const lines = block.split("\n").filter((l) => l.trim() && !l.startsWith("```"))
+    if (lines.length > 10) return true
+  }
+  if (/public\s+(static\s+)?\w+\s+\w+\s*\([^)]*\)\s*\{[\s\S]{100,}\}/i.test(text)) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Follow-up chat with mentor (free-form Hebrew responses)
+ */
+export async function chatWithMentor(input: MentorChatInput): Promise<{ message: string }> {
+  // 1. Rate limit
+  const rateLimit = await checkMentorRateLimit(input.userId)
+  if (!rateLimit.allowed) {
+    throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(rateLimit.resetMs / 1000)} seconds.`)
+  }
+
+  // 2. Build system prompt
+  const systemPrompt = CHAT_SYSTEM_PROMPT
+    .replace(/{allowedTopics}/g, input.allowedTopics.join(", ") || "Basic Java programming")
+    .replace("{weekNumber}", String(input.weekNumber))
+    .replace("{code}", input.code.substring(0, 5000))
+    .replace("{questionTitle}", input.questionTitle)
+    .replace("{questionPrompt}", input.questionPrompt)
+
+  // 3. Build messages array
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+    { role: "system", content: systemPrompt },
+    ...input.history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+    { role: "user", content: input.message },
+  ]
+
+  // 4. Call OpenAI (free-form, no JSON format)
+  const client = getOpenAIClient()
+  if (!client) {
+    return { message: "המנטור לא זמין כרגע. נסו שוב מאוחר יותר." }
+  }
+
+  try {
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages,
+      temperature: 0.7,
+      max_tokens: 600,
+    })
+
+    const content = completion.choices[0]?.message?.content
+    if (!content) {
+      return { message: "לא הצלחתי ליצור תשובה. נסו לשאול שוב." }
+    }
+
+    // 5. Guardrail check
+    if (containsFullSolutionText(content)) {
+      return { message: "אני לא יכול לתת את הפתרון המלא, אבל אשמח לעזור לך לחשוב על הבעיה בצורה אחרת. מה בדיוק מבלבל אותך?" }
+    }
+
+    return { message: content }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    console.error("[Mentor Chat] OpenAI error:", msg.replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]"))
+    return { message: "שגיאה בתקשורת עם המנטור. נסו שוב." }
+  }
 }
 
 /**
