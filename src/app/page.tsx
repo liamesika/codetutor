@@ -232,25 +232,82 @@ function HomeContent() {
 
       <main className="flex-1">
         {/* ── Hero ── */}
-        <section className="relative py-20 md:py-32 px-4 overflow-hidden">
+        <section className="relative min-h-[100dvh] flex flex-col justify-center py-20 md:py-32 px-4 overflow-hidden">
+          {/* Background layers */}
           <div className="absolute inset-0 -z-10">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.15),transparent_50%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(34,211,238,0.1),transparent_50%)]" />
+            {/* Base gradients */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.2),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(34,211,238,0.12),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.08),transparent_40%)]" />
+
+            {/* Animated neon orbs */}
             <motion.div
-              className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4F46E5]/20 rounded-full blur-3xl"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4F46E5]/25 rounded-full blur-[100px]"
+              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3], x: [0, 30, 0], y: [0, -20, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-              className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#22D3EE]/15 rounded-full blur-3xl"
-              animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#22D3EE]/20 rounded-full blur-[100px]"
+              animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.5, 0.2], x: [0, -25, 0], y: [0, 15, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            />
+            <motion.div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#8B5CF6]/10 rounded-full blur-[120px]"
+              animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.2, 0.1] }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+            />
+
+            {/* Grid pattern overlay */}
+            <div
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+                backgroundSize: "60px 60px",
+              }}
+            />
+
+            {/* Floating neon particles */}
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full"
+                style={{
+                  background: i % 2 === 0 ? "#4F46E5" : "#22D3EE",
+                  boxShadow: `0 0 6px 2px ${i % 2 === 0 ? "rgba(79,70,229,0.6)" : "rgba(34,211,238,0.6)"}`,
+                  top: `${15 + i * 14}%`,
+                  left: `${10 + i * 15}%`,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  x: [0, i % 2 === 0 ? 15 : -15, 0],
+                  opacity: [0.4, 0.9, 0.4],
+                  scale: [1, 1.5, 1],
+                }}
+                transition={{
+                  duration: 4 + i * 0.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.6,
+                }}
+              />
+            ))}
+
+            {/* Horizontal neon line accent */}
+            <motion.div
+              className="absolute top-[15%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#4F46E5]/30 to-transparent"
+              animate={{ opacity: [0.2, 0.5, 0.2] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute bottom-[20%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#22D3EE]/20 to-transparent"
+              animate={{ opacity: [0.1, 0.3, 0.1] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
             />
           </div>
 
-          <div className="container mx-auto max-w-5xl text-center">
+          <div className="container mx-auto max-w-5xl text-center flex-1 flex flex-col justify-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Badge variant="outline" className="mb-6 bg-[#4F46E5]/10 border-[#4F46E5]/30 text-white px-4 py-1.5">
+              <Badge variant="outline" className="mb-6 bg-[#4F46E5]/10 border-[#4F46E5]/30 text-white px-4 py-1.5 shadow-[0_0_15px_rgba(79,70,229,0.2)]">
                 <Sparkles className="h-3.5 w-3.5 me-2 text-[#22D3EE]" />
                 {t.badge}
               </Badge>
@@ -263,7 +320,7 @@ function HomeContent() {
               transition={{ delay: 0.1 }}
             >
               {t.heroTitle}{" "}
-              <span className="bg-gradient-to-r from-[#4F46E5] to-[#22D3EE] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#4F46E5] via-[#8B5CF6] to-[#22D3EE] bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(79,70,229,0.3)]">
                 {t.heroHighlight}
               </span>
             </motion.h1>
@@ -318,6 +375,27 @@ function HomeContent() {
               ))}
             </motion.div>
           </div>
+
+          {/* Scroll indicator for mobile */}
+          <motion.div
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 md:bottom-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
+            <motion.div
+              className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-1.5"
+              animate={{ borderColor: ["rgba(255,255,255,0.2)", "rgba(79,70,229,0.5)", "rgba(255,255,255,0.2)"] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <motion.div
+                className="w-1.5 h-1.5 rounded-full bg-[#22D3EE]"
+                animate={{ y: [0, 16, 0], opacity: [1, 0.3, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                style={{ boxShadow: "0 0 6px 2px rgba(34,211,238,0.5)" }}
+              />
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* ── Stats ── */}
