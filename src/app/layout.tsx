@@ -53,8 +53,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/images/logo.png",
-        width: 512,
-        height: 512,
+        width: 1152,
+        height: 378,
         alt: "CodeTutor Logo",
       },
     ],

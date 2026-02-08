@@ -227,6 +227,7 @@ async function seedTopics(weekId: string, topics: TopicData[]) {
       update: {
         title: topic.title,
         description: topic.description,
+        introMarkdown: topic.introMarkdown || null,
         orderIndex: i,
         isPublished: true,
         updatedAt: new Date(),
@@ -236,6 +237,7 @@ async function seedTopics(weekId: string, topics: TopicData[]) {
         slug: topic.slug,
         title: topic.title,
         description: topic.description,
+        introMarkdown: topic.introMarkdown || null,
         orderIndex: i,
         isLocked: false,
         isPublished: true,

@@ -24,6 +24,37 @@ export const marathonCurriculum: CourseData = {
           slug: "variables-and-types",
           title: "Variables & Data Types",
           description: "Declaring variables, type casting, and arithmetic operations",
+          introMarkdown: `## מה זה משתנים וטיפוסי נתונים?
+
+**משתנה (Variable)** הוא "קופסה" בזיכרון שמחזיקה ערך. לכל משתנה יש שם וטיפוס שקובע איזה סוג מידע הוא מאחסן.
+
+## טיפוסים בסיסיים (Primitive Types)
+
+| טיפוס | תיאור | דוגמה |
+|--------|--------|-------|
+| \`int\` | מספר שלם | \`int age = 25;\` |
+| \`double\` | מספר עשרוני | \`double price = 19.99;\` |
+| \`char\` | תו בודד | \`char grade = 'A';\` |
+| \`boolean\` | ערך לוגי | \`boolean isValid = true;\` |
+| \`String\` | מחרוזת (לא primitive) | \`String name = "Java";\` |
+
+## מושגים מרכזיים
+
+- **הצהרה (Declaration)**: קביעת טיפוס ושם — \`int x;\`
+- **השמה (Assignment)**: נתינת ערך — \`x = 10;\`
+- **המרת טיפוסים (Casting)**: \`(double) x\` הופך int ל-double
+- **חילוק שלמים**: \`7 / 2 = 3\` (לא 3.5!) — חילוק בין שני int נותן int
+- **חילוק עשרוני**: \`7.0 / 2\` או \`(double) 7 / 2\` נותן \`3.5\`
+
+## דוגמה קצרה
+
+\`\`\`java
+int a = 7, b = 2;
+System.out.println(a / b);           // 3 (חילוק שלמים)
+System.out.println((double) a / b);  // 3.5 (המרה ל-double)
+System.out.printf("%.2f%n", 3.5);    // 3.50 (עיגול לשתי ספרות)
+\`\`\`
+`,
           questions: [
             {
               slug: "declare-and-print-variables",
@@ -204,6 +235,45 @@ public class Solution {
         {
           slug: "input-output",
           title: "Input & Output",
+          introMarkdown: `## מה זה Input/Output?
+
+**קלט (Input)** — קריאת נתונים מהמשתמש. **פלט (Output)** — הדפסת תוצאות למסך.
+
+## פלט — הדפסה
+
+- \`System.out.println(x)\` — מדפיס ויורד שורה
+- \`System.out.print(x)\` — מדפיס בלי לרדת שורה
+- \`System.out.printf("%.2f", x)\` — הדפסה מפורמטת
+
+## קלט — Scanner
+
+\`\`\`java
+Scanner sc = new Scanner(System.in);
+int n = sc.nextInt();        // קורא מספר שלם
+double d = sc.nextDouble();  // קורא מספר עשרוני
+String word = sc.next();     // קורא מילה אחת
+String line = sc.nextLine(); // קורא שורה שלמה
+\`\`\`
+
+## מלכודת נפוצה!
+
+אחרי \`nextInt()\` או \`nextDouble()\`, אם רוצים לקרוא שורה שלמה עם \`nextLine()\`, חייבים לעשות \`sc.nextLine()\` נוסף כדי "לנקות" את ה-Enter שנשאר:
+
+\`\`\`java
+int n = sc.nextInt();
+sc.nextLine();              // ניקוי ה-buffer
+String line = sc.nextLine(); // עכשיו קורא שורה שלמה
+\`\`\`
+
+## פורמט הדפסה
+
+| קוד | תיאור | דוגמה |
+|-----|--------|-------|
+| \`%d\` | מספר שלם | \`printf("%d", 42)\` → 42 |
+| \`%f\` | עשרוני | \`printf("%.2f", 3.14159)\` → 3.14 |
+| \`%s\` | מחרוזת | \`printf("%s", "hi")\` → hi |
+| \`%n\` | שורה חדשה | |
+`,
           description: "Scanner input and System.out output formatting",
           questions: [
             {
@@ -391,6 +461,47 @@ public class Solution {
         {
           slug: "conditionals",
           title: "If-Else & Switch",
+          introMarkdown: `## מה זה תנאים (Conditionals)?
+
+**תנאים** מאפשרים לתוכנית לקבל החלטות — להריץ קוד מסוים רק אם תנאי כלשהו מתקיים.
+
+## if / else if / else
+
+\`\`\`java
+if (grade >= 90) {
+    System.out.println("מצוין");
+} else if (grade >= 70) {
+    System.out.println("טוב");
+} else {
+    System.out.println("צריך לשפר");
+}
+\`\`\`
+
+**כללים חשובים:**
+- תנאי הוא תמיד ביטוי **boolean** (true/false)
+- \`else if\` ו-\`else\` הם **אופציונליים**
+- הבדיקה מלמעלה למטה — ברגע שתנאי מתקיים, השאר לא נבדקים
+
+## switch
+
+מתאים כשבודקים ערך **ספציפי** (לא טווח):
+
+\`\`\`java
+switch (day) {
+    case 1: System.out.println("Sunday"); break;
+    case 2: System.out.println("Monday"); break;
+    default: System.out.println("Other");
+}
+\`\`\`
+
+**שימו לב**: בלי \`break\` — הקוד "נופל" ל-case הבא (fall-through)!
+
+## אופרטור שלישוני (Ternary)
+
+\`\`\`java
+String result = (x > 0) ? "positive" : "non-positive";
+\`\`\`
+`,
           description: "Conditional statements, if-else chains, and switch-case",
           questions: [
             {
@@ -632,6 +743,49 @@ public class Solution {
         {
           slug: "logical-operators",
           title: "Logical Operators",
+          introMarkdown: `## מה זה אופרטורים לוגיים?
+
+אופרטורים לוגיים משלבים מספר תנאים לביטוי boolean אחד.
+
+## האופרטורים
+
+| אופרטור | משמעות | דוגמה |
+|----------|--------|-------|
+| \`&&\` | וגם (AND) | \`age >= 18 && hasID\` |
+| \`\\|\\|\` | או (OR) | \`isStudent \\|\\| isStaff\` |
+| \`!\` | שלילה (NOT) | \`!isEmpty\` |
+
+## סדר עדיפויות
+
+\`!\` → \`&&\` → \`||\`
+
+\`\`\`java
+// !true || false && true
+// false || false
+// = false
+\`\`\`
+
+## Short-circuit evaluation
+
+- **\`&&\`**: אם הצד השמאלי \`false\`, הצד הימני לא נבדק
+- **\`||\`**: אם הצד השמאלי \`true\`, הצד הימני לא נבדק
+
+\`\`\`java
+// בטוח! אם arr == null, לא ניגש ל-length
+if (arr != null && arr.length > 0) { ... }
+\`\`\`
+
+## אופרטורי השוואה
+
+| אופרטור | משמעות |
+|----------|--------|
+| \`==\` | שווה |
+| \`!=\` | לא שווה |
+| \`>\`, \`<\` | גדול/קטן |
+| \`>=\`, \`<=\` | גדול-שווה/קטן-שווה |
+
+**חשוב**: השוואת מחרוזות — \`str.equals("abc")\` ולא \`str == "abc"\`!
+`,
           description: "Boolean expressions with &&, ||, and !",
           questions: [
             {
@@ -761,6 +915,50 @@ true`,
         {
           slug: "basic-loops",
           title: "For & While Loops",
+          introMarkdown: `## מה זה לולאות?
+
+**לולאה (Loop)** מאפשרת להריץ קטע קוד שוב ושוב, כל עוד תנאי מסוים מתקיים.
+
+## לולאת for
+
+משתמשים כשיודעים **כמה פעמים** לרוץ:
+
+\`\`\`java
+for (int i = 0; i < n; i++) {
+    System.out.println(i);
+}
+// i מתחיל מ-0, רץ כל עוד i < n, עולה ב-1
+\`\`\`
+
+## לולאת while
+
+משתמשים כש**לא יודעים מראש** כמה פעמים:
+
+\`\`\`java
+while (num > 0) {
+    int digit = num % 10;  // הספרה האחרונה
+    num /= 10;             // הסרת הספרה האחרונה
+}
+\`\`\`
+
+## do-while
+
+רצה **לפחות פעם אחת**:
+
+\`\`\`java
+do {
+    input = sc.nextInt();
+} while (input < 0);  // חוזר כל עוד הקלט שלילי
+\`\`\`
+
+## מושגים חשובים
+
+- **מונה (counter)**: משתנה שסופר איטרציות — \`i++\`
+- **צובר (accumulator)**: משתנה שצובר תוצאה — \`sum += x\`
+- **לולאה אינסופית**: כשהתנאי תמיד true — \`while(true)\`
+- **break**: יוצא מהלולאה מיד
+- **continue**: מדלג לאיטרציה הבאה
+`,
           description: "Basic loop structures: for, while, and do-while",
           questions: [
             {
@@ -945,6 +1143,46 @@ public class Solution {
         {
           slug: "nested-loops",
           title: "Nested Loops & Patterns",
+          introMarkdown: `## מה זה לולאות מקוננות?
+
+**לולאה מקוננת (Nested Loop)** — לולאה בתוך לולאה. הלולאה הפנימית רצה **מההתחלה** בכל איטרציה של החיצונית.
+
+## המבנה
+
+\`\`\`java
+for (int i = 0; i < rows; i++) {       // לולאה חיצונית — שורות
+    for (int j = 0; j < cols; j++) {    // לולאה פנימית — עמודות
+        System.out.print("* ");
+    }
+    System.out.println();               // ירידת שורה
+}
+\`\`\`
+
+## דפוסים נפוצים במבחן
+
+**משולש ימני:**
+\`\`\`
+*
+* *
+* * *
+\`\`\`
+הלולאה הפנימית רצה \`i+1\` פעמים.
+
+**פירמידה:**
+\`\`\`
+  *
+ ***
+*****
+\`\`\`
+שתי לולאות פנימיות: אחת לרווחים, אחת לכוכביות.
+
+## טיפ למבחן
+
+חשבו על כל שורה בנפרד:
+1. כמה **רווחים** צריך?
+2. כמה **תווים** צריך?
+3. מה הקשר בין מספר השורה (\`i\`) לכמויות האלה?
+`,
           description: "Nested loop iterations and printing patterns",
           questions: [
             {
@@ -1154,6 +1392,48 @@ public class Solution {
         {
           slug: "arrays-1d",
           title: "1D Arrays",
+          introMarkdown: `## מה זה מערך?
+
+**מערך (Array)** הוא מבנה נתונים שמאחסן רצף של ערכים מאותו טיפוס. הגישה לכל איבר היא דרך **אינדקס** (מתחיל מ-0).
+
+## הצהרה ואתחול
+
+\`\`\`java
+int[] arr = new int[5];           // מערך של 5 אפסים
+int[] nums = {1, 2, 3, 4, 5};    // אתחול עם ערכים
+\`\`\`
+
+## פעולות בסיסיות
+
+\`\`\`java
+arr[0] = 10;                      // השמה באינדקס 0
+int x = arr[0];                   // קריאה מאינדקס 0
+int len = arr.length;             // אורך המערך (בלי סוגריים!)
+\`\`\`
+
+## דפוסים נפוצים
+
+**סריקה:**
+\`\`\`java
+for (int i = 0; i < arr.length; i++) {
+    System.out.println(arr[i]);
+}
+\`\`\`
+
+**מציאת מקסימום:**
+\`\`\`java
+int max = arr[0];
+for (int i = 1; i < arr.length; i++) {
+    if (arr[i] > max) max = arr[i];
+}
+\`\`\`
+
+## מלכודות נפוצות
+
+- **ArrayIndexOutOfBoundsException**: גישה לאינדקס שלא קיים (למשל \`arr[5]\` במערך באורך 5)
+- האינדקס האחרון הוא \`arr.length - 1\`, לא \`arr.length\`!
+- \`length\` הוא **שדה**, לא מתודה — בלי \`()\`
+`,
           description: "One-dimensional array operations, searching, and manipulation",
           questions: [
             {
@@ -1428,6 +1708,47 @@ public class Solution {
         {
           slug: "arrays-2d",
           title: "2D Arrays",
+          introMarkdown: `## מה זה מערך דו-ממדי?
+
+**מערך דו-ממדי** הוא מערך של מערכים — בעצם טבלה (מטריצה) עם שורות ועמודות.
+
+## הצהרה ואתחול
+
+\`\`\`java
+int[][] matrix = new int[3][4];  // 3 שורות, 4 עמודות
+int[][] m = {
+    {1, 2, 3},
+    {4, 5, 6}
+};  // 2 שורות, 3 עמודות
+\`\`\`
+
+## גישה לאיברים
+
+\`\`\`java
+matrix[0][0] = 10;              // שורה 0, עמודה 0
+int rows = matrix.length;       // מספר שורות
+int cols = matrix[0].length;    // מספר עמודות
+\`\`\`
+
+## סריקת מטריצה
+
+\`\`\`java
+for (int i = 0; i < matrix.length; i++) {
+    for (int j = 0; j < matrix[i].length; j++) {
+        System.out.print(matrix[i][j] + " ");
+    }
+    System.out.println();
+}
+\`\`\`
+
+## דפוסים נפוצים במבחן
+
+- **סכום שורה**: לולאה על \`j\` כש-\`i\` קבוע
+- **סכום עמודה**: לולאה על \`i\` כש-\`j\` קבוע
+- **אלכסון ראשי**: \`matrix[i][i]\` (כש-\`i == j\`)
+- **אלכסון משני**: \`matrix[i][n-1-i]\`
+- **טרנספוז**: החלפת שורות ועמודות — \`result[j][i] = matrix[i][j]\`
+`,
           description: "Two-dimensional arrays, matrices, and row/column operations",
           questions: [
             {
@@ -1652,6 +1973,50 @@ public class Solution {
         {
           slug: "method-basics",
           title: "Method Declarations",
+          introMarkdown: `## מה זה מתודה (Method)?
+
+**מתודה** היא בלוק קוד עם שם שמבצע משימה מוגדרת. מתודות מאפשרות **שימוש חוזר** בקוד ו**ארגון** טוב יותר.
+
+## מבנה מתודה
+
+\`\`\`java
+public static void printHello(String name) {
+//  ↑      ↑     ↑        ↑           ↑
+// access static return  name    parameter
+//                type
+    System.out.println("Hello " + name);
+}
+\`\`\`
+
+## מתודה עם ערך חזרה vs בלי
+
+\`\`\`java
+// void — לא מחזירה ערך
+public static void greet(String name) {
+    System.out.println("Hi " + name);
+}
+
+// int — מחזירה מספר שלם
+public static int add(int a, int b) {
+    return a + b;
+}
+\`\`\`
+
+## קריאה למתודה
+
+\`\`\`java
+greet("Alice");           // קריאה למתודת void
+int sum = add(3, 5);      // קריאה עם ערך חזרה
+\`\`\`
+
+## מושגים מרכזיים
+
+- **פרמטרים (Parameters)**: המשתנים בהגדרת המתודה
+- **ארגומנטים (Arguments)**: הערכים שמעבירים בקריאה
+- **return**: מחזיר ערך ויוצא מהמתודה מיד
+- **void**: המתודה לא מחזירה ערך
+- **static**: שייכת למחלקה, לא לאובייקט ספציפי
+`,
           description: "Void methods, parameters, and method calls",
           questions: [
             {
@@ -1915,6 +2280,56 @@ public class Solution {
         {
           slug: "return-values-scope",
           title: "Return Values & Scope",
+          introMarkdown: `## ערכי החזרה (Return Values)
+
+מתודה שמחזירה ערך חייבת לציין את הטיפוס ולהשתמש ב-\`return\`:
+
+\`\`\`java
+public static boolean isPrime(int n) {
+    if (n < 2) return false;
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) return false;
+    }
+    return true;
+}
+\`\`\`
+
+## Scope — תחום הכרה
+
+**משתנה מוכר רק בבלוק שבו הוגדר:**
+
+\`\`\`java
+public static void example() {
+    int x = 10;           // x מוכר בכל המתודה
+    if (x > 5) {
+        int y = 20;       // y מוכר רק בתוך ה-if
+    }
+    // System.out.println(y); ← שגיאה! y לא מוכר כאן
+}
+\`\`\`
+
+## Method Overloading — העמסת מתודות
+
+אותו שם, **פרמטרים שונים**:
+
+\`\`\`java
+public static int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+public static int max(int a, int b, int c) {
+    return max(max(a, b), c);
+}
+\`\`\`
+
+Java בוחרת את הגרסה המתאימה לפי **מספר וטיפוס הארגומנטים**.
+
+## טיפ למבחן
+
+- כל נתיב בקוד חייב להגיע ל-\`return\` (אם הטיפוס הוא לא void)
+- מתודה עם \`return\` בתוך לולאה — לא שוכחים return גם אחרי הלולאה
+- העברת מערך למתודה — המערך עובר **by reference** (שינויים משפיעים על המקור)
+`,
           description: "Methods with return types, variable scope, and method overloading",
           questions: [
             {
@@ -2173,6 +2588,40 @@ public class Solution {
         {
           slug: "recursion-basics",
           title: "Recursion Fundamentals",
+          introMarkdown: `## מה זה רקורסיה?
+
+**רקורסיה (Recursion)** — מתודה שקוראת לעצמה. במקום לולאה, מפרקים בעיה גדולה לבעיות קטנות יותר מאותו סוג.
+
+## שני חלקים הכרחיים
+
+1. **תנאי עצירה (Base Case)** — מתי להפסיק
+2. **צעד רקורסיבי (Recursive Step)** — קריאה עצמית עם "בעיה קטנה יותר"
+
+## דוגמה — עצרת (Factorial)
+
+\`\`\`java
+public static int factorial(int n) {
+    if (n <= 1) return 1;          // Base case
+    return n * factorial(n - 1);   // Recursive step
+}
+// factorial(4) = 4 * factorial(3)
+//              = 4 * 3 * factorial(2)
+//              = 4 * 3 * 2 * factorial(1)
+//              = 4 * 3 * 2 * 1 = 24
+\`\`\`
+
+## איך לחשוב רקורסיבית?
+
+1. מה ה-**base case**? (המקרה הפשוט ביותר)
+2. איך אני **מקטין** את הבעיה?
+3. איך אני **משלב** את התשובה של הקריאה הרקורסיבית?
+
+## מלכודות נפוצות
+
+- **שכחת base case** → לולאה אינסופית → StackOverflowError
+- **הבעיה לא קטנה** → אם \`n\` לא משתנה, אין התקדמות
+- **StackOverflow**: כל קריאה תופסת מקום ב-Stack — אל תשתמשו ברקורסיה ל-n גדול מאוד
+`,
           description: "Understanding recursion, base cases, and simple recursive functions",
           questions: [
             {
@@ -2392,6 +2841,48 @@ public class Solution {
         {
           slug: "recursion-strings",
           title: "Recursion with Strings & Arrays",
+          introMarkdown: `## רקורסיה על מחרוזות
+
+במחרוזות, ה-base case הוא בדרך כלל מחרוזת ריקה או תו בודד, והצעד הרקורסיבי עובד על **תת-מחרוזת**.
+
+\`\`\`java
+// היפוך מחרוזת
+public static String reverse(String s) {
+    if (s.length() <= 1) return s;           // Base case
+    return reverse(s.substring(1)) + s.charAt(0); // Recursive
+}
+// reverse("abc") = reverse("bc") + 'a'
+//                = reverse("c") + 'b' + 'a'
+//                = "c" + "b" + "a" = "cba"
+\`\`\`
+
+## רקורסיה על מערכים
+
+במערכים, משתמשים ב-**אינדקס** כפרמטר נוסף:
+
+\`\`\`java
+// סכום מערך
+public static int sum(int[] arr, int index) {
+    if (index >= arr.length) return 0;       // Base case
+    return arr[index] + sum(arr, index + 1); // Recursive
+}
+\`\`\`
+
+## דפוסים נפוצים במבחן
+
+| דפוס | Base Case | צעד רקורסיבי |
+|------|-----------|-------------|
+| פלינדרום | אורך ≤ 1 | בדוק ראשון ואחרון, קרא לאמצע |
+| חיפוש | אינדקס מחוץ לטווח | בדוק תא נוכחי, קרא לבא |
+| ספירה | אינדקס מחוץ לטווח | ספור נוכחי + קריאה רקורסיבית |
+
+## מתודות שימושיות למחרוזות
+
+- \`s.charAt(i)\` — תו באינדקס i
+- \`s.substring(1)\` — מחרוזת בלי התו הראשון
+- \`s.substring(0, s.length()-1)\` — בלי התו האחרון
+- \`s.length()\` — אורך (עם סוגריים! בניגוד למערך)
+`,
           description: "Applying recursion to string and array problems",
           questions: [
             {
@@ -2632,6 +3123,48 @@ public class Solution {
         {
           slug: "classes-objects",
           title: "Classes & Objects",
+          introMarkdown: `## מה זה מחלקה ואובייקט?
+
+**מחלקה (Class)** — תבנית (blueprint) שמגדירה שדות (נתונים) ומתודות (פעולות).
+**אובייקט (Object)** — מופע (instance) של מחלקה — "הדבר האמיתי" בזיכרון.
+
+## מבנה מחלקה
+
+\`\`\`java
+public class Student {
+    // שדות (fields)
+    String name;
+    int grade;
+
+    // בנאי (constructor)
+    public Student(String name, int grade) {
+        this.name = name;
+        this.grade = grade;
+    }
+
+    // מתודה
+    public String toString() {
+        return name + ": " + grade;
+    }
+}
+\`\`\`
+
+## יצירת אובייקטים
+
+\`\`\`java
+Student s1 = new Student("Alice", 90);
+Student s2 = new Student("Bob", 85);
+System.out.println(s1);  // Alice: 90 (קורא ל-toString)
+\`\`\`
+
+## מושגים מרכזיים
+
+- **\`this\`** — מצביע לאובייקט הנוכחי. \`this.name = name;\` מבדיל בין השדה לפרמטר
+- **בנאי (Constructor)** — מתודה מיוחדת שרצה בעת \`new\`. שם זהה לשם המחלקה, בלי טיפוס החזרה
+- **toString()** — מתודה שמגדירה איך אובייקט מודפס
+- **\`new\`** — יוצר אובייקט חדש בזיכרון
+- **בנאי ברירת מחדל** — אם לא כותבים בנאי, Java נותנת בנאי ריק אוטומטית
+`,
           description: "Defining classes, constructors, fields, and creating instances",
           questions: [
             {
@@ -2994,6 +3527,59 @@ public class Solution {
         {
           slug: "instance-methods",
           title: "Instance Methods",
+          introMarkdown: `## מה זה מתודות מופע (Instance Methods)?
+
+מתודות שפועלות על **אובייקט ספציפי** — ניגשות לשדות שלו דרך \`this\`.
+
+\`\`\`java
+public class Counter {
+    private int count = 0;
+
+    public void increment() {   // מתודת מופע — בלי static
+        this.count++;
+    }
+
+    public int getCount() {
+        return this.count;
+    }
+}
+
+Counter c = new Counter();
+c.increment();
+c.increment();
+System.out.println(c.getCount()); // 2
+\`\`\`
+
+## static vs instance
+
+| | static | instance |
+|--|--------|----------|
+| **שייך ל** | מחלקה | אובייקט |
+| **גישה לשדות** | רק static | כל השדות |
+| **קריאה** | \`ClassName.method()\` | \`obj.method()\` |
+| **\`this\`** | לא קיים | מצביע לאובייקט |
+
+## equals — השוואת אובייקטים
+
+\`==\` משווה **כתובות** בזיכרון, לא תוכן! צריך לכתוב \`equals\`:
+
+\`\`\`java
+public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof Student)) return false;
+    Student other = (Student) obj;
+    return this.name.equals(other.name) && this.grade == other.grade;
+}
+\`\`\`
+
+## מערך של אובייקטים
+
+\`\`\`java
+Student[] students = new Student[3];
+students[0] = new Student("Alice", 90);
+// students[1] הוא null עד שניצור אובייקט!
+\`\`\`
+`,
           description: "Methods that operate on object state and modify fields",
           questions: [
             {
@@ -3320,6 +3906,55 @@ public class Solution {
         {
           slug: "encapsulation",
           title: "Encapsulation & Access Modifiers",
+          introMarkdown: `## מה זה אנקפסולציה (Encapsulation)?
+
+**אנקפסולציה** — הסתרת המימוש הפנימי של מחלקה. השדות **פרטיים** (\`private\`), והגישה אליהם רק דרך **מתודות ציבוריות** (\`public\`).
+
+## הרגלציפויות גישה (Access Modifiers)
+
+| modifier | מחלקה | חבילה | תת-מחלקה | כולם |
+|----------|-------|-------|----------|------|
+| \`private\` | ✓ | ✗ | ✗ | ✗ |
+| (default) | ✓ | ✓ | ✗ | ✗ |
+| \`protected\` | ✓ | ✓ | ✓ | ✗ |
+| \`public\` | ✓ | ✓ | ✓ | ✓ |
+
+## דפוס Getter/Setter
+
+\`\`\`java
+public class Student {
+    private String name;
+    private int grade;
+
+    // Getter — מחזיר את הערך
+    public String getName() { return name; }
+
+    // Setter — מעדכן את הערך (עם ולידציה!)
+    public void setGrade(int grade) {
+        if (grade < 0 || grade > 100) {
+            throw new IllegalArgumentException("Invalid grade");
+        }
+        this.grade = grade;
+    }
+}
+\`\`\`
+
+## למה אנקפסולציה?
+
+- **שליטה**: ולידציה ב-setter מונעת ערכים לא חוקיים
+- **גמישות**: אפשר לשנות מימוש פנימי בלי לשבור קוד חיצוני
+- **Immutable class**: בלי setters — אובייקט שלא ניתן לשינוי אחרי יצירה
+
+\`\`\`java
+public class ImmutablePoint {
+    private final int x, y;    // final — לא ניתן לשנות
+    public ImmutablePoint(int x, int y) { this.x = x; this.y = y; }
+    public int getX() { return x; }
+    public int getY() { return y; }
+    // אין setters!
+}
+\`\`\`
+`,
           description: "Private fields, getters/setters, and validation",
           questions: [
             {
@@ -3650,6 +4285,64 @@ public class Solution {
         {
           slug: "class-design",
           title: "Class Design Patterns",
+          introMarkdown: `## דפוסי עיצוב מחלקות
+
+## Composition — הרכבה
+
+מחלקה שמכילה אובייקטים של מחלקות אחרות כשדות:
+
+\`\`\`java
+public class Person {
+    private String name;
+    private Address address;  // אובייקט Address כשדה
+
+    public Person(String name, Address address) {
+        this.name = name;
+        this.address = address;
+    }
+}
+\`\`\`
+
+## static — שדות ומתודות סטטיים
+
+**שדה סטטי** — משותף לכל האובייקטים של המחלקה:
+
+\`\`\`java
+public class Student {
+    private static int count = 0; // משותף!
+    private String name;
+
+    public Student(String name) {
+        this.name = name;
+        count++;                   // כל יצירה מגדילה
+    }
+
+    public static int getCount() {
+        return count;
+    }
+}
+\`\`\`
+
+## Utility Class — מחלקת עזר
+
+מחלקה עם **מתודות סטטיות בלבד** (כמו \`Math\`):
+
+\`\`\`java
+public class MathUtils {
+    public static int max(int a, int b) { return a > b ? a : b; }
+    public static boolean isPrime(int n) { ... }
+}
+// קריאה: MathUtils.max(3, 5)
+\`\`\`
+
+## Builder / Fluent Pattern
+
+מתודות שמחזירות \`this\` כדי לאפשר שרשור:
+
+\`\`\`java
+student.setName("Alice").setGrade(90).setAge(21);
+\`\`\`
+`,
           description: "Composition, static methods, and design patterns",
           questions: [
             {
@@ -4009,6 +4702,53 @@ public class Solution {
         {
           slug: "inheritance",
           title: "Inheritance & Overriding",
+          introMarkdown: `## מה זה ירושה (Inheritance)?
+
+**ירושה** מאפשרת למחלקה חדשה (תת-מחלקה) לרשת שדות ומתודות ממחלקה קיימת (מחלקת-על).
+
+\`\`\`java
+public class Animal {                // מחלקת-על
+    protected String name;
+    public Animal(String name) { this.name = name; }
+    public String speak() { return "..."; }
+}
+
+public class Dog extends Animal {    // תת-מחלקה
+    public Dog(String name) {
+        super(name);                 // קריאה לבנאי של Animal
+    }
+
+    @Override
+    public String speak() {          // דריסה
+        return "Woof!";
+    }
+}
+\`\`\`
+
+## מילות מפתח
+
+- **\`extends\`** — תת-מחלקה יורשת ממחלקת-על
+- **\`super\`** — פנייה למחלקת-העל (בנאי, מתודות, שדות)
+- **\`@Override\`** — סימון שדורסים מתודה (אופציונלי אבל מומלץ!)
+- **\`protected\`** — נגיש לתת-מחלקות (בניגוד ל-private)
+
+## כללי super()
+
+- \`super()\` חייב להיות **השורה הראשונה** בבנאי
+- אם לא כותבים \`super()\`, Java מוסיפה \`super()\` ריק אוטומטית
+- אם למחלקת-העל אין בנאי ללא פרמטרים — **חייבים** לקרוא ל-super עם ארגומנטים
+
+## ירושה רב-שלבית
+
+\`\`\`java
+class Animal { ... }
+class Dog extends Animal { ... }
+class GoldenRetriever extends Dog { ... }
+// GoldenRetriever יורש מ-Dog שיורש מ-Animal
+\`\`\`
+
+**ב-Java אין ירושה מרובה** — מחלקה יכולה לרשת רק ממחלקה אחת!
+`,
           description: "Extending classes, calling super, and overriding methods",
           questions: [
             {
@@ -4400,6 +5140,70 @@ public class Solution {
         {
           slug: "polymorphism",
           title: "Polymorphism & Abstract Classes",
+          introMarkdown: `## מה זה פולימורפיזם (Polymorphism)?
+
+**פולימורפיזם** — "ריבוי צורות". משתנה מטיפוס מחלקת-על יכול להצביע לאובייקט של תת-מחלקה, והמתודה שתרוץ תיקבע **בזמן ריצה**.
+
+\`\`\`java
+Animal a = new Dog("Rex");   // משתנה Animal, אובייקט Dog
+a.speak();                   // "Woof!" — הגרסה של Dog רצה!
+\`\`\`
+
+## Abstract Class — מחלקה מופשטת
+
+מחלקה שלא ניתן ליצור ממנה אובייקטים, רק לרשת:
+
+\`\`\`java
+public abstract class Shape {
+    abstract double area();        // מתודה מופשטת — בלי מימוש
+
+    public void printArea() {      // מתודה רגילה — עם מימוש
+        System.out.println("Area: " + area());
+    }
+}
+
+public class Circle extends Shape {
+    private double radius;
+    public Circle(double r) { this.radius = r; }
+
+    @Override
+    double area() { return Math.PI * radius * radius; }
+}
+\`\`\`
+
+## Interface — ממשק
+
+חוזה שמחלקה **חייבת** לממש:
+
+\`\`\`java
+public interface Printable {
+    void print();     // מתודה מופשטת (אוטומטית)
+}
+
+public class Report implements Printable {
+    @Override
+    public void print() { System.out.println("Report..."); }
+}
+\`\`\`
+
+## instanceof — בדיקת טיפוס
+
+\`\`\`java
+if (animal instanceof Dog) {
+    Dog d = (Dog) animal;  // Downcasting — בטוח אחרי instanceof
+    d.fetch();
+}
+\`\`\`
+
+## מערך פולימורפי
+
+\`\`\`java
+Shape[] shapes = { new Circle(5), new Rectangle(3, 4) };
+for (Shape s : shapes) {
+    System.out.println(s.area());  // כל shape מריץ את ה-area שלו
+}
+\`\`\`
+`,
           description: "Abstract classes, polymorphic collections, and interfaces",
           questions: [
             {
@@ -4764,6 +5568,50 @@ public class Solution {
         {
           slug: "mixed-fundamentals",
           title: "Mixed Review: Fundamentals",
+          introMarkdown: `## חזרה מהירה — יסודות
+
+## מערכים + מתודות
+
+זכרו: מערך עובר למתודה **by reference** — שינויים בתוך המתודה משפיעים על המקור!
+
+\`\`\`java
+public static double average(int[] arr) {
+    int sum = 0;
+    for (int x : arr) sum += x;
+    return (double) sum / arr.length;
+}
+\`\`\`
+
+## מחרוזות — מתודות שימושיות
+
+| מתודה | תיאור |
+|--------|--------|
+| \`s.length()\` | אורך |
+| \`s.charAt(i)\` | תו באינדקס i |
+| \`s.substring(a, b)\` | תת-מחרוזת מ-a עד b (לא כולל) |
+| \`s.indexOf("x")\` | אינדקס ראשון של "x" (-1 אם אין) |
+| \`s.toUpperCase()\` | להגדיל אותיות |
+| \`s.equals(other)\` | השוואת תוכן (לא ==!) |
+| \`s.split(" ")\` | פיצול למערך מחרוזות |
+
+## לולאות מקוננות + מערכים
+
+\`\`\`java
+// חיפוש ערך במטריצה
+for (int i = 0; i < matrix.length; i++) {
+    for (int j = 0; j < matrix[i].length; j++) {
+        if (matrix[i][j] == target) return true;
+    }
+}
+\`\`\`
+
+## טיפים למבחן
+
+- קראו את השאלה **פעמיים** לפני שמתחילים
+- שימו לב ל-**פורמט הפלט** — רווחים, שורות חדשות
+- בדקו **מקרי קצה**: מערך ריק, n=0, n=1
+- אם יש \`double\` — שימו לב לחילוק שלמים!
+`,
           description: "Combined exercises covering arrays, loops, methods, and string manipulation",
           questions: [
             {
@@ -5083,6 +5931,54 @@ public class Solution {
         {
           slug: "mixed-oop",
           title: "Mixed Review: OOP",
+          introMarkdown: `## חזרה מהירה — OOP
+
+## צ'קליסט לבניית מחלקה
+
+1. **שדות** — \`private\`, טיפוסים נכונים
+2. **בנאי** — מקבל פרמטרים, \`this.field = field\`
+3. **Getters/Setters** — ולידציה ב-setter
+4. **toString()** — הדפסה קריאה
+5. **equals()** — השוואת תוכן
+
+## ירושה — תבנית
+
+\`\`\`java
+public class Parent {
+    protected int x;
+    public Parent(int x) { this.x = x; }
+}
+
+public class Child extends Parent {
+    private int y;
+    public Child(int x, int y) {
+        super(x);       // חייב להיות ראשון!
+        this.y = y;
+    }
+    @Override
+    public String toString() {
+        return x + ", " + y;
+    }
+}
+\`\`\`
+
+## Interface vs Abstract Class
+
+| | Abstract Class | Interface |
+|--|---------------|-----------|
+| **מופעים** | לא | לא |
+| **בנאי** | כן | לא |
+| **שדות** | כן | רק \`static final\` |
+| **ירושה** | אחד בלבד | כמה interfaces |
+| **מתודות** | abstract + רגילות | abstract (+ default) |
+
+## טעויות נפוצות במבחן
+
+- שכחו \`super()\` בבנאי → שגיאת קומפילציה
+- שכחו \`@Override\` → יצרו מתודה חדשה במקום לדרוס
+- השוואה עם \`==\` במקום \`equals()\`
+- גישה ל-\`private\` שדה של מחלקת-על → צריך \`protected\` או getter
+`,
           description: "Combined exercises covering classes, inheritance, and polymorphism",
           questions: [
             {
@@ -5538,6 +6434,42 @@ public class Solution {
         {
           slug: "exam-simulation",
           title: "Exam-Style Problems",
+          introMarkdown: `## סימולציית מבחן
+
+## מבנה שאלה טיפוסית במבחן
+
+1. **קראו** את כל השאלה לפני שמתחילים
+2. **זהו** את הנושאים: מערכים? OOP? רקורסיה?
+3. **תכננו** את הפתרון על דף לפני שכותבים קוד
+4. **כתבו** קוד נקי ומסודר
+5. **בדקו** עם הדוגמאות שניתנו
+
+## טיפים לניהול זמן
+
+- **אל תתקעו** על שאלה אחת — עברו הלאה וחזרו
+- **שאלות קלות קודם** — אספו נקודות ודאיות
+- **5 דקות אחרונות** — בדיקה כללית
+
+## טעויות שעולות ביוקר
+
+| טעות | תיקון |
+|------|--------|
+| שכחת \`;\` | בדקו כל שורה |
+| \`=\` במקום \`==\` | השוואה = שני שווים |
+| חילוק שלמים | הוסיפו \`(double)\` |
+| Off-by-one | \`<\` vs \`<=\`, \`length\` vs \`length-1\` |
+| null reference | בדקו \`!= null\` לפני גישה |
+
+## נוסחאות שימושיות
+
+- **עצרת**: \`n! = n * (n-1) * ... * 1\`
+- **חזקה**: \`Math.pow(base, exp)\`
+- **שורש**: \`Math.sqrt(n)\`
+- **ערך מוחלט**: \`Math.abs(n)\`
+- **מקסימום/מינימום**: \`Math.max(a, b)\`, \`Math.min(a, b)\`
+
+בהצלחה!
+`,
           description: "Typical exam problems combining multiple concepts with increasing difficulty",
           questions: [
             {
