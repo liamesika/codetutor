@@ -65,7 +65,7 @@ export function MobileDrawer({ isOpen, onClose, children, className }: MobileDra
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className={cn(
-              "fixed top-0 right-0 h-full w-[280px] max-w-[85vw] bg-background border-l border-border z-[101] flex flex-col shadow-2xl",
+              "fixed top-0 right-0 h-full w-[280px] max-w-[85vw] bg-[#0F0F23] border-l border-white/10 z-[101] flex flex-col shadow-2xl",
               className
             )}
             role="dialog"
@@ -73,8 +73,8 @@ export function MobileDrawer({ isOpen, onClose, children, className }: MobileDra
             aria-label="Navigation menu"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <span className="font-semibold text-foreground">Menu</span>
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <span className="font-semibold text-white">Menu</span>
               <button
                 ref={firstFocusableRef}
                 onClick={onClose}

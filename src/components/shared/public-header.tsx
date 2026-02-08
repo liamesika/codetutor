@@ -125,41 +125,41 @@ export function PublicHeader() {
             <Link
               href="/pricing"
               onClick={closeDrawer}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
             >
               {t.pricing}
             </Link>
             <Link
               href="/demo"
               onClick={closeDrawer}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
             >
-              <Play className="h-4 w-4 text-muted-foreground" />
+              <Play className="h-4 w-4 text-[#9CA3AF]" />
               {t.demo}
             </Link>
           </div>
 
-          <div className="h-px bg-border my-2" />
+          <div className="h-px bg-white/10 my-2" />
 
           <div className="mt-4 space-y-2">
             {status === "loading" ? (
-              <div className="h-12 bg-muted animate-pulse rounded-lg" />
+              <div className="h-12 bg-white/5 animate-pulse rounded-lg" />
             ) : session?.user ? (
               <>
-                <div className="px-4 py-3 bg-muted/50 rounded-lg mb-4">
-                  <p className="font-medium text-sm truncate">
+                <div className="px-4 py-3 bg-white/5 rounded-lg mb-4">
+                  <p className="font-medium text-sm truncate text-white">
                     {session.user.name || session.user.email}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-[#9CA3AF] truncate">
                     {session.user.email}
                   </p>
                 </div>
                 <Link
                   href="/dashboard"
                   onClick={closeDrawer}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
                 >
-                  <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                  <LayoutDashboard className="h-4 w-4 text-[#9CA3AF]" />
                   {t.dashboard}
                 </Link>
                 <button
@@ -169,7 +169,7 @@ export function PublicHeader() {
                       m.signOut({ callbackUrl: "/" })
                     )
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                   {t.signOut}
@@ -178,12 +178,12 @@ export function PublicHeader() {
             ) : (
               <>
                 <Link href="/login" onClick={closeDrawer}>
-                  <button className="w-full px-4 py-3 rounded-lg border border-border text-foreground hover:bg-muted transition-colors font-medium">
+                  <button className="w-full px-4 py-3 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors font-medium">
                     {t.login}
                   </button>
                 </Link>
                 <Link href="/signup" onClick={closeDrawer}>
-                  <button className="w-full px-4 py-3 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90 transition-colors font-medium flex items-center justify-center gap-2">
+                  <button className="w-full px-4 py-3 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90 transition-colors font-medium flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
                     {t.cta}
                     <ArrowRight className="h-4 w-4" />
                   </button>

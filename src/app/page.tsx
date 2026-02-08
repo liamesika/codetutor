@@ -266,31 +266,41 @@ function HomeContent() {
               }}
             />
 
-            {/* Floating neon particles */}
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 rounded-full"
-                style={{
-                  background: i % 2 === 0 ? "#4F46E5" : "#22D3EE",
-                  boxShadow: `0 0 6px 2px ${i % 2 === 0 ? "rgba(79,70,229,0.6)" : "rgba(34,211,238,0.6)"}`,
-                  top: `${15 + i * 14}%`,
-                  left: `${10 + i * 15}%`,
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  x: [0, i % 2 === 0 ? 15 : -15, 0],
-                  opacity: [0.4, 0.9, 0.4],
-                  scale: [1, 1.5, 1],
-                }}
-                transition={{
-                  duration: 4 + i * 0.8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.6,
-                }}
-              />
-            ))}
+            {/* Rising neon bubbles */}
+            {[...Array(10)].map((_, i) => {
+              const sizes = [4, 6, 3, 8, 5, 3, 7, 4, 6, 5]
+              const lefts = [8, 22, 38, 52, 68, 82, 15, 45, 72, 92]
+              const colors = ["#4F46E5", "#22D3EE", "#8B5CF6", "#22D3EE", "#4F46E5", "#8B5CF6", "#22D3EE", "#4F46E5", "#8B5CF6", "#22D3EE"]
+              const durations = [12, 16, 10, 18, 14, 11, 15, 13, 17, 12]
+              const size = sizes[i]
+              return (
+                <motion.div
+                  key={`bubble-${i}`}
+                  className="absolute rounded-full"
+                  style={{
+                    width: size,
+                    height: size,
+                    left: `${lefts[i]}%`,
+                    bottom: -20,
+                    background: `radial-gradient(circle at 30% 30%, ${colors[i]}40, ${colors[i]}15)`,
+                    border: `1px solid ${colors[i]}30`,
+                    boxShadow: `0 0 ${size * 2}px ${colors[i]}25`,
+                  }}
+                  animate={{
+                    y: [0, -1200],
+                    x: [0, (i % 2 === 0 ? 1 : -1) * (10 + i * 3), 0, (i % 2 === 0 ? -1 : 1) * (8 + i * 2), 0],
+                    opacity: [0, 0.7, 0.5, 0.3, 0],
+                    scale: [0.5, 1, 1.1, 0.9, 0.6],
+                  }}
+                  transition={{
+                    duration: durations[i],
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    delay: i * 1.5,
+                  }}
+                />
+              )
+            })}
 
             {/* Horizontal neon line accent */}
             <motion.div
