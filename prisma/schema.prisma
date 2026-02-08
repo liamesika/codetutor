@@ -50,6 +50,7 @@ model User {
   proMissions               ProMission[]
   assignmentSubmissions     AssignmentSubmission[]
   mentorMessages            MentorMessage[]
+  deviceLogins              DeviceLogin[]
 
   @@index([email])
 }
@@ -1327,4 +1328,22 @@ model MentorConfig {
 
   @@index([courseId])
   @@index([weekId])
+}
+
+// ==================== DEVICE LOGIN TRACKING ====================
+
+model DeviceLogin {
+  id              String   @id @default(cuid())
+  userId          String
+  fingerprintHash String
+  userAgent       String   @db.Text
+  ipAddress       String?
+  lastLoginAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprintHash])
+  @@index([userId])
 }

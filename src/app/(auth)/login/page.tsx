@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useCallback, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -23,6 +23,7 @@ import {
   ArrowRight,
   Play,
 } from "lucide-react"
+import { DeviceWarningOverlay } from "@/components/overlays/device-warning-overlay"
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -56,6 +57,7 @@ function LoginFormContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [showDeviceWarning, setShowDeviceWarning] = useState(false)
 
   const {
     register,
@@ -64,6 +66,12 @@ function LoginFormContent() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
+
+  const handleDeviceWarningClose = useCallback(() => {
+    setShowDeviceWarning(false)
+    router.push(callbackUrl)
+    router.refresh()
+  }, [router, callbackUrl])
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
@@ -80,6 +88,21 @@ function LoginFormContent() {
         setError("Invalid email or password. Please try again.")
         setIsLoading(false)
         return
+      }
+
+      // Check device fingerprint
+      try {
+        const deviceRes = await fetch("/api/device-check", { method: "POST" })
+        if (deviceRes.ok) {
+          const deviceData = await deviceRes.json()
+          if (deviceData.isNewDevice) {
+            setShowDeviceWarning(true)
+            setIsLoading(false)
+            return
+          }
+        }
+      } catch {
+        // Device check failure should never block login
       }
 
       router.push(callbackUrl)
@@ -272,6 +295,11 @@ function LoginFormContent() {
           </div>
         </div>
       </motion.div>
+
+      <DeviceWarningOverlay
+        isOpen={showDeviceWarning}
+        onClose={handleDeviceWarningClose}
+      />
     </div>
   )
 }

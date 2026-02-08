@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
-import { Menu, ArrowRight, LogOut, LayoutDashboard, Play } from "lucide-react"
+import { Menu, ArrowRight, LogOut, LayoutDashboard, Home } from "lucide-react"
 import { NeonButton } from "@/components/ui/neon-button"
 import { MobileDrawer } from "@/components/shared/mobile-drawer"
 import { useLanguage, type Locale } from "@/lib/i18n"
@@ -12,16 +12,16 @@ import { cn } from "@/lib/utils"
 
 const text = {
   en: {
+    home: "Home",
     pricing: "Pricing",
-    demo: "Try Demo",
     login: "Log in",
     cta: "Join the Marathon",
     dashboard: "Dashboard",
     signOut: "Sign Out",
   },
   he: {
+    home: "דף הבית",
     pricing: "מחירון",
-    demo: "נסו דמו",
     login: "התחברות",
     cta: "הצטרפו למרתון",
     dashboard: "לוח בקרה",
@@ -61,11 +61,11 @@ export function PublicHeader() {
             {t.pricing}
           </Link>
           <Link
-            href="/demo"
+            href="/"
             className="text-sm text-[#9CA3AF] hover:text-white transition-colors flex items-center gap-1.5"
           >
-            <Play className="h-3.5 w-3.5" />
-            {t.demo}
+            <Home className="h-3.5 w-3.5" />
+            {t.home}
           </Link>
         </nav>
 
@@ -92,7 +92,7 @@ export function PublicHeader() {
                   {t.login}
                 </NeonButton>
               </Link>
-              <Link href="/signup">
+              <Link href="/pricing">
                 <NeonButton
                   variant="primary"
                   size="sm"
@@ -130,12 +130,12 @@ export function PublicHeader() {
               {t.pricing}
             </Link>
             <Link
-              href="/demo"
+              href="/"
               onClick={closeDrawer}
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
             >
-              <Play className="h-4 w-4 text-[#9CA3AF]" />
-              {t.demo}
+              <Home className="h-4 w-4 text-[#9CA3AF]" />
+              {t.home}
             </Link>
           </div>
 
@@ -182,7 +182,7 @@ export function PublicHeader() {
                     {t.login}
                   </button>
                 </Link>
-                <Link href="/signup" onClick={closeDrawer}>
+                <Link href="/pricing" onClick={closeDrawer}>
                   <button className="w-full px-4 py-3 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90 transition-colors font-medium flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
                     {t.cta}
                     <ArrowRight className="h-4 w-4" />

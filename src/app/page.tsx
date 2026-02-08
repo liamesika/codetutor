@@ -350,7 +350,7 @@ function HomeContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Link href="/signup">
+              <Link href="/pricing">
                 <NeonButton variant="primary" size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
                   {t.ctaPrimary}
                 </NeonButton>
@@ -666,7 +666,7 @@ function HomeContent() {
                 ?
               </h2>
               <p className="text-[#9CA3AF] mb-8 text-lg max-w-xl mx-auto">{t.finalSub}</p>
-              <Link href="/signup">
+              <Link href="/pricing">
                 <NeonButton variant="primary" size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
                   {t.finalCta}
                 </NeonButton>
