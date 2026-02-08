@@ -22,12 +22,13 @@ const rubik = Rubik({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://codetutor.vercel.app"),
   title: {
-    default: "CodeTutor - Java Mastery for CS Students",
+    default: "CodeTutor - מערכת למידה למבחן במדמח",
     template: "%s | CodeTutor",
   },
   description:
-    "Master Java programming with adaptive learning, interactive exercises, and instant feedback. Perfect for CS students.",
+    "מערכת למידה 10 ימים למבחן במדמח ואתם מוכנים. כל הנושאים מחולק ליום, הרצת קוד ובדיקה שלו, תרגול של יותר מ-90 תרגילים וסימולציות והכל במערכת אחת.",
   keywords: [
     "Java",
     "programming",
@@ -36,9 +37,35 @@ export const metadata: Metadata = {
     "computer science",
     "coding",
     "education",
+    "מדמח",
+    "מבחן",
+    "תרגול",
   ],
   authors: [{ name: "CodeTutor" }],
   creator: "CodeTutor",
+  openGraph: {
+    title: "CodeTutor - מערכת למידה למבחן במדמח",
+    description:
+      "מערכת למידה 10 ימים למבחן במדמח ואתם מוכנים. כל הנושאים מחולק ליום, הרצת קוד ובדיקה שלו, תרגול של יותר מ-90 תרגילים וסימולציות והכל במערכת אחת.",
+    type: "website",
+    locale: "he_IL",
+    siteName: "CodeTutor",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 512,
+        height: 512,
+        alt: "CodeTutor Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CodeTutor - מערכת למידה למבחן במדמח",
+    description:
+      "מערכת למידה 10 ימים למבחן במדמח ואתם מוכנים. כל הנושאים מחולק ליום, הרצת קוד ובדיקה שלו, תרגול של יותר מ-90 תרגילים וסימולציות והכל במערכת אחת.",
+    images: ["/images/logo.png"],
+  },
 }
 
 export const viewport: Viewport = {
