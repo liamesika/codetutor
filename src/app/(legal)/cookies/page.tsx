@@ -267,6 +267,9 @@ export default function CookiesPage() {
             <p>For questions about our use of cookies, contact us:</p>
             <div className="bg-white/5 rounded-xl p-6 mt-4">
               <p><strong className="text-white">Lia Mesika</strong></p>
+              <p><strong className="text-white">Business ID:</strong> 213754476</p>
+              <p><strong className="text-white">Address:</strong> Or Akiva, Israel</p>
+              <p><strong className="text-white">Phone:</strong> <a href="tel:+972587878676" className="text-purple-400 hover:text-purple-300">058-7878676</a></p>
               <p><strong className="text-white">Email:</strong> <a href="mailto:liamessi30@gmail.com" className="text-purple-400 hover:text-purple-300">liamessi30@gmail.com</a></p>
             </div>
           </div>
@@ -535,6 +538,9 @@ export default function CookiesPage() {
             <p>לשאלות לגבי השימוש שלנו בעוגיות, צור קשר:</p>
             <div className="bg-white/5 rounded-xl p-6 mt-4">
               <p><strong className="text-white">ליה מסיקה</strong></p>
+              <p><strong className="text-white">מספר עוסק:</strong> 213754476</p>
+              <p><strong className="text-white">כתובת:</strong> אור עקיבא, ישראל</p>
+              <p><strong className="text-white">טלפון:</strong> <a href="tel:+972587878676" className="text-purple-400 hover:text-purple-300">058-7878676</a></p>
               <p><strong className="text-white">אימייל:</strong> <a href="mailto:liamessi30@gmail.com" className="text-purple-400 hover:text-purple-300">liamessi30@gmail.com</a></p>
             </div>
           </div>

@@ -106,7 +106,7 @@ export function LegalFooter({ className = "", variant = "full" }: LegalFooterPro
             © {new Date().getFullYear()} Lia Mesika. All rights reserved.
           </p>
           <p className="text-xs text-[#6B7280]">
-            Business ID: 213754476 | Or Akiva, Israel | Tel: 058-7878676
+            Business ID: 213754476 | Or Akiva, Israel | Tel: 058-7878676 | <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a>
           </p>
         </div>
       </div>
