@@ -11,6 +11,7 @@ const legalLinks = [
   { href: "/security", label: "Security", labelHe: "אבטחה" },
   { href: "/accessibility", label: "Accessibility", labelHe: "נגישות" },
   { href: "/data-rights", label: "My Data", labelHe: "הנתונים שלי" },
+  { href: "/cancellation", label: "Cancellation", labelHe: "ביטול עסקה" },
 ]
 
 export default function LegalLayout({
@@ -79,10 +80,10 @@ export default function LegalLayout({
           {/* Company info */}
           <div className="text-center text-sm text-[#6B7280]">
             <p className="mb-2">
-              <span className="text-white font-medium">Lia Mesika</span> | Business ID: 213754476 | Israel
+              <span className="text-white font-medium">Lia Mesika</span> | Business ID: 213754476 | Or Akiva, Israel
             </p>
             <p className="mb-4">
-              Contact: <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a>
+              Contact: <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a> | Tel: <a href="tel:+972587878676" className="text-[#22D3EE] hover:underline">058-7878676</a>
             </p>
             <div className="flex items-center justify-center gap-2">
               <Code2 className="h-4 w-4 text-[#4F46E5]" />

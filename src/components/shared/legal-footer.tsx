@@ -9,6 +9,7 @@ const legalLinks = [
   { href: "/cookies", label: "Cookies" },
   { href: "/security", label: "Security" },
   { href: "/accessibility", label: "Accessibility" },
+  { href: "/cancellation", label: "Cancellation Policy" },
 ]
 
 interface LegalFooterProps {
@@ -105,7 +106,7 @@ export function LegalFooter({ className = "", variant = "full" }: LegalFooterPro
             © {new Date().getFullYear()} Lia Mesika. All rights reserved.
           </p>
           <p className="text-xs text-[#6B7280]">
-            Business ID: 213754476 | Israel
+            Business ID: 213754476 | Or Akiva, Israel | Tel: 058-7878676
           </p>
         </div>
       </div>

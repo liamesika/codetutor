@@ -129,17 +129,17 @@ export default function TermsPage() {
           </section>
 
           <section id="refunds" className="mb-10">
-            <h2 className="text-2xl font-bold text-white mb-4">6. Refund Policy</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">6. Refund & Cancellation Policy</h2>
             <p className="text-[#D1D5DB] leading-relaxed">
-              We offer refunds under the following conditions:
+              In accordance with the Israeli Consumer Protection Law (חוק הגנת הצרכן), 1981, consumers are entitled to cancel a remote transaction within 14 days of purchase, provided that the digital service has not been fully consumed. For full details, see our <a href="/cancellation" className="text-[#22D3EE] hover:underline">Cancellation Policy</a>.
             </p>
             <ul className="list-disc pl-6 text-[#D1D5DB] mt-4 space-y-2">
-              <li>Full refund within 7 days of purchase if you have not accessed more than 20% of paid content</li>
+              <li>Full refund within 14 days of purchase, subject to a cancellation fee of 5% or ₪100, whichever is lower, as permitted by law</li>
+              <li>If more than 50% of the digital content has been accessed, the right to cancel may not apply</li>
               <li>Pro-rated refund for service outages exceeding 48 consecutive hours</li>
-              <li>No refunds for partial months or after the 7-day period</li>
             </ul>
             <p className="text-[#D1D5DB] leading-relaxed mt-4">
-              To request a refund, contact us at liamessi30@gmail.com with your account details and reason for the request.
+              To request a cancellation or refund, contact us at <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a> or call <a href="tel:+972587878676" className="text-[#22D3EE] hover:underline">058-7878676</a>.
             </p>
           </section>
 
@@ -265,8 +265,9 @@ export default function TermsPage() {
             <div className="mt-4 p-4 rounded-xl bg-[#0F0F23] border border-white/10">
               <p className="text-[#D1D5DB]"><strong>Lia Mesika</strong></p>
               <p className="text-[#D1D5DB]">Business ID: 213754476</p>
+              <p className="text-[#D1D5DB]">Address: Or Akiva, Israel</p>
+              <p className="text-[#D1D5DB]">Phone: <a href="tel:+972587878676" className="text-[#22D3EE] hover:underline">058-7878676</a></p>
               <p className="text-[#D1D5DB]">Email: <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a></p>
-              <p className="text-[#D1D5DB]">Country: Israel</p>
             </div>
           </section>
         </article>
@@ -369,17 +370,17 @@ export default function TermsPage() {
             </section>
 
             <section id="he-refunds" className="mb-10">
-              <h2 className="text-2xl font-bold text-white mb-4">6. מדיניות החזרים</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">6. מדיניות ביטול עסקה והחזרים</h2>
               <p className="text-[#D1D5DB] leading-relaxed">
-                אנו מציעים החזרים בתנאים הבאים:
+                בהתאם לחוק הגנת הצרכן, התשמ&quot;א-1981, צרכן רשאי לבטל עסקת רכש מרחוק תוך 14 ימים ממועד הרכישה, בתנאי שהשירות הדיגיטלי לא נצרך במלואו. לפרטים מלאים ראו את <a href="/cancellation" className="text-[#22D3EE] hover:underline">תקנון ביטול עסקה</a>.
               </p>
               <ul className="list-disc pr-6 text-[#D1D5DB] mt-4 space-y-2">
-                <li>החזר מלא תוך 7 ימים מהרכישה אם לא ניגשתם ליותר מ-20% מהתוכן בתשלום</li>
+                <li>החזר מלא תוך 14 ימים מהרכישה, בניכוי דמי ביטול בסך 5% ממחיר העסקה או ₪100 — הנמוך מביניהם, כמותר על פי חוק</li>
+                <li>אם נצרכו למעלה מ-50% מהתוכן הדיגיטלי, ייתכן שזכות הביטול לא תחול</li>
                 <li>החזר יחסי עבור הפסקות שירות העולות על 48 שעות רצופות</li>
-                <li>אין החזרים עבור חודשים חלקיים או לאחר תקופת 7 הימים</li>
               </ul>
               <p className="text-[#D1D5DB] leading-relaxed mt-4">
-                לבקשת החזר, צרו קשר בכתובת liamessi30@gmail.com עם פרטי החשבון שלכם וסיבת הבקשה.
+                לבקשת ביטול או החזר, צרו קשר בדוא&quot;ל <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a> או בטלפון <a href="tel:+972587878676" className="text-[#22D3EE] hover:underline">058-7878676</a>.
               </p>
             </section>
 
@@ -505,8 +506,9 @@ export default function TermsPage() {
               <div className="mt-4 p-4 rounded-xl bg-[#0F0F23] border border-white/10">
                 <p className="text-[#D1D5DB]"><strong>ליה מסיקה</strong></p>
                 <p className="text-[#D1D5DB]">מספר עוסק: 213754476</p>
+                <p className="text-[#D1D5DB]">כתובת: אור עקיבא, ישראל</p>
+                <p className="text-[#D1D5DB]">טלפון: <a href="tel:+972587878676" className="text-[#22D3EE] hover:underline">058-7878676</a></p>
                 <p className="text-[#D1D5DB]">דוא&quot;ל: <a href="mailto:liamessi30@gmail.com" className="text-[#22D3EE] hover:underline">liamessi30@gmail.com</a></p>
-                <p className="text-[#D1D5DB]">מדינה: ישראל</p>
               </div>
             </section>
           </article>
