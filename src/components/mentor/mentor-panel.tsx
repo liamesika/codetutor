@@ -53,6 +53,8 @@ interface MentorPanelProps {
   status: string
   className?: string
   onClose?: () => void
+  autoTrigger?: boolean
+  showClose?: boolean
 }
 
 interface MentorResponse {
@@ -120,12 +122,15 @@ export function MentorPanel({
   status,
   className,
   onClose,
+  autoTrigger = false,
+  showClose = true,
 }: MentorPanelProps) {
   const [revealedHints, setRevealedHints] = useState<number>(0)
   const [proRequired, setProRequired] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState("")
   const chatScrollRef = useRef<HTMLDivElement>(null)
+  const hasAutoTriggered = useRef(false)
 
   // Reset chat when code changes (new submission)
   useEffect(() => {
@@ -149,12 +154,20 @@ export function MentorPanel({
           questionId,
           assignmentId,
           code,
-          testResults,
-          compileError,
-          runtimeError,
-          stderr,
-          executionMs,
-          status,
+          testResults: testResults.map(t => ({
+            testIndex: t.testIndex,
+            input: t.input ?? "",
+            expected: t.expected ?? "",
+            actual: t.actual ?? null,
+            passed: t.passed,
+            error: t.error ?? null,
+            ...(t.isHidden !== undefined ? { isHidden: t.isHidden } : {}),
+          })),
+          compileError: compileError ?? null,
+          runtimeError: runtimeError ?? null,
+          stderr: stderr ?? null,
+          executionMs: executionMs ?? null,
+          status: status || "UNKNOWN",
         }),
       })
 
@@ -168,6 +181,9 @@ export function MentorPanel({
 
       if (!res.ok) {
         const error = await res.json()
+        if (error.error === "Invalid input") {
+          throw new Error("שגיאה בשליחת הנתונים למנטור. נסו להריץ את הקוד שוב.")
+        }
         throw new Error(error.error || "Failed to get mentor feedback")
       }
 
@@ -228,6 +244,18 @@ export function MentorPanel({
     mutation.mutate()
   }
 
+  // Auto-trigger analysis on mount when autoTrigger is true
+  useEffect(() => {
+    if (autoTrigger && !hasAutoTriggered.current) {
+      hasAutoTriggered.current = true
+      const timer = setTimeout(() => {
+        handleAskMentor()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoTrigger])
+
   const revealNextHint = () => {
     if (mutation.data && revealedHints < mutation.data.progressiveHints.length) {
       setRevealedHints((prev) => prev + 1)
@@ -256,7 +284,7 @@ export function MentorPanel({
               <p className="text-xs text-muted-foreground">קבלו עזרה מותאמת אישית</p>
             </div>
           </div>
-          {onClose && (
+          {showClose && onClose && (
             <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
               <X className="h-4 w-4" />
             </Button>

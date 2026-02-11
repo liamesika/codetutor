@@ -2,3 +2,4 @@ export { useCourses, useCourse, usePrefetchCourses, useInvalidateCourses } from 
 export { useUserStats, useInvalidateStats, usePrefetchStats } from "./use-user-stats"
 export { useExecutorHealth, useIsExecutorAvailable, useExecutorStatus, useForceHealthCheck, normalizeHealthData } from "./use-executor-health"
 export { useUserProgress, useDailyChallenge, useInvalidateProgression } from "./use-progression"
+export { useEntitlement } from "./use-entitlement"

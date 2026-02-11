@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -43,6 +43,8 @@ import {
   AlertCircle,
   BookOpen,
   Lock,
+  Languages,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -205,6 +207,95 @@ function CopyButton({ text, className }: { text: string; className?: string }) {
         <Copy className="h-3 w-3" />
       )}
     </Button>
+  )
+}
+
+// Constraints section with Hebrew translation toggle
+function ConstraintsSection({ constraints }: { constraints: string }) {
+  const [showHebrew, setShowHebrew] = useState(false)
+  const [hebrewText, setHebrewText] = useState<string | null>(null)
+  const [isTranslating, setIsTranslating] = useState(false)
+
+  const handleTranslate = useCallback(async () => {
+    if (hebrewText) {
+      setShowHebrew(!showHebrew)
+      return
+    }
+    setIsTranslating(true)
+    try {
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: constraints, targetLang: "he" }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setHebrewText(data.translated)
+        setShowHebrew(true)
+      }
+    } catch {
+      // Silently fail - user can try again
+    } finally {
+      setIsTranslating(false)
+    }
+  }, [constraints, hebrewText, showHebrew])
+
+  // Split constraints by sentence boundaries for better readability
+  const constraintItems = constraints
+    .split(/(?<=[.!?\n])\s+/)
+    .map(s => s.trim())
+    .filter(Boolean)
+
+  const hebrewItems = hebrewText
+    ? hebrewText.split(/(?<=[.!?\n])\s+/).map(s => s.trim()).filter(Boolean)
+    : []
+
+  const displayItems = showHebrew && hebrewItems.length > 0 ? hebrewItems : constraintItems
+
+  return (
+    <>
+      <Separator className="bg-border/50" />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <span className="w-1 h-5 rounded-full bg-warning" />
+            <AlertCircle className="h-5 w-5 text-warning" />
+            {showHebrew ? "אילוצים" : "Constraints"}
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleTranslate}
+            disabled={isTranslating}
+            className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            {isTranslating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Languages className="h-3.5 w-3.5" />
+            )}
+            {showHebrew ? "English" : "עברית"}
+          </Button>
+        </div>
+        <Card className="bg-warning/5 border-warning/30 neon-border" style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+          <CardContent className="pt-4 text-sm text-muted-foreground">
+            <p className="text-xs font-medium text-warning mb-3" dir={showHebrew ? "rtl" : "ltr"}>
+              {showHebrew
+                ? "שימו לב לאילוצים הבאים בפתרון שלכם:"
+                : "Pay attention to the following constraints in your solution:"}
+            </p>
+            <ul className="space-y-2" dir={showHebrew ? "rtl" : "ltr"}>
+              {displayItems.map((item, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <AlertCircle className="h-3.5 w-3.5 mt-0.5 text-warning shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   )
 }
 
@@ -528,23 +619,7 @@ export function QuestionPanel({
 
       {/* Constraints */}
       {question.constraints && (
-        <>
-          <Separator className="bg-border/50" />
-          <div className="space-y-3">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <span className="w-1 h-5 rounded-full bg-warning" />
-              Constraints
-            </h2>
-            <Card className="bg-warning/5 border-warning/30 neon-border" style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-              <CardContent className="pt-4 text-sm text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-0.5 text-warning shrink-0" />
-                  <span>{question.constraints}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </>
+        <ConstraintsSection constraints={question.constraints} />
       )}
 
       {/* Hints */}

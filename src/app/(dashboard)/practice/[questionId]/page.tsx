@@ -38,6 +38,7 @@ import {
   ResultsPanel,
   ActionBar,
 } from "@/components/practice"
+import { deriveResultState } from "@/components/practice/results-panel"
 import {
   ChevronLeft,
   PanelLeftClose,
@@ -650,7 +651,11 @@ export default function PracticePage({
           transition={{ duration: 0.4, delay: 0.2 }}
           className={cn(
             "glass-card flex flex-col transition-all duration-300 overflow-hidden min-h-0",
-            isPanelCollapsed ? "w-0 overflow-hidden opacity-0" : "w-[400px] xl:w-[480px]"
+            isPanelCollapsed
+              ? "w-0 overflow-hidden opacity-0"
+              : activeTab === "feedback" && deriveResultState(result) === "FAILURE"
+                ? "w-[700px] xl:w-[780px]"
+                : "w-[400px] xl:w-[480px]"
           )}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">

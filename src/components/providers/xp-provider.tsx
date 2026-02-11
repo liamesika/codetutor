@@ -63,10 +63,13 @@ export function XpProvider({ children }: { children: ReactNode }) {
   })
 
   const refreshXp = useCallback(async () => {
-    // Invalidate and refetch XP data
-    await queryClient.invalidateQueries({ queryKey: ["user-xp"] })
-    await queryClient.invalidateQueries({ queryKey: ["user-progress"] })
-    await queryClient.invalidateQueries({ queryKey: ["user-stats"] })
+    // Invalidate and refetch ALL XP-related queries to keep everything in sync
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["user-xp"] }),
+      queryClient.invalidateQueries({ queryKey: ["user-progress"] }),
+      queryClient.invalidateQueries({ queryKey: ["user-stats"] }),
+      queryClient.invalidateQueries({ queryKey: ["userStats"] }),
+    ])
   }, [queryClient])
 
   const canAfford = useCallback((cost: number) => {
@@ -74,7 +77,7 @@ export function XpProvider({ children }: { children: ReactNode }) {
   }, [state?.xp])
 
   const value = useMemo(() => ({
-    state: state ?? defaultState,
+    state: state ?? (isLoading ? null : defaultState),
     isLoading,
     error: error as Error | null,
     refreshXp,

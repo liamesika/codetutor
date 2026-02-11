@@ -16,37 +16,12 @@ export async function GET() {
 
     const userId = session.user.id
 
-    // Get total points
-    const pointsResult = await db.pointsLedger.aggregate({
+    // Get XP from UserProgress (single source of truth, same as /api/progression)
+    const userProgress = await db.userProgress.findUnique({
       where: { userId },
-      _sum: { amount: true },
     })
-    const totalPoints = pointsResult._sum.amount || 0
-
-    // Get topic stats for streak calculation
-    const topicStats = await db.userTopicStats.findMany({
-      where: { userId },
-      orderBy: { lastAttemptAt: "desc" },
-    })
-
-    // Calculate streak (days with activity)
-    let streak = 0
-    if (topicStats.length > 0 && topicStats[0].lastAttemptAt) {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      const lastAttempt = new Date(topicStats[0].lastAttemptAt)
-      lastAttempt.setHours(0, 0, 0, 0)
-
-      const dayDiff = Math.floor(
-        (today.getTime() - lastAttempt.getTime()) / (1000 * 60 * 60 * 24)
-      )
-
-      if (dayDiff <= 1) {
-        // Count consecutive days
-        streak = Math.max(...topicStats.map((s) => s.streak), 1)
-      }
-    }
+    const totalPoints = userProgress?.xp ?? 0
+    const streak = userProgress?.currentStreak ?? 0
 
     // Get attempts summary
     const attemptsCount = await db.attempt.count({

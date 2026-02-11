@@ -15,21 +15,21 @@ const analyzeSchema = z.object({
   questionId: z.string(),
   assignmentId: z.string().optional(),
   code: z.string().max(50000, "Code too long"),
-  compileError: z.string().nullable(),
-  runtimeError: z.string().nullable(),
-  stderr: z.string().nullable(),
+  compileError: z.string().nullable().optional().transform(v => v ?? null),
+  runtimeError: z.string().nullable().optional().transform(v => v ?? null),
+  stderr: z.string().nullable().optional().transform(v => v ?? null),
   testResults: z.array(
     z.object({
       testIndex: z.number(),
       input: z.string(),
       expected: z.string(),
-      actual: z.string().nullable(),
+      actual: z.string().nullable().optional().transform(v => v ?? null),
       passed: z.boolean(),
-      error: z.string().nullable(),
+      error: z.string().nullable().optional().transform(v => v ?? null),
       isHidden: z.boolean().optional(),
     })
   ),
-  executionMs: z.number().nullable(),
+  executionMs: z.number().nullable().optional().transform(v => v ?? null),
   status: z.string(),
 })
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,17 +18,16 @@ import {
   Lightbulb,
   Code2,
   Terminal,
-  ChevronRight,
   MemoryStick,
   AlertCircle,
   Loader2,
   Home,
   RefreshCw,
-  Brain,
-  Crown,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MentorPanel } from "@/components/mentor/mentor-panel"
+import { MentorLockedOverlay } from "@/components/mentor/mentor-locked-overlay"
+import { useEntitlement } from "@/lib/hooks"
 
 interface TestResult {
   testIndex: number
@@ -75,7 +74,7 @@ interface ResultsPanelProps {
 // Derive state from result - SINGLE SOURCE OF TRUTH
 type ResultState = "SUCCESS" | "FAILURE" | "NO_TESTS" | "LOADING" | "EMPTY"
 
-function deriveResultState(result: ExecutionResult | null, isLoading?: boolean): ResultState {
+export function deriveResultState(result: ExecutionResult | null, isLoading?: boolean): ResultState {
   if (isLoading) return "LOADING"
   if (!result) return "EMPTY"
 
@@ -107,7 +106,7 @@ export function ResultsPanel({
   code,
 }: ResultsPanelProps) {
   const nextButtonRef = useRef<HTMLButtonElement>(null)
-  const [showMentor, setShowMentor] = useState(false)
+  const { isPro } = useEntitlement()
   const state = deriveResultState(result, isLoading)
 
   // Derive test counts from actual test results
@@ -549,40 +548,42 @@ export function ResultsPanel({
       return a.passed ? 1 : -1
     })
 
+    const hasMentorContext = !!questionId && !!code
+
     return (
       <ScrollArea className="h-full scrollbar-thin">
-        <div className="p-4 md:p-6 space-y-6 pb-safe">
-          {/* Failure Header */}
+        <div className="p-4 md:p-6 space-y-4 pb-safe">
+          {/* Failure Header - full width */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "relative p-5 rounded-2xl border-2 overflow-hidden",
+              "relative p-4 rounded-2xl border-2 overflow-hidden",
               headerBg,
               headerBorder
             )}
           >
-            <div className="relative flex items-center gap-4">
+            <div className="relative flex items-center gap-3">
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                className={cn("h-14 w-14 rounded-xl flex items-center justify-center shrink-0", iconBg)}
+                className={cn("h-12 w-12 rounded-xl flex items-center justify-center shrink-0", iconBg)}
               >
-                <HeaderIcon className={cn("h-7 w-7", headerColor)} />
+                <HeaderIcon className={cn("h-6 w-6", headerColor)} />
               </motion.div>
 
               <div className="flex-1">
-                <h2 className={cn("text-xl font-bold", headerColor)}>
+                <h2 className={cn("text-lg font-bold", headerColor)}>
                   {headerLabel}
                 </h2>
-                <div className="flex items-center gap-2 mt-2 flex-wrap">
-                  <Badge variant="secondary" className="gap-1 bg-background/50">
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <Badge variant="secondary" className="gap-1 bg-background/50 text-xs">
                     <CheckCircle2 className="h-3 w-3" />
                     {passedTests}/{totalTests} tests
                   </Badge>
                   {result.executionMs !== null && (
-                    <Badge variant="outline" className="gap-1 border-border/50">
+                    <Badge variant="outline" className="gap-1 border-border/50 text-xs">
                       <Clock className="h-3 w-3" />
                       {result.executionMs}ms
                     </Badge>
@@ -592,293 +593,259 @@ export function ResultsPanel({
             </div>
           </motion.div>
 
-          {/* Compile error with helpful info */}
-          {result.compileError && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              <Card className="border-amber-500/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-amber-500 flex items-center gap-2">
-                    <Code2 className="h-4 w-4" />
-                    Compilation Error
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="text-sm overflow-x-auto p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg whitespace-pre-wrap font-mono text-amber-200">
-                    {result.compileError}
-                  </pre>
-                </CardContent>
-              </Card>
-
-              {/* How to fix section */}
-              <Card className="border-muted">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Lightbulb className="h-4 w-4 text-primary" />
-                    <span className="font-medium text-sm">How to Fix</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Check the error message for the line number and error type.
-                    Common issues include:
-                  </p>
-                  <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary">•</span>
-                      Missing semicolons at the end of statements
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary">•</span>
-                      Unmatched brackets or parentheses
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary">•</span>
-                      Typos in variable or method names
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Runtime output - stderr prominently displayed */}
-          {(result.stdout || result.stderr) && !result.compileError && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Terminal className="h-4 w-4" />
-                    Output
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Show stderr first (prominently) on failure */}
-                  {result.stderr && (
-                    <div>
-                      <p className="text-xs text-destructive mb-1 font-medium">stderr:</p>
-                      <pre className="text-sm overflow-x-auto p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive whitespace-pre-wrap font-mono">
-                        {result.stderr}
-                      </pre>
-                    </div>
-                  )}
-                  {result.stdout && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">stdout:</p>
-                      <pre className="text-sm overflow-x-auto p-3 bg-muted rounded-lg whitespace-pre-wrap font-mono">
-                        {result.stdout}
-                      </pre>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Test results - failed tests first */}
-          {sortedTests.length > 0 && !result.compileError && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Separator className="my-4" />
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Terminal className="h-4 w-4 text-muted-foreground" />
-                    Test Results
-                  </h3>
-                  <Badge variant="secondary">
-                    {passedTests}/{totalTests} passed
-                  </Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <AnimatePresence mode="popLayout">
-                    {sortedTests.map((test, index) => (
-                      <motion.div
-                        key={test.testIndex}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <Card
-                          className={cn(
-                            "border",
-                            test.passed
-                              ? "border-green-500/30 bg-green-500/5"
-                              : "border-red-500/30 bg-red-500/5"
-                          )}
-                        >
-                          <CardHeader className="py-3 pb-2">
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                {test.passed ? (
-                                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-red-500" />
-                                )}
-                                Test Case {test.testIndex + 1}
-                                {test.isHidden && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Hidden
-                                  </Badge>
-                                )}
-                              </CardTitle>
-                              <Badge
-                                variant={test.passed ? "default" : "destructive"}
-                                className="text-xs"
-                              >
-                                {test.passed ? "PASSED" : "FAILED"}
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          {!test.isHidden && (
-                            <CardContent className="py-2 space-y-2 text-sm">
-                              {test.input && (
-                                <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
-                                  <span className="text-muted-foreground">Input:</span>
-                                  <code className="bg-muted px-2 py-1 rounded font-mono text-xs">
-                                    {test.input || "(none)"}
-                                  </code>
-                                </div>
-                              )}
-                              <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
-                                <span className="text-muted-foreground">Expected:</span>
-                                <code className="bg-muted px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
-                                  {test.expected}
-                                </code>
-                              </div>
-                              {!test.passed && test.actual !== null && (
-                                <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
-                                  <span className="text-red-500">Actual:</span>
-                                  <code className="bg-red-500/10 text-red-400 px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
-                                    {test.actual || "(empty)"}
-                                  </code>
-                                </div>
-                              )}
-                              {test.error && (
-                                <div className="text-red-400 text-xs mt-2 flex items-start gap-2">
-                                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
-                                  {test.error}
-                                </div>
-                              )}
-                            </CardContent>
-                          )}
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* AI Mentor Panel */}
-          {showMentor && questionId && code && result && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <MentorPanel
-                questionId={questionId}
-                assignmentId={assignmentId}
-                code={code}
-                testResults={result.testResults}
-                compileError={result.compileError}
-                runtimeError={result.stderr}
-                stderr={result.stderr}
-                executionMs={result.executionMs}
-                status={result.status}
-                onClose={() => setShowMentor(false)}
-              />
-            </motion.div>
-          )}
-
-          {/* Action buttons - sticky on mobile */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="pt-4 space-y-4 sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pb-4 -mb-4"
-          >
-            {/* Ask Mentor Button - only show if not already showing mentor panel */}
-            {!showMentor && questionId && code && (
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  onClick={() => setShowMentor(true)}
-                  className="w-full gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6"
-                  size="lg"
+          {/* Split layout: Error details + Mentor */}
+          <div className="flex flex-col xl:flex-row gap-4">
+            {/* Left column: Error details & test results */}
+            <div className="flex-1 min-w-0 space-y-4">
+              {/* Compile error with helpful info */}
+              {result.compileError && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-3"
                 >
-                  <Brain className="h-5 w-5" />
-                  Ask AI Mentor
-                  <Badge variant="secondary" className="ml-1 bg-white/20 text-white border-0 text-[10px] px-1.5 py-0">
-                    <Crown className="h-2.5 w-2.5 mr-0.5" />
-                    PRO
-                  </Badge>
-                </Button>
+                  <Card className="border-amber-500/30">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-amber-500 flex items-center gap-2">
+                        <Code2 className="h-4 w-4" />
+                        Compilation Error
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <pre className="text-sm overflow-x-auto p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg whitespace-pre-wrap font-mono text-amber-200">
+                        {result.compileError}
+                      </pre>
+                    </CardContent>
+                  </Card>
+
+                  {/* How to fix section */}
+                  <Card className="border-muted">
+                    <CardContent className="pt-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-sm">How to Fix</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Check the error message for the line number and error type.
+                        Common issues include:
+                      </p>
+                      <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary">•</span>
+                          Missing semicolons at the end of statements
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary">•</span>
+                          Unmatched brackets or parentheses
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary">•</span>
+                          Typos in variable or method names
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Runtime output - stderr prominently displayed */}
+              {(result.stdout || result.stderr) && !result.compileError && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Terminal className="h-4 w-4" />
+                        Output
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {/* Show stderr first (prominently) on failure */}
+                      {result.stderr && (
+                        <div>
+                          <p className="text-xs text-destructive mb-1 font-medium">stderr:</p>
+                          <pre className="text-sm overflow-x-auto p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive whitespace-pre-wrap font-mono">
+                            {result.stderr}
+                          </pre>
+                        </div>
+                      )}
+                      {result.stdout && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">stdout:</p>
+                          <pre className="text-sm overflow-x-auto p-3 bg-muted rounded-lg whitespace-pre-wrap font-mono">
+                            {result.stdout}
+                          </pre>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Test results - failed tests first */}
+              {sortedTests.length > 0 && !result.compileError && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-sm flex items-center gap-2">
+                        <Terminal className="h-4 w-4 text-muted-foreground" />
+                        Test Results
+                      </h3>
+                      <Badge variant="secondary" className="text-xs">
+                        {passedTests}/{totalTests} passed
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-2">
+                      <AnimatePresence mode="popLayout">
+                        {sortedTests.map((test, index) => (
+                          <motion.div
+                            key={test.testIndex}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            <Card
+                              className={cn(
+                                "border",
+                                test.passed
+                                  ? "border-green-500/30 bg-green-500/5"
+                                  : "border-red-500/30 bg-red-500/5"
+                              )}
+                            >
+                              <CardHeader className="py-3 pb-2">
+                                <div className="flex items-center justify-between">
+                                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    {test.passed ? (
+                                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                    ) : (
+                                      <XCircle className="h-4 w-4 text-red-500" />
+                                    )}
+                                    Test Case {test.testIndex + 1}
+                                    {test.isHidden && (
+                                      <Badge variant="outline" className="text-xs">
+                                        Hidden
+                                      </Badge>
+                                    )}
+                                  </CardTitle>
+                                  <Badge
+                                    variant={test.passed ? "default" : "destructive"}
+                                    className="text-xs"
+                                  >
+                                    {test.passed ? "PASSED" : "FAILED"}
+                                  </Badge>
+                                </div>
+                              </CardHeader>
+                              {!test.isHidden && (
+                                <CardContent className="py-2 space-y-2 text-sm">
+                                  {test.input && (
+                                    <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                      <span className="text-muted-foreground">Input:</span>
+                                      <code className="bg-muted px-2 py-1 rounded font-mono text-xs">
+                                        {test.input || "(none)"}
+                                      </code>
+                                    </div>
+                                  )}
+                                  <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                    <span className="text-muted-foreground">Expected:</span>
+                                    <code className="bg-muted px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
+                                      {test.expected}
+                                    </code>
+                                  </div>
+                                  {!test.passed && test.actual !== null && (
+                                    <div className="grid grid-cols-[80px_1fr] gap-2 items-start">
+                                      <span className="text-red-500">Actual:</span>
+                                      <code className="bg-red-500/10 text-red-400 px-2 py-1 rounded font-mono text-xs whitespace-pre-wrap">
+                                        {test.actual || "(empty)"}
+                                      </code>
+                                    </div>
+                                  )}
+                                  {test.error && (
+                                    <div className="text-red-400 text-xs mt-2 flex items-start gap-2">
+                                      <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+                                      {test.error}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              )}
+                            </Card>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Action buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="pt-2 space-y-3"
+              >
+                {/* Primary CTA: Try Again */}
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={onRetry}
+                    variant="outline"
+                    className="w-full gap-2 neon-border hover:neon-glow transition-all duration-300 py-5"
+                    size="lg"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Try Again
+                  </Button>
+                </motion.div>
+
+                {/* Secondary CTA: View Hint */}
+                {onViewHint && (
+                  <Button
+                    onClick={onViewHint}
+                    variant="ghost"
+                    className="w-full gap-2 text-muted-foreground"
+                    size="sm"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    View Hint
+                  </Button>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Right column: AI Mentor */}
+            {hasMentorContext && (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+                className="xl:w-[320px] xl:shrink-0"
+              >
+                {isPro ? (
+                  <MentorPanel
+                    questionId={questionId}
+                    assignmentId={assignmentId}
+                    code={code}
+                    testResults={result.testResults}
+                    compileError={result.compileError}
+                    runtimeError={result.stderr}
+                    stderr={result.stderr}
+                    executionMs={result.executionMs}
+                    status={result.status}
+                    autoTrigger
+                    showClose={false}
+                  />
+                ) : (
+                  <MentorLockedOverlay />
+                )}
               </motion.div>
             )}
-
-            {/* Next steps guidance */}
-            {!showMentor && (
-              <Card className="border-border/50 bg-accent/30">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                      <ChevronRight className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium text-sm">Next Steps</span>
-                  </div>
-                  <ul className="text-sm text-muted-foreground space-y-2">
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">1</span>
-                      Review the failing test cases above
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">2</span>
-                      Compare expected vs actual output
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0">3</span>
-                      Check for edge cases and off-by-one errors
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Primary CTA: Try Again */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                onClick={onRetry}
-                variant="outline"
-                className="w-full gap-2 neon-border hover:neon-glow transition-all duration-300 py-6"
-                size="lg"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Try Again
-              </Button>
-            </motion.div>
-
-            {/* Secondary CTA: View Hint */}
-            {onViewHint && (
-              <Button
-                onClick={onViewHint}
-                variant="ghost"
-                className="w-full gap-2 text-muted-foreground"
-                size="sm"
-              >
-                <Lightbulb className="h-4 w-4" />
-                View Hint
-              </Button>
-            )}
-          </motion.div>
+          </div>
         </div>
       </ScrollArea>
     )
