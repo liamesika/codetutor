@@ -181,44 +181,44 @@ function generateFallbackResponse(classification: ClassificationOutput): Omit<Me
 
   const categoryAdvice: Record<MentorErrorCategory, { diagnosis: string; hint: string }> = {
     SYNTAX: {
-      diagnosis: "Your code has a syntax error that prevents it from compiling.",
-      hint: "Read the error message carefully - it usually points to the exact line and type of error.",
+      diagnosis: "יש שגיאת תחביר בקוד שלכם שמונעת קומפילציה.",
+      hint: "קראו את הודעת השגיאה בזהירות - היא בדרך כלל מצביעה על השורה המדויקת וסוג השגיאה.",
     },
     LOGIC: {
-      diagnosis: "Your code compiles but produces incorrect results.",
-      hint: "Try tracing through your algorithm with a simple example on paper.",
+      diagnosis: "הקוד שלכם עובר קומפילציה אבל מחזיר תוצאות שגויות.",
+      hint: "נסו לעקוב אחרי האלגוריתם שלכם עם דוגמה פשוטה על דף.",
     },
     EDGE_CASE: {
-      diagnosis: "Your code fails on certain edge cases or boundary conditions.",
-      hint: "Consider what happens with empty input, single elements, or extreme values.",
+      diagnosis: "הקוד שלכם נכשל במקרי קצה או תנאי גבול מסוימים.",
+      hint: "חשבו מה קורה עם קלט ריק, איבר בודד, או ערכים קיצוניים.",
     },
     TIMEOUT: {
-      diagnosis: "Your code takes too long to execute, possibly due to an infinite loop.",
-      hint: "Check that your loops have correct termination conditions.",
+      diagnosis: "הקוד שלכם רץ זמן רב מדי, ייתכן בגלל לולאה אינסופית.",
+      hint: "בדקו שללולאות שלכם יש תנאי עצירה נכון.",
     },
     OUTPUT_FORMAT: {
-      diagnosis: "Your logic may be correct but the output format doesn't match exactly.",
-      hint: "Check spacing, newlines, and exact formatting requirements.",
+      diagnosis: "הלוגיקה שלכם אולי נכונה אבל פורמט הפלט לא תואם בדיוק.",
+      hint: "בדקו רווחים, שורות חדשות ודרישות הפורמט המדויקות.",
     },
     NULL_HANDLING: {
-      diagnosis: "Your code crashes when encountering null or empty values.",
-      hint: "Add checks for null or empty input before processing.",
+      diagnosis: "הקוד שלכם קורס כשהוא נתקל בערכי null או ערכים ריקים.",
+      hint: "הוסיפו בדיקות עבור null או קלט ריק לפני העיבוד.",
     },
     OFF_BY_ONE: {
-      diagnosis: "Your answer is very close but off by one, likely a loop boundary issue.",
-      hint: "Check your loop start and end conditions carefully.",
+      diagnosis: "התשובה שלכם קרובה מאוד אבל חורגת באחד, כנראה בעיית גבולות לולאה.",
+      hint: "בדקו את תנאי ההתחלה והסיום של הלולאה בזהירות.",
     },
     TYPE_ERROR: {
-      diagnosis: "There's a type mismatch or conversion issue in your code.",
-      hint: "Review the data types you're using and ensure they're compatible.",
+      diagnosis: "יש אי-התאמה בטיפוסים או בעיית המרה בקוד שלכם.",
+      hint: "בדקו את סוגי הנתונים שאתם משתמשים בהם וודאו שהם תואמים.",
     },
     RUNTIME_ERROR: {
-      diagnosis: "Your code crashes during execution with a runtime exception.",
-      hint: "Identify what input causes the crash and add appropriate checks.",
+      diagnosis: "הקוד שלכם קורס בזמן ריצה עם חריגה (exception).",
+      hint: "זהו איזה קלט גורם לקריסה והוסיפו בדיקות מתאימות.",
     },
     OTHER: {
-      diagnosis: "There's an issue with your submission that needs investigation.",
-      hint: "Review the test output and compare with expected results.",
+      diagnosis: "יש בעיה בהגשה שלכם שדורשת בדיקה.",
+      hint: "בדקו את פלט הטסטים והשוו עם התוצאות הצפויות.",
     },
   }
 
@@ -229,20 +229,20 @@ function generateFallbackResponse(classification: ClassificationOutput): Omit<Me
     shortDiagnosis: advice.diagnosis,
     reasoningHint: advice.hint,
     guidingQuestions: [
-      "What is the expected output for the simplest possible input?",
-      "Can you trace through your code line by line with a specific example?",
+      "מהו הפלט הצפוי עבור הקלט הפשוט ביותר?",
+      "האם אתם יכולים לעקוב אחרי הקוד שלכם שורה אחרי שורה עם דוגמה ספציפית?",
     ],
     progressiveHints: [
       suggestedFocus,
-      keySignals.length > 0 ? `Focus on: ${keySignals[0]}` : "Review your logic step by step",
+      keySignals.length > 0 ? `התמקדו ב: ${keySignals[0]}` : "עברו על הלוגיקה שלכם צעד אחרי צעד",
       testAnalysis.passedTests > 0
-        ? `You've passed ${testAnalysis.passedTests} tests - you're close! Check what's different about the failing cases.`
-        : "Start by making sure your code handles the basic case correctly.",
+        ? `עברתם ${testAnalysis.passedTests} טסטים - אתם קרובים! בדקו מה שונה במקרים שנכשלו.`
+        : "התחילו בלוודא שהקוד שלכם מטפל נכון במקרה הבסיסי.",
     ],
     nextActions: [
-      "Add print statements to trace variable values",
-      "Test with the simplest possible input first",
-      "Compare your output character-by-character with expected output",
+      "הוסיפו הדפסות כדי לעקוב אחרי ערכי המשתנים",
+      "בדקו עם הקלט הפשוט ביותר קודם",
+      "השוו את הפלט שלכם תו-בתו עם הפלט הצפוי",
     ],
     confidence: 50,
   }
