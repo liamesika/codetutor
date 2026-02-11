@@ -35,10 +35,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Use raw SQL to avoid Prisma schema validation issues with studentExternalId
+        const normalizedEmail = credentials.email.toLowerCase()
         const users = await db.$queryRaw<RawUser[]>`
           SELECT id, email, name, image, password, role
           FROM "User"
-          WHERE email = ${credentials.email}
+          WHERE LOWER(email) = ${normalizedEmail}
           LIMIT 1
         `
 

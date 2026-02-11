@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -20,7 +20,6 @@ import {
   ArrowRight,
   Sparkles,
   Crown,
-  Zap,
   Code2,
   BookOpen,
   Target,
@@ -44,12 +43,6 @@ const signupSchema = z.object({
 
 type SignupForm = z.infer<typeof signupSchema>
 
-const freeFeatures = [
-  { icon: Code2, text: "Day 1 — Fundamentals Preview" },
-  { icon: Zap, text: "Real-time code execution" },
-  { icon: Target, text: "Progress tracking" },
-]
-
 const basicFeatures = [
   { icon: BookOpen, text: "All 10 days + past exams" },
   { icon: Code2, text: "All exercises & practice" },
@@ -65,10 +58,16 @@ const proFeatures = [
 function SignupFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const selectedPlan = searchParams.get("plan") || "free"
-  const isPro = selectedPlan === "pro"
-  const isBasic = selectedPlan === "basic"
-  const isPaid = isPro || isBasic
+  const planParam = searchParams.get("plan")
+  const isPro = planParam === "pro"
+  const selectedPlan = isPro ? "pro" : "basic"
+
+  // Redirect to pricing if no valid plan selected
+  useEffect(() => {
+    if (!planParam || (planParam !== "basic" && planParam !== "pro")) {
+      router.replace("/pricing")
+    }
+  }, [planParam, router])
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -119,22 +118,18 @@ function SignupFormContent() {
 
       // Auto sign in after registration
       const signInResult = await signIn("credentials", {
-        email: data.email,
+        email: data.email.toLowerCase(),
         password: data.password,
         redirect: false,
       })
 
       if (signInResult?.error) {
+        // If auto-login fails, still redirect to login (account was created)
         router.push("/login")
         return
       }
 
-      // Redirect to upgrade if paid plan selected, otherwise dashboard
-      if (isPaid) {
-        router.push("/upgrade")
-      } else {
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
       router.refresh()
     } catch {
       setError("Something went wrong. Please try again.")
@@ -142,9 +137,9 @@ function SignupFormContent() {
     }
   }
 
-  const features = isPro ? proFeatures : isBasic ? basicFeatures : freeFeatures
-  const planLabel = isPro ? "PRO" : isBasic ? "BASIC" : "FREE"
-  const planColor = isPro ? "#F59E0B" : isBasic ? "#8B5CF6" : "#22D3EE"
+  const features = isPro ? proFeatures : basicFeatures
+  const planLabel = isPro ? "PRO" : "BASIC"
+  const planColor = isPro ? "#F59E0B" : "#8B5CF6"
 
   return (
     <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
@@ -164,18 +159,11 @@ function SignupFormContent() {
                   PRO Power
                 </span>
               </>
-            ) : isBasic ? (
+            ) : (
               <>
                 Get{" "}
                 <span className="bg-linear-to-r from-[#8B5CF6] to-[#6366F1] bg-clip-text text-transparent">
                   Full Practice
-                </span>
-              </>
-            ) : (
-              <>
-                Start Your{" "}
-                <span className="bg-linear-to-r from-[#4F46E5] to-[#22D3EE] bg-clip-text text-transparent">
-                  Journey
                 </span>
               </>
             )}
@@ -183,9 +171,7 @@ function SignupFormContent() {
           <p className="text-lg text-[#9CA3AF]">
             {isPro
               ? "All 10 days, past exams, and AI Mentor — everything you need."
-              : isBasic
-              ? "All 10 days of practice plus past exams to ace your test."
-              : "Preview Day 1 fundamentals and see what the marathon offers."}
+              : "All 10 days of practice plus past exams to ace your test."}
           </p>
         </div>
 
@@ -253,7 +239,7 @@ function SignupFormContent() {
                 color: planColor
               }}
             >
-              {isPro ? <Crown className="h-4 w-4" /> : isBasic ? <BookOpen className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+              {isPro ? <Crown className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
               Selected plan: {planLabel}
             </div>
           </motion.div>
@@ -262,7 +248,7 @@ function SignupFormContent() {
           <div className="lg:hidden text-center mb-6">
             <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
             <p className="text-[#9CA3AF]">
-              {isPro ? "Get full PRO access" : isBasic ? "Get full practice access" : "Start learning Java free"}
+              {isPro ? "Get full PRO access" : "Get full practice access"}
             </p>
           </div>
 
@@ -422,10 +408,8 @@ function SignupFormContent() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Creating account...
                 </>
-              ) : isPaid ? (
-                "Create Account to Upgrade"
               ) : (
-                "Create Free Account"
+                "Create Account"
               )}
             </NeonButton>
           </form>
