@@ -824,7 +824,7 @@ export function ResultsPanel({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.15 }}
-                className="xl:w-[380px] xl:shrink-0"
+                className="xl:flex-1"
               >
                 {isPro ? (
                   <MentorPanel

@@ -19,6 +19,7 @@ import {
   Circle,
   GraduationCap,
   LayoutDashboard,
+  ScrollText,
   Settings,
   Trophy,
   GitBranch,
@@ -120,6 +121,17 @@ export function Sidebar({ weeks, currentCourse, courseSlug, isLoading }: Sidebar
             Dashboard
           </Button>
         </Link>
+        {courseSlug === "cs-exam-marathon" && (
+          <Link href="/dashboard?tab=theory">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+            >
+              <ScrollText className="mr-2 h-4 w-4" />
+              סיכום חומר
+            </Button>
+          </Link>
+        )}
         <Link href="/skills">
           <Button
             variant={pathname === "/skills" ? "secondary" : "ghost"}

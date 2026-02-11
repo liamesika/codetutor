@@ -654,7 +654,7 @@ export default function PracticePage({
             isPanelCollapsed
               ? "w-0 overflow-hidden opacity-0"
               : activeTab === "feedback" && deriveResultState(result) === "FAILURE"
-                ? "w-[780px] xl:w-[860px]"
+                ? "flex-1"
                 : "w-[400px] xl:w-[480px]"
           )}
         >

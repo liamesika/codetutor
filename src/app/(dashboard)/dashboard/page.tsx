@@ -551,7 +551,7 @@ export default function DashboardPage() {
   const queryClient = useQueryClient()
   const { data: courses, isLoading: coursesLoading } = useCourses()
   const { data: stats, isLoading: statsLoading } = useUserStats()
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "overview")
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false)
 
   // Check for purchase success
