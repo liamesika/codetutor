@@ -20,7 +20,7 @@ export function MentorLockedOverlay({ className }: MentorLockedOverlayProps) {
             <Brain className="h-4 w-4 text-white" />
           </div>
           <div>
-            <CardTitle className="text-base">AI Mentor</CardTitle>
+            <CardTitle className="text-base">מנטור AI</CardTitle>
             <p className="text-xs text-muted-foreground">משוב מותאם אישית על הקוד שלכם</p>
           </div>
         </div>
@@ -46,7 +46,7 @@ export function MentorLockedOverlay({ className }: MentorLockedOverlayProps) {
             <Lock className="h-8 w-8 text-purple-400" />
           </motion.div>
 
-          <h3 className="text-lg font-bold mb-2">AI Mentor הוא פיצ&#39;ר PRO</h3>
+          <h3 className="text-lg font-bold mb-2">המנטור הוא פיצ&#39;ר PRO</h3>
           <p className="text-sm text-muted-foreground mb-4 leading-relaxed max-w-xs mx-auto">
             שדרגו ל-PRO כדי לקבל משוב מותאם אישית מבוסס AI,
             רמזים מדורגים, וניפוי באגים מודרך לכל שאלה.

@@ -184,7 +184,7 @@ export function MentorPanel({
         if (error.error === "Invalid input") {
           throw new Error("שגיאה בשליחת הנתונים למנטור. נסו להריץ את הקוד שוב.")
         }
-        throw new Error(error.error || "Failed to get mentor feedback")
+        throw new Error(error.error || "שגיאה בקבלת משוב מהמנטור")
       }
 
       return res.json() as Promise<MentorResponse>
@@ -222,7 +222,7 @@ export function MentorPanel({
 
       if (!res.ok) {
         const error = await res.json()
-        throw new Error(error.error || "Failed to get response")
+        throw new Error(error.error || "שגיאה בקבלת תגובה מהמנטור")
       }
 
       return res.json() as Promise<{ message: string }>
@@ -280,7 +280,7 @@ export function MentorPanel({
               <Brain className="h-4 w-4 text-white" />
             </div>
             <div>
-              <CardTitle className="text-base">AI Mentor</CardTitle>
+              <CardTitle className="text-base">מנטור AI</CardTitle>
               <p className="text-xs text-muted-foreground">קבלו עזרה מותאמת אישית</p>
             </div>
           </div>
@@ -313,7 +313,7 @@ export function MentorPanel({
             >
               <Crown className="h-8 w-8 text-purple-400" />
             </motion.div>
-            <h3 className="text-lg font-bold mb-2">AI Mentor הוא פיצ&#39;ר PRO</h3>
+            <h3 className="text-lg font-bold mb-2">המנטור הוא פיצ&#39;ר PRO</h3>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed max-w-xs mx-auto">
               שדרגו ל-PRO כדי לקבל משוב מותאם אישית מבוסס AI,
               רמזים מדורגים, וניפוי באגים מודרך לכל שאלה.
@@ -391,8 +391,8 @@ export function MentorPanel({
                 <Badge className={cn("text-xs", categoryColors[mutation.data.errorCategory])}>
                   {categoryLabels[mutation.data.errorCategory] || mutation.data.errorCategory}
                 </Badge>
-                <span className="text-xs text-muted-foreground" dir="ltr">
-                  {mutation.data.testAnalysis.passedTests}/{mutation.data.testAnalysis.totalTests} tests passed
+                <span className="text-xs text-muted-foreground">
+                  {mutation.data.testAnalysis.passedTests}/{mutation.data.testAnalysis.totalTests} טסטים עברו
                 </span>
               </div>
 

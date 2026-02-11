@@ -552,7 +552,7 @@ export function ResultsPanel({
 
     return (
       <ScrollArea className="h-full scrollbar-thin">
-        <div className="p-4 md:p-6 space-y-4 pb-safe">
+        <div className="p-4 md:p-6 space-y-4 pb-16">
           {/* Failure Header - full width */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -824,7 +824,7 @@ export function ResultsPanel({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.15 }}
-                className="xl:w-[320px] xl:shrink-0"
+                className="xl:w-[380px] xl:shrink-0"
               >
                 {isPro ? (
                   <MentorPanel

@@ -11,6 +11,44 @@ function getResend() {
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@codetutor.dev"
 const FROM_EMAIL = "CodeTutor <onboarding@resend.dev>"
 
+export async function sendRegistrationConfirmation({
+  email,
+  name,
+  plan,
+}: {
+  email: string
+  name: string
+  plan: string
+}) {
+  try {
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: "ברוכים הבאים ל-CodeTutor! 🎓",
+      html: `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2563EB;">🎉 ברוך הבא, ${name}!</h2>
+          <p>ההרשמה שלך ל-CodeTutor הושלמה בהצלחה.</p>
+          <div style="background: #EFF6FF; border: 1px solid #93C5FD; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p><strong>אימייל:</strong> ${email}</p>
+            <p><strong>מסלול:</strong> ${plan === "PRO" ? "PRO - כולל AI Mentor" : "BASIC"}</p>
+          </div>
+          <p>אתה מוכן להתחיל ללמוד! היכנס לפלטפורמה והתחל לתרגל:</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${process.env.NEXTAUTH_URL || "https://codetutor.co.il"}/dashboard"
+               style="background: #2563EB; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+              התחל ללמוד
+            </a>
+          </div>
+          <p style="color: #6B7280; font-size: 14px;">בהצלחה! 🚀<br/>צוות CodeTutor</p>
+        </div>
+      `,
+    })
+  } catch (error) {
+    console.error("Failed to send registration confirmation email:", error)
+  }
+}
+
 export async function sendNewDeviceAlert({
   userEmail,
   userName,

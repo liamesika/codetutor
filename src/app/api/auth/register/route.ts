@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { db } from "@/lib/db"
+import { sendRegistrationConfirmation } from "@/lib/email"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -62,6 +63,13 @@ export async function POST(req: NextRequest) {
         status: "ACTIVE",
         grantedReason: "registration",
       },
+    })
+
+    // Send registration confirmation email (fire-and-forget)
+    sendRegistrationConfirmation({
+      email,
+      name,
+      plan: plan === "pro" ? "PRO" : "BASIC",
     })
 
     // Log event

@@ -34,6 +34,7 @@ import {
   GitBranch,
   ClipboardList,
   FileText,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react"
 import { getSafeIcon } from "@/lib/ui-contract"
@@ -41,14 +42,18 @@ import { formatDistanceToNow } from "date-fns"
 import { ProgressHeader } from "@/components/progression/progress-header"
 import { DailyChallengeCard } from "@/components/progression/daily-challenge-card"
 import { getCourseDisplay } from "@/lib/course-config"
+import { TheorySummariesTab } from "@/components/dashboard/theory-summaries-tab"
 
 // Tab configuration
-function getDashboardTabs(unitLabelPlural: string, hasExams: boolean) {
+function getDashboardTabs(unitLabelPlural: string, hasExams: boolean, courseSlug?: string) {
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "weeks", label: unitLabelPlural, icon: Calendar },
-    { id: "homework", label: "Homework", icon: ClipboardList },
   ]
+  if (courseSlug === "cs-exam-marathon") {
+    tabs.push({ id: "theory", label: "סיכום חומר", icon: ScrollText })
+  }
+  tabs.push({ id: "homework", label: "Homework", icon: ClipboardList })
   if (hasExams) {
     tabs.push({ id: "exams", label: "Exams", icon: FileText })
   }
@@ -582,7 +587,7 @@ export default function DashboardPage() {
   const activeCourse = courses?.find((c) => c.isEnrolled && !c.isLocked)
   const weeks = activeCourse?.weeks || []
   const courseDisplay = getCourseDisplay(activeCourse?.slug)
-  const dashboardTabs = getDashboardTabs(courseDisplay.unitLabelPlural, courseDisplay.hasExams)
+  const dashboardTabs = getDashboardTabs(courseDisplay.unitLabelPlural, courseDisplay.hasExams, activeCourse?.slug)
 
   // Tab content renderer
   const renderTabContent = () => {
@@ -945,6 +950,9 @@ export default function DashboardPage() {
             )}
           </div>
         )
+
+      case "theory":
+        return <TheorySummariesTab />
 
       case "homework":
         return (
