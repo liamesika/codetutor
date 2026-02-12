@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Crown, Lock, Zap, Brain } from "lucide-react"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
 
 interface MentorLockedOverlayProps {
   className?: string
@@ -66,22 +65,13 @@ export function MentorLockedOverlay({ className }: MentorLockedOverlayProps) {
             ))}
           </div>
 
-          {process.env.NEXT_PUBLIC_PAYPLUS_UPGRADE_URL ? (
-            <Button
-              className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full"
-              onClick={() => { window.location.href = process.env.NEXT_PUBLIC_PAYPLUS_UPGRADE_URL! }}
-            >
-              <Crown className="h-4 w-4" />
-              שדרגו ל-PRO
-            </Button>
-          ) : (
-            <Link href="/pricing">
-              <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full">
-                <Crown className="h-4 w-4" />
-                שדרגו ל-PRO
-              </Button>
-            </Link>
-          )}
+          <Button
+            className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full"
+            onClick={() => { window.location.href = "https://payments.payplus.co.il/l/44b589ff-31f8-407a-bd2f-956fd33aac2a" }}
+          >
+            <Crown className="h-4 w-4" />
+            שדרגו ל-PRO
+          </Button>
         </div>
       </CardContent>
     </Card>

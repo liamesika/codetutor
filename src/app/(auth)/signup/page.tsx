@@ -124,15 +124,10 @@ function SignupFormContent() {
 
       // Redirect to PayPlus payment page
       const paymentUrl = isPro
-        ? process.env.NEXT_PUBLIC_PAYPLUS_PRO_URL
-        : process.env.NEXT_PUBLIC_PAYPLUS_BASIC_URL
+        ? "https://payments.payplus.co.il/l/44b589ff-31f8-407a-bd2f-956fd33aac2a"
+        : "https://payments.payplus.co.il/l/e1616aeb-e251-400b-b3d9-faffab14e769"
 
-      if (paymentUrl) {
-        window.location.href = paymentUrl
-      } else {
-        setError("Payment is not configured. Please contact support.")
-        setIsLoading(false)
-      }
+      window.location.href = paymentUrl
     } catch {
       setError("Something went wrong. Please try again.")
       setIsLoading(false)

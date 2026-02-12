@@ -134,7 +134,7 @@ export function SubscriptionOverlay({ weekNumber }: SubscriptionOverlayProps) {
           </div>
 
           {/* CTA */}
-          <Link href={process.env.NEXT_PUBLIC_PAYPLUS_BASIC_URL || "/upgrade"}>
+          <Link href={"https://payments.payplus.co.il/l/e1616aeb-e251-400b-b3d9-faffab14e769"}>
             <NeonButton
               className="w-full py-4 text-lg"
               rightIcon={<ChevronRight className="size-5" />}
@@ -236,7 +236,7 @@ export function WeekLockedCard({ weekNumber, title }: WeekLockedCardProps) {
         <p className="text-sm text-[#9CA3AF]">
           Unlock with{" "}
           <Link
-            href={process.env.NEXT_PUBLIC_PAYPLUS_BASIC_URL || "/upgrade"}
+            href={"https://payments.payplus.co.il/l/e1616aeb-e251-400b-b3d9-faffab14e769"}
             className="text-[#8B5CF6] hover:text-[#A78BFA] transition-colors"
           >
             Premium
