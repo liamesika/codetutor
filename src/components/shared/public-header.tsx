@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
-import { Menu, ArrowRight, LogOut, LayoutDashboard, Home } from "lucide-react"
+import { Menu, ArrowRight, LogOut, LayoutDashboard, Home, ScrollText } from "lucide-react"
 import { NeonButton } from "@/components/ui/neon-button"
 import { MobileDrawer } from "@/components/shared/mobile-drawer"
 import { useLanguage, type Locale } from "@/lib/i18n"
@@ -14,6 +14,7 @@ const text = {
   en: {
     home: "Home",
     pricing: "Pricing",
+    theory: "Theory",
     login: "Log in",
     cta: "Join the Marathon",
     dashboard: "Dashboard",
@@ -22,6 +23,7 @@ const text = {
   he: {
     home: "דף הבית",
     pricing: "מחירון",
+    theory: "סיכום חומר",
     login: "התחברות",
     cta: "הצטרפו למרתון",
     dashboard: "לוח בקרה",
@@ -55,6 +57,13 @@ export function PublicHeader() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
+          <Link
+            href="/theory"
+            className="text-sm text-[#9CA3AF] hover:text-white transition-colors flex items-center gap-1.5"
+          >
+            <ScrollText className="h-3.5 w-3.5" />
+            {t.theory}
+          </Link>
           <Link
             href="/pricing"
             className="text-sm text-[#9CA3AF] hover:text-white transition-colors"
@@ -125,6 +134,14 @@ export function PublicHeader() {
       <MobileDrawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         <nav className="flex flex-col p-4">
           <div className="space-y-1 mb-6">
+            <Link
+              href="/theory"
+              onClick={closeDrawer}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
+            >
+              <ScrollText className="h-4 w-4 text-[#9CA3AF]" />
+              {t.theory}
+            </Link>
             <Link
               href="/pricing"
               onClick={closeDrawer}

@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Sparkles,
   BookOpen,
+  ScrollText,
   Rocket,
   Code2,
   Crown,
@@ -114,6 +115,7 @@ const en = {
   videoTitle: "See It in",
   videoHighlight: "Action",
   videoSub: "A quick look at what the marathon experience looks like.",
+  theoryCta: "Browse Theory Summaries",
   finalTitle: "Ready to Ace Your",
   finalHighlight: "CS Exam",
   finalSub: "Join the marathon and start practicing today.",
@@ -211,6 +213,7 @@ const he = {
   videoTitle: "צפו במערכת",
   videoHighlight: "בפעולה",
   videoSub: "הצצה קצרה לחוויית המרתון מבפנים.",
+  theoryCta: "לסיכומי החומר העיוניים",
   finalTitle: "מוכנים להצליח",
   finalHighlight: "במבחן CS",
   finalSub: "הצטרפו למרתון והתחילו לתרגל היום.",
@@ -530,6 +533,29 @@ function HomeContent() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* ── Theory CTA ── */}
+        <section className="px-4 pb-10">
+          <div className="container mx-auto max-w-5xl">
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <Link href="/theory">
+                <NeonButton
+                  variant="ghost"
+                  size="lg"
+                  leftIcon={<ScrollText className="h-4 w-4" />}
+                  rightIcon={<ArrowRight className="h-4 w-4" />}
+                >
+                  {t.theoryCta}
+                </NeonButton>
+              </Link>
+            </motion.div>
           </div>
         </section>
 
