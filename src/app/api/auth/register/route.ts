@@ -8,7 +8,7 @@ const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  plan: z.enum(["basic", "pro"]).optional().default("basic"),
+  plan: z.enum(["free", "basic", "pro"]).optional().default("free"),
 })
 
 export async function POST(req: NextRequest) {
@@ -55,11 +55,12 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Create entitlement with selected plan (account created after PayPlus payment)
+    // Create entitlement with selected plan
+    const entitlementPlan = plan === "pro" ? "PRO" : plan === "basic" ? "BASIC" : "FREE"
     await db.entitlement.create({
       data: {
         userId: user.id,
-        plan: plan === "pro" ? "PRO" : "BASIC",
+        plan: entitlementPlan,
         status: "ACTIVE",
         grantedReason: "registration",
       },
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
     sendRegistrationConfirmation({
       email,
       name,
-      plan: plan === "pro" ? "PRO" : "BASIC",
+      plan: entitlementPlan,
     })
 
     // Log event

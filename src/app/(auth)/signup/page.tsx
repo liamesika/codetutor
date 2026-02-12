@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
+import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { z } from "zod"
@@ -23,6 +24,7 @@ import {
   BookOpen,
   Target,
   Shield,
+  Zap,
 } from "lucide-react"
 
 const signupSchema = z.object({
@@ -42,6 +44,12 @@ const signupSchema = z.object({
 
 type SignupForm = z.infer<typeof signupSchema>
 
+const freeFeatures = [
+  { icon: BookOpen, text: "Day 1 — full content free" },
+  { icon: Code2, text: "Real Java sandbox" },
+  { icon: Zap, text: "XP, streaks & leaderboards" },
+]
+
 const basicFeatures = [
   { icon: BookOpen, text: "All 10 days + past exams" },
   { icon: Code2, text: "All exercises & practice" },
@@ -59,14 +67,9 @@ function SignupFormContent() {
   const searchParams = useSearchParams()
   const planParam = searchParams.get("plan")
   const isPro = planParam === "pro"
-  const selectedPlan = isPro ? "pro" : "basic"
-
-  // Redirect to pricing if no valid plan selected
-  useEffect(() => {
-    if (!planParam || (planParam !== "basic" && planParam !== "pro")) {
-      router.replace("/pricing")
-    }
-  }, [planParam, router])
+  const isBasic = planParam === "basic"
+  const isFree = !isPro && !isBasic
+  const selectedPlan = isPro ? "pro" : isBasic ? "basic" : "free"
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -96,7 +99,7 @@ function SignupFormContent() {
     setError(null)
 
     try {
-      // Check if email is already taken before redirecting to payment
+      // Check if email is already taken
       const checkRes = await fetch("/api/auth/check-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,32 +114,68 @@ function SignupFormContent() {
         }
       }
 
-      // Save signup data to sessionStorage — account will be created after payment
-      sessionStorage.setItem(
-        "pendingSignup",
-        JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          plan: selectedPlan,
+      if (isFree) {
+        // Free plan: create account directly, no payment
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            plan: "free",
+          }),
         })
-      )
 
-      // Redirect to PayPlus payment page
-      const paymentUrl = isPro
-        ? "https://payments.payplus.co.il/l/44b589ff-31f8-407a-bd2f-956fd33aac2a"
-        : "https://payments.payplus.co.il/l/e1616aeb-e251-400b-b3d9-faffab14e769"
+        const result = await response.json()
+        if (!response.ok) {
+          setError(result.error || "Failed to create account")
+          setIsLoading(false)
+          return
+        }
 
-      window.location.href = paymentUrl
+        // Auto sign in
+        const signInResult = await signIn("credentials", {
+          email: data.email.toLowerCase(),
+          password: data.password,
+          redirect: false,
+        })
+
+        if (signInResult?.error) {
+          // Account created but auto-login failed — send to login
+          router.push("/login")
+          return
+        }
+
+        router.push("/dashboard")
+        router.refresh()
+      } else {
+        // Paid plan: save to sessionStorage and redirect to PayPlus
+        sessionStorage.setItem(
+          "pendingSignup",
+          JSON.stringify({
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            plan: selectedPlan,
+          })
+        )
+
+        const paymentUrl = isPro
+          ? "https://payments.payplus.co.il/l/44b589ff-31f8-407a-bd2f-956fd33aac2a"
+          : "https://payments.payplus.co.il/l/e1616aeb-e251-400b-b3d9-faffab14e769"
+
+        window.location.href = paymentUrl
+      }
     } catch {
       setError("Something went wrong. Please try again.")
       setIsLoading(false)
     }
   }
 
-  const features = isPro ? proFeatures : basicFeatures
-  const planLabel = isPro ? "PRO" : "BASIC"
-  const planColor = isPro ? "#F59E0B" : "#8B5CF6"
+  const features = isPro ? proFeatures : isBasic ? basicFeatures : freeFeatures
+  const planLabel = isPro ? "PRO" : isBasic ? "BASIC" : "FREE — Day 1"
+  const planColor = isPro ? "#F59E0B" : isBasic ? "#8B5CF6" : "#22D3EE"
 
   return (
     <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
@@ -156,11 +195,18 @@ function SignupFormContent() {
                   PRO Power
                 </span>
               </>
-            ) : (
+            ) : isBasic ? (
               <>
                 Get{" "}
                 <span className="bg-linear-to-r from-[#8B5CF6] to-[#6366F1] bg-clip-text text-transparent">
                   Full Practice
+                </span>
+              </>
+            ) : (
+              <>
+                Try Day 1{" "}
+                <span className="bg-linear-to-r from-[#22D3EE] to-[#4F46E5] bg-clip-text text-transparent">
+                  Free
                 </span>
               </>
             )}
@@ -168,7 +214,9 @@ function SignupFormContent() {
           <p className="text-lg text-[#9CA3AF]">
             {isPro
               ? "All 10 days, past exams, and AI Mentor — everything you need."
-              : "All 10 days of practice plus past exams to ace your test."}
+              : isBasic
+              ? "All 10 days of practice plus past exams to ace your test."
+              : "Start practicing Day 1 right now — no payment needed."}
           </p>
         </div>
 
@@ -236,8 +284,8 @@ function SignupFormContent() {
                 color: planColor
               }}
             >
-              {isPro ? <Crown className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
-              Selected plan: {planLabel}
+              {isPro ? <Crown className="h-4 w-4" /> : isBasic ? <BookOpen className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+              {planLabel}
             </div>
           </motion.div>
 
@@ -245,7 +293,7 @@ function SignupFormContent() {
           <div className="lg:hidden text-center mb-6">
             <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
             <p className="text-[#9CA3AF]">
-              {isPro ? "Get full PRO access" : "Get full practice access"}
+              {isPro ? "Get full PRO access" : isBasic ? "Get full practice access" : "Start Day 1 free"}
             </p>
           </div>
 
@@ -405,6 +453,8 @@ function SignupFormContent() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Creating account...
                 </>
+              ) : isFree ? (
+                "Create Free Account"
               ) : (
                 "Create Account"
               )}

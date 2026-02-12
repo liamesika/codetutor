@@ -16,7 +16,7 @@ const text = {
     pricing: "Pricing",
     theory: "Theory",
     login: "Log in",
-    cta: "Join the Marathon",
+    cta: "Start Free",
     dashboard: "Dashboard",
     signOut: "Sign Out",
   },
@@ -25,7 +25,7 @@ const text = {
     pricing: "מחירון",
     theory: "סיכום חומר",
     login: "התחברות",
-    cta: "הצטרפו למרתון",
+    cta: "התחילו חינם",
     dashboard: "לוח בקרה",
     signOut: "התנתקות",
   },
@@ -102,7 +102,7 @@ export function PublicHeader() {
                   {t.login}
                 </NeonButton>
               </Link>
-              <Link href="/pricing">
+              <Link href="/signup?plan=free">
                 <NeonButton
                   variant="primary"
                   size="sm"
@@ -202,7 +202,7 @@ export function PublicHeader() {
                     {t.login}
                   </button>
                 </Link>
-                <Link href="/pricing" onClick={closeDrawer}>
+                <Link href="/signup?plan=free" onClick={closeDrawer}>
                   <button className="w-full px-4 py-3 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90 transition-colors font-medium flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
                     {t.cta}
                     <ArrowRight className="h-4 w-4" />

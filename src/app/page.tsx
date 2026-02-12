@@ -30,7 +30,7 @@ const en = {
   heroHighlight: "Exam Ready",
   heroSub:
     "An intensive 10-day Java exam preparation marathon. Daily practice, structured topics, real test cases, and optional AI mentoring to ace your CS exam.",
-  ctaPrimary: "Start the Marathon",
+  ctaPrimary: "Try Day 1 Free",
   ctaSecondary: "View Pricing",
   ctaNote: "Day 1 is free. No credit card required.",
   trust: [
@@ -119,7 +119,7 @@ const en = {
   finalTitle: "Ready to Ace Your",
   finalHighlight: "CS Exam",
   finalSub: "Join the marathon and start practicing today.",
-  finalCta: "Start the Marathon",
+  finalCta: "Start Free",
   finalNote: "Day 1 is free. No credit card required.",
 }
 
@@ -129,7 +129,7 @@ const he = {
   heroHighlight: "ואתם מוכנים למבחן",
   heroSub:
     "מרתון הכנה אינטנסיבי בן 10 ימים למבחן Java. תרגול יומי, נושאים מובנים, טסטים אמיתיים וליווי AI אופציונלי.",
-  ctaPrimary: "התחילו את המרתון",
+  ctaPrimary: "נסו יום 1 חינם",
   ctaSecondary: "צפו במחירון",
   ctaNote: "יום 1 חינם. ללא צורך בכרטיס אשראי.",
   trust: [
@@ -217,7 +217,7 @@ const he = {
   finalTitle: "מוכנים להצליח",
   finalHighlight: "במבחן CS",
   finalSub: "הצטרפו למרתון והתחילו לתרגל היום.",
-  finalCta: "התחילו את המרתון",
+  finalCta: "התחילו חינם",
   finalNote: "יום 1 חינם. ללא צורך בכרטיס אשראי.",
 }
 
@@ -359,7 +359,7 @@ function HomeContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Link href="/pricing">
+              <Link href="/signup?plan=free">
                 <NeonButton variant="primary" size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
                   {t.ctaPrimary}
                 </NeonButton>
@@ -735,7 +735,7 @@ function HomeContent() {
                 ?
               </h2>
               <p className="text-[#9CA3AF] mb-8 text-lg max-w-xl mx-auto">{t.finalSub}</p>
-              <Link href="/pricing">
+              <Link href="/signup?plan=free">
                 <NeonButton variant="primary" size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
                   {t.finalCta}
                 </NeonButton>
