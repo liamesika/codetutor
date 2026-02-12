@@ -38,6 +38,7 @@ export function PublicHeader() {
   const closeDrawer = () => setIsDrawerOpen(false)
 
   return (
+    <>
     <header className="relative z-10 border-b border-white/5 bg-[#0A0A1B]/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
@@ -118,7 +119,9 @@ export function PublicHeader() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+    </header>
+
+      {/* Mobile Drawer — rendered outside header to avoid backdrop-blur containing block issue */}
       <MobileDrawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         <nav className="flex flex-col p-4">
           <div className="space-y-1 mb-6">
@@ -193,7 +196,7 @@ export function PublicHeader() {
           </div>
         </nav>
       </MobileDrawer>
-    </header>
+    </>
   )
 }
 

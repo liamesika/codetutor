@@ -111,6 +111,9 @@ const en = {
       desc: "Track progress, reveal hints when stuck, and use AI Mentor (PRO) for guided help.",
     },
   ],
+  videoTitle: "See It in",
+  videoHighlight: "Action",
+  videoSub: "A quick look at what the marathon experience looks like.",
   finalTitle: "Ready to Ace Your",
   finalHighlight: "CS Exam",
   finalSub: "Join the marathon and start practicing today.",
@@ -205,6 +208,9 @@ const he = {
       desc: "עקבו אחר ההתקדמות והשתמשו ב-AI Mentor (PRO) כשנתקעים.",
     },
   ],
+  videoTitle: "צפו במערכת",
+  videoHighlight: "בפעולה",
+  videoSub: "הצצה קצרה לחוויית המרתון מבפנים.",
   finalTitle: "מוכנים להצליח",
   finalHighlight: "במבחן CS",
   finalSub: "הצטרפו למרתון והתחילו לתרגל היום.",
@@ -428,6 +434,43 @@ function HomeContent() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* ── Demo Video ── */}
+        <section className="py-20 md:py-28 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <motion.div
+              className="text-center mb-10"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                {t.videoTitle}{" "}
+                <span className="bg-gradient-to-r from-[#4F46E5] to-[#22D3EE] bg-clip-text text-transparent">
+                  {t.videoHighlight}
+                </span>
+              </h2>
+              <p className="text-[#9CA3AF] max-w-2xl mx-auto">{t.videoSub}</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(79,70,229,0.15)]"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <video
+                src="/images/VID.mov"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full"
+              />
+            </motion.div>
           </div>
         </section>
 

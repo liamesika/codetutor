@@ -74,7 +74,7 @@ export function MobileDrawer({ isOpen, onClose, children, className }: MobileDra
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <span className="font-semibold text-white">Menu</span>
+              <span className="font-semibold text-white">תפריט</span>
               <button
                 ref={firstFocusableRef}
                 onClick={onClose}
