@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { z } from "zod"
@@ -97,37 +96,31 @@ function SignupFormContent() {
     setError(null)
 
     try {
-      const response = await fetch("/api/auth/register", {
+      // Check if email is already taken before redirecting to payment
+      const checkRes = await fetch("/api/auth/check-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify({ email: data.email }),
+      })
+      if (checkRes.ok) {
+        const checkResult = await checkRes.json()
+        if (checkResult.exists) {
+          setError("An account with this email already exists")
+          setIsLoading(false)
+          return
+        }
+      }
+
+      // Save signup data to sessionStorage — account will be created after payment
+      sessionStorage.setItem(
+        "pendingSignup",
+        JSON.stringify({
           name: data.name,
           email: data.email,
           password: data.password,
           plan: selectedPlan,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        setError(result.error || "Something went wrong")
-        setIsLoading(false)
-        return
-      }
-
-      // Auto sign in after registration
-      const signInResult = await signIn("credentials", {
-        email: data.email.toLowerCase(),
-        password: data.password,
-        redirect: false,
-      })
-
-      if (signInResult?.error) {
-        // If auto-login fails, still redirect to login (account was created)
-        router.push("/login")
-        return
-      }
+        })
+      )
 
       // Redirect to PayPlus payment page
       const paymentUrl = isPro
@@ -137,8 +130,8 @@ function SignupFormContent() {
       if (paymentUrl) {
         window.location.href = paymentUrl
       } else {
-        router.push("/dashboard")
-        router.refresh()
+        setError("Payment is not configured. Please contact support.")
+        setIsLoading(false)
       }
     } catch {
       setError("Something went wrong. Please try again.")
