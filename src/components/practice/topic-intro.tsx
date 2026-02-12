@@ -51,7 +51,7 @@ export function TopicIntro({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-primary" />
-            <span>Before You Start: What is {title}?</span>
+            <span>הקדמה: {title}</span>
           </CardTitle>
           <Button
             variant="ghost"
@@ -64,7 +64,7 @@ export function TopicIntro({
             ) : (
               <ChevronDown className="h-4 w-4" />
             )}
-            <span className="ml-1 text-xs">{isExpanded ? "Collapse" : "Expand"}</span>
+            <span className="ml-1 text-xs">{isExpanded ? "סגור" : "פתח"}</span>
           </Button>
         </div>
       </CardHeader>

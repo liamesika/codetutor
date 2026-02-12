@@ -276,7 +276,7 @@ function LoginFormContent() {
             <p className="text-center text-[#9CA3AF]">
               Don&apos;t have an account?{" "}
               <Link
-                href="/signup"
+                href="/pricing"
                 className="text-[#22D3EE] hover:text-[#4F46E5] font-medium transition-colors"
               >
                 Sign up

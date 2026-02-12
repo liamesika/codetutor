@@ -331,12 +331,22 @@ export function MentorPanel({
                 </div>
               ))}
             </div>
-            <Link href="/pricing">
-              <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full">
+            {process.env.NEXT_PUBLIC_PAYPLUS_UPGRADE_URL ? (
+              <Button
+                className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full"
+                onClick={() => { window.location.href = process.env.NEXT_PUBLIC_PAYPLUS_UPGRADE_URL! }}
+              >
                 <Crown className="h-4 w-4" />
                 שדרגו ל-PRO
               </Button>
-            </Link>
+            ) : (
+              <Link href="/pricing">
+                <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 w-full">
+                  <Crown className="h-4 w-4" />
+                  שדרגו ל-PRO
+                </Button>
+              </Link>
+            )}
           </div>
         )}
 

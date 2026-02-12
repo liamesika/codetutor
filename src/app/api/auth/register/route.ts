@@ -55,11 +55,11 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Create entitlement based on selected plan
+    // Create FREE entitlement — upgraded to BASIC/PRO after PayPlus payment
     await db.entitlement.create({
       data: {
         userId: user.id,
-        plan: plan === "pro" ? "PRO" : "BASIC",
+        plan: "FREE",
         status: "ACTIVE",
         grantedReason: "registration",
       },

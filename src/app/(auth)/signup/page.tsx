@@ -129,8 +129,17 @@ function SignupFormContent() {
         return
       }
 
-      router.push("/dashboard")
-      router.refresh()
+      // Redirect to PayPlus payment page
+      const paymentUrl = isPro
+        ? process.env.NEXT_PUBLIC_PAYPLUS_PRO_URL
+        : process.env.NEXT_PUBLIC_PAYPLUS_BASIC_URL
+
+      if (paymentUrl) {
+        window.location.href = paymentUrl
+      } else {
+        router.push("/dashboard")
+        router.refresh()
+      }
     } catch {
       setError("Something went wrong. Please try again.")
       setIsLoading(false)
