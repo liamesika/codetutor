@@ -66,6 +66,9 @@ export const metadata: Metadata = {
       "מערכת למידה 10 ימים למבחן במדמח ואתם מוכנים. כל הנושאים מחולק ליום, הרצת קוד ובדיקה שלו, תרגול של יותר מ-90 תרגילים וסימולציות והכל במערכת אחת.",
     images: ["/images/logo.png"],
   },
+  verification: {
+    google: "0QALLhfVxPguYnydpjDlSsUEuo_Zw0IFTBBzfNl7ziY",
+  },
 }
 
 export const viewport: Viewport = {
