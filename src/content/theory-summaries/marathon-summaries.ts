@@ -103,91 +103,236 @@ export const theorySummaries: TheorySummary[] = [
     topicSlug: "variables-and-types",
     dayNumber: 1,
     title: "משתנים וטיפוסי נתונים",
-    estimatedReadingMinutes: 8,
+    estimatedReadingMinutes: 10,
     pdfResources: day1Pdfs,
-    markdown: `## מבוא
+    markdown: `## מהו משתנה?
 
-ב-Java כל משתנה חייב להיות מוצהר עם **טיפוס** לפני השימוש. השפה היא **strongly typed** — לא ניתן לשים מחרוזת בתוך משתנה שלם, למשל.
-
-## מושגי יסוד
-
-### טיפוסים פרימיטיביים (Primitive Types)
-
-| טיפוס | גודל | טווח | דוגמה |
-|--------|-------|------|--------|
-| \`byte\` | 8 ביט | -128 עד 127 | \`byte b = 100;\` |
-| \`short\` | 16 ביט | -32,768 עד 32,767 | \`short s = 1000;\` |
-| \`int\` | 32 ביט | ±2.1 מיליארד | \`int x = 42;\` |
-| \`long\` | 64 ביט | ±9.2×10¹⁸ | \`long l = 123456789L;\` |
-| \`float\` | 32 ביט | ~7 ספרות משמעותיות | \`float f = 3.14f;\` |
-| \`double\` | 64 ביט | ~15 ספרות משמעותיות | \`double d = 3.14;\` |
-| \`char\` | 16 ביט | תו Unicode | \`char c = 'A';\` |
-| \`boolean\` | — | true / false | \`boolean ok = true;\` |
-
-### טיפוסי הפניה (Reference Types)
-- \`String\` — מחרוזת (אובייקט, לא primitive)
-- מערכים, אובייקטים אחרים
-
-## תחביר
+לפי ההגדרה מההרצאה, משתנה הוא **מיכל מופשט (abstract container)** שיש לו:
+- **שם (name)** — קבוע, לא משתנה לאורך התוכנית
+- **טיפוס (type)** — קבוע, נקבע בהצהרה
+- **ערך (value)** — יכול להשתנות במהלך הריצה
 
 ### הצהרה והשמה
-\`\`\`java
-int x;           // הצהרה בלבד (ערך ברירת מחדל 0 בשדות מחלקה)
-int y = 10;      // הצהרה + אתחול
-final int MAX = 100; // קבוע — לא ניתן לשנות
-\`\`\`
-
-### המרת טיפוסים (Casting)
-\`\`\`java
-// המרה מרחיבה (Widening) — אוטומטית
-int a = 5;
-double b = a;         // 5.0 — בלי בעיה
-
-// המרה מצמצמת (Narrowing) — דורשת cast מפורש
-double c = 9.7;
-int d = (int) c;      // 9 — חיתוך (לא עיגול!)
-\`\`\`
-
-### חילוק שלמים vs עשרוני
-\`\`\`java
-int a = 7, b = 2;
-System.out.println(a / b);           // 3 (חילוק שלמים!)
-System.out.println((double) a / b);  // 3.5
-System.out.println(a % b);           // 1 (שארית)
-\`\`\`
-
-## דפוסים נפוצים
-
-1. **חילוף ערכים (Swap)**: דורש משתנה עזר — \`int temp = a; a = b; b = temp;\`
-2. **הפרדת ספרות**: \`n % 10\` נותן ספרת אחדות, \`n / 10\` מסיר אותה
-3. **עיגול**: \`Math.round(x)\` מעגל, \`(int)(x + 0.5)\` עבור חיוביים
-
-## דוגמאות
 
 \`\`\`java
-// חילוק שלמים עם שארית
-int total = 17, perBox = 5;
-int boxes = total / perBox;    // 3
-int leftover = total % perBox; // 2
-
-// עיגול לשתי ספרות אחרי הנקודה
-double price = 19.99 * 1.17;
-System.out.printf("%.2f%n", price); // 23.39
+int x;          // הצהרה — יצירת המשתנה
+x = 5;          // השמה — מכניסים ערך למשתנה
+int y = 10;     // הצהרה + אתחול בשורה אחת
 \`\`\`
 
-## טעויות שכיחות
+בהשמה, **קודם מחשבים את צד ימין** של ה-\`=\`, ואז שמים את התוצאה במשתנה שבצד שמאל.
 
-- **חילוק שלמים**: \`7 / 2\` שווה \`3\` ולא \`3.5\`! צריך cast ל-double
-- **שכחת f/L**: \`float f = 3.14;\` → שגיאה! צריך \`3.14f\`
-- **הצפה (Overflow)**: \`int x = 2147483647 + 1;\` → מספר שלילי!
-- **השוואת String עם ==**: משווה הפניות, לא תוכן. תמיד \`str.equals()\`
+## טיפוסי נתונים
+
+Java היא שפה **strongly typed** — כל משתנה חייב להיות מוצהר עם טיפוס, והקומפיילר בודק שימוש נכון.
+
+### טיפוסים פרימיטיביים
+
+| טיפוס | גודל | תיאור |
+|--------|-------|--------|
+| \`byte\` | 8 ביט | מספר שלם |
+| \`short\` | 16 ביט | מספר שלם |
+| \`char\` | 16 ביט | תו Unicode |
+| \`int\` | 32 ביט | מספר שלם (הנפוץ ביותר) |
+| \`long\` | 64 ביט | מספר שלם גדול |
+| \`float\` | 32 ביט | מספר ממשי, ~7 ספרות דיוק |
+| \`double\` | 64 ביט | מספר ממשי, ~15 ספרות דיוק |
+| \`boolean\` | — | \`true\` או \`false\` בלבד |
+
+### טיפוס הפניה — String
+\`String\` הוא טיפוס אובייקט (לא primitive) המייצג מחרוזת טקסט.
+
+## פעולות על שלמים (int)
+
+האופרטורים: \`+\`, \`-\`, \`*\`, \`/\`, \`%\`
+
+**סדר קדימויות**: \`*\`, \`/\`, \`%\` לפני \`+\`, \`-\`. באותה רמה — חישוב משמאל לימין. סוגריים גוברים על הכל.
+
+\`\`\`java
+// דוגמה מההרצאה (Demo2)
+int a = 2 + 3;           // 5
+int b = 2 + 3 * 5;       // 17 (לא 25!)
+int c = (2 + 3) * 5;     // 25
+int d = 1 / 3;           // 0 (חילוק שלמים!)
+\`\`\`
+
+**חילוק שלמים**: כאשר שני האופרנדים \`int\`, התוצאה היא \`int\` — החלק השלם בלבד. \`1 / 3\` שווה \`0\`, לא \`0.333\`.
+
+## שרשור מחרוזות (String Concatenation)
+
+כאשר \`String\` + כל טיפוס אחר, Java ממירה את הערך ל-\`String\` ומשרשרת:
+
+\`\`\`java
+// דוגמאות מההרצאה (Demo3)
+System.out.println("Tel" + "Aviv");   // TelAviv
+System.out.println("6" + 5);          // 65 (לא 11!)
+System.out.println(6 + 5);            // 11 (שני int-ים)
+\`\`\`
+
+## ארגומנטים משורת הפקודה (Command-Line Arguments)
+
+בקורס הזה, קלט מתקבל דרך **ארגומנטים משורת הפקודה** — ערכים שנכתבים אחרי שם המחלקה בפקודת \`java\`:
+
+\`\`\`
+% java Demo5 3 5
+\`\`\`
+
+הארגומנטים מגיעים למערך \`args\` בפונקציית \`main\` כ-**String**. צריך להמיר (לפרסר) אותם לטיפוס הרצוי:
+- \`int\` ← \`Integer.parseInt(args[0])\`
+- \`double\` ← \`Double.parseDouble(args[0])\`
+- \`boolean\` ← \`Boolean.parseBoolean(args[0])\`
+
+\`\`\`java
+// דוגמה מההרצאה (Demo5)
+public class Demo5 {
+    public static void main(String[] args) {
+        int x = Integer.parseInt(args[0]);
+        int y = Integer.parseInt(args[1]);
+        System.out.println(x + " + " + y + " = " + (x + y));
+        System.out.println(x + " * " + y + " = " + (x * y));
+    }
+}
+\`\`\`
+
+**זהירות** (מהתרגול):
+- אם לא מעבירים מספיק ארגומנטים → \`ArrayIndexOutOfBoundsException\`
+- אם מעבירים טקסט במקום מספר → \`NumberFormatException\`
+
+## מספרים ממשיים (double)
+
+**כלל חשוב**: אם אחד האופרנדים הוא \`double\`, התוצאה היא \`double\`:
+
+\`\`\`java
+// דוגמאות מההרצאה (Demo6)
+System.out.println(5.0 / 2.0);  // 2.5
+System.out.println(5 / 2);      // 2 (שני int!)
+System.out.println(5.0 / 2);    // 2.5 (אחד double — תוצאה double)
+System.out.println(5 / 2.0);    // 2.5
+System.out.println(1 / 3);      // 0
+System.out.println(1.0 / 3.0);  // 0.3333333333333333
+System.out.println(1.0 / 0.0);  // Infinity
+System.out.println(1 / 0);      // Runtime error!
+\`\`\`
+
+\`Math.sqrt(-1.0)\` מחזיר \`NaN\` (Not a Number).
+
+## ספריית Math
+
+פונקציות נפוצות מספריית \`Math\`:
+
+| פונקציה | תיאור |
+|---------|--------|
+| \`Math.abs(x)\` | ערך מוחלט |
+| \`Math.max(a, b)\` | המקסימום בין שני ערכים |
+| \`Math.min(a, b)\` | המינימום בין שני ערכים |
+| \`Math.sqrt(x)\` | שורש ריבועי |
+| \`Math.pow(a, b)\` | a בחזקת b |
+| \`Math.random()\` | מספר אקראי ב-[0, 1) |
+| \`Math.round(x)\` | עיגול לשלם הקרוב |
+| \`Math.PI\` | הקבוע π |
+
+## boolean — ערכים לוגיים
+
+שני ערכים בלבד: \`true\` ו-\`false\`. משמשים לביטויים לוגיים ולבקרת זרימה.
+
+### אופרטורים להשוואה
+
+| אופרטור | משמעות | true | false |
+|----------|--------|------|-------|
+| \`==\` | שווה | \`2 == 2\` | \`2 == 3\` |
+| \`!=\` | שונה | \`3 != 2\` | \`2 != 2\` |
+| \`<\` | קטן מ | \`2 < 13\` | \`2 < 2\` |
+| \`<=\` | קטן-שווה | \`2 <= 2\` | \`3 <= 2\` |
+| \`>\` | גדול מ | \`13 > 2\` | \`2 > 13\` |
+| \`>=\` | גדול-שווה | \`3 >= 2\` | \`2 >= 3\` |
+
+### מחברים לוגיים (Connectors)
+- \`!a\` — NOT: אמת אם ורק אם \`a\` שקר
+- \`a && b\` — AND: אמת אם ורק אם **שניהם** אמת
+- \`a || b\` — OR: אמת אם **לפחות אחד** אמת
+
+\`\`\`java
+// דוגמה מההרצאה — בדיקת שנה מעוברת
+public class LeapYear {
+    public static void main(String[] args) {
+        int year = Integer.parseInt(args[0]);
+        boolean isLeapYear;
+        isLeapYear = ((year % 400) == 0);
+        isLeapYear = isLeapYear || (((year % 4) == 0) && ((year % 100) != 0));
+        System.out.println(isLeapYear);
+    }
+}
+// java LeapYear 2020 → true
+// java LeapYear 1900 → false
+\`\`\`
+
+## המרות טיפוסים (Casting)
+
+### המרה מרומזת (Implicit)
+Java ממירה אוטומטית כאשר אין סכנת אובדן מידע:
+\`\`\`java
+"1234" + 99         // "123499" (String)
+11 * 0.3            // 3.3 (double — כי אחד מהם double)
+\`\`\`
+
+### המרה מפורשת (Explicit)
+\`\`\`java
+Integer.parseInt("123")   // 123 (String → int)
+(int) 2.71828             // 2 (חיתוך! לא עיגול)
+(int) (11 * 0.3)          // 3 (קודם 3.3, אז חיתוך ל-3)
+(11 * (int) 0.3)          // 0 (קודם (int)0.3=0, אז 11*0=0!)
+\`\`\`
+
+**שימו לב**: סדר ה-cast משנה את התוצאה!
+
+## הצפה ושגיאות עיגול (Overflow & Rounding)
+
+\`\`\`java
+// דוגמה מההרצאה (Demo9)
+System.out.println(100000 * 100000 * 100000);  // -1530494976 (overflow!)
+System.out.println(1.03 - 0.42);                // 0.6100000000000001
+System.out.println(1.00 - 9 * .10);             // 0.09999999999999998
+System.out.println((0.7 + 0.1) == (0.9 - 0.1)); // false!
+\`\`\`
+
+המחשב מייצג מספרים עם מספר סופי של ביטים → **הצפה** בשלמים, **אי-דיוק** בממשיים.
+
+## דפוס נפוץ — חילוף ערכים (Swap)
+
+מהתרגול (FlipFlop) — החלפת ערכים בין שני משתנים דורשת **משתנה עזר**:
+
+\`\`\`java
+// דוגמה מהתרגול (FlipFlop עם ארגומנטים)
+public class FlipFlop {
+    public static void main(String[] args) {
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
+        System.out.println("a: " + a + ", b: " + b);
+        int temp = a;
+        a = b;
+        b = temp;
+        System.out.println("a: " + a + ", b: " + b);
+    }
+}
+// java FlipFlop 6 67 → a: 6, b: 67 → a: 67, b: 6
+\`\`\`
+
+## שגיאות נפוצות
+
+מתוך ההרצאה והתרגול, שלושה סוגי שגיאות:
+1. **שגיאות קומפילציה (Compile Errors)** — שגיאות תחביר, חוסר \`;\`, סוגריים לא מאוזנים
+2. **שגיאות ריצה (Runtime Errors)** — חילוק ב-0, חריגה מגבולות מערך, ארגומנט לא תקין
+3. **שגיאות לוגיות (Logical Errors)** — הקוד רץ אבל התוצאה שגויה
+
+**טיפ מהתרגול**: תתחילו לעבוד עם ערכים קבועים (literals) בקוד, ורק אחרי שהכל עובד — עברו לארגומנטים משורת הפקודה.
 
 ## טיפים למבחן
 
-- שימו לב לטיפוס התוצאה בחילוק — אם שני האופרנדים \`int\`, התוצאה \`int\`
-- \`char\` הוא מספר — \`'A' + 1\` שווה \`66\` (ה-ASCII של 'B')
-- \`%\` עובד גם עם שליליים: \`-7 % 2 == -1\`
-- במבחן תשאלו על casting — זכרו: narrowing חותך, לא מעגל`,
+- **חילוק שלמים**: \`1 / 3 == 0\`, לא \`0.333\`! אם רוצים תוצאה עשרונית — לפחות אופרנד אחד צריך להיות \`double\`
+- **casting**: סדר ה-cast קריטי — \`(int)(11 * 0.3)\` → \`3\`, אבל \`(11 * (int)0.3)\` → \`0\`
+- **overflow**: \`100000 * 100000 * 100000\` נותן מספר שלילי בגלל הצפת \`int\`
+- **דיוק ממשיים**: \`(0.7 + 0.1) == (0.9 - 0.1)\` מחזיר \`false\` בגלל שגיאות עיגול
+- **שרשור מחרוזות**: \`"6" + 5\` → \`"65"\` — כשאחד הצדדים הוא \`String\`, הכל הופך ל-\`String\``,
   },
   {
     topicSlug: "input-output",
@@ -282,428 +427,828 @@ System.out.printf("Hello %s, you are %d years old%n", name, age);
   {
     topicSlug: "conditionals",
     dayNumber: 2,
-    title: "תנאים: if-else ו-switch",
-    estimatedReadingMinutes: 9,
+    title: "תנאים ומחרוזות",
+    estimatedReadingMinutes: 12,
     pdfResources: day2Pdfs,
     markdown: `## מבוא
 
-משפטי תנאי מאפשרים לתוכנית לקבל החלטות. \`if-else\` הוא הכלי הבסיסי ביותר, ו-\`switch\` מתאים להשוואה של ערך יחיד למספר אפשרויות.
+לפי ההרצאה, זרימת תוכנית (program flow) יכולה להיות **רציפה** (sequential — שורה אחרי שורה), **מותנית** (conditional — הסתעפות לפי תנאי), או **חוזרת** (iterative — לולאה). ביום הזה נתמקד בתנאים ובמחרוזות.
 
-## מושגי יסוד
+## תנאים (Conditionals)
 
-### if-else
-- **if** — מבצע בלוק קוד אם התנאי \`true\`
-- **else if** — תנאי נוסף אם הקודם \`false\`
-- **else** — ברירת מחדל אם כל התנאים \`false\`
+### משפט if
 
-### switch
-- משווה ערך יחיד (int, char, String, enum) לערכים קבועים
-- כל \`case\` חייב להסתיים ב-\`break\` (אחרת "נופל" למקרה הבא)
-- \`default\` — ברירת מחדל
-
-## תחביר
-
-### if-else
 \`\`\`java
-if (condition1) {
-    // ...
-} else if (condition2) {
-    // ...
+if (condition) {
+    // מתבצע רק אם condition הוא true
+}
+\`\`\`
+
+**כלל חשוב מההרצאה**: תמיד כתבו סוגריים מסולסלים \`{}\`, גם אם יש שורה אחת בלבד — זה מונע באגים.
+
+### משפט if-else
+
+\`\`\`java
+if (condition) {
+    // מתבצע אם true
 } else {
-    // ...
+    // מתבצע אם false
 }
 \`\`\`
 
-### Ternary Operator
-\`\`\`java
-String result = (grade >= 60) ? "Pass" : "Fail";
-\`\`\`
+דוגמה מההרצאה — מציאת המקסימום בין שני מספרים:
 
-### switch
 \`\`\`java
-switch (value) {
-    case 1:
-        System.out.println("One");
-        break;
-    case 2:
-        System.out.println("Two");
-        break;
-    default:
-        System.out.println("Other");
+public class Max {
+    public static void main(String[] args) {
+        int x = Integer.parseInt(args[0]);
+        int y = Integer.parseInt(args[1]);
+        int max;
+        if (x > y) {
+            max = x;
+        } else {
+            max = y;
+        }
+        System.out.println("max = " + max);
+    }
 }
 \`\`\`
 
-## דפוסים נפוצים
+### שרשרת if / else if / else
 
-### סיווג טווחים
-\`\`\`java
-if (grade >= 90) result = "A";
-else if (grade >= 80) result = "B";
-else if (grade >= 70) result = "C";
-else result = "F";
-// חשוב: הסדר חשוב! מהגדול לקטן
-\`\`\`
-
-### בדיקת תחום
-\`\`\`java
-if (x >= 0 && x <= 100) { /* בטווח */ }
-\`\`\`
-
-### switch עם fall-through מכוון
-\`\`\`java
-switch (month) {
-    case 1: case 3: case 5: case 7: case 8: case 10: case 12:
-        days = 31; break;
-    case 4: case 6: case 9: case 11:
-        days = 30; break;
-    case 2:
-        days = 28; break;
-}
-\`\`\`
-
-## דוגמאות
+כאשר יש יותר משתי אפשרויות, משתמשים בשרשרת. **הסדר קריטי** — רק התנאי הראשון שמתקיים יבוצע:
 
 \`\`\`java
-// סיווג משולש
-if (a == b && b == c) {
-    System.out.println("Equilateral");
-} else if (a == b || b == c || a == c) {
-    System.out.println("Isosceles");
+// דוגמה מההרצאה — חישוב מס
+double tax;
+if (income <= 5000) {
+    tax = income * 0.05;
+} else if (income <= 10000) {
+    tax = 5000 * 0.05 + (income - 5000) * 0.1;
 } else {
-    System.out.println("Scalene");
+    tax = 5000 * 0.05 + 5000 * 0.1 + (income - 10000) * 0.3;
 }
+\`\`\`
+
+דוגמה מהתרגול — סיווג משתמשים לפי קוד תפקיד:
+
+\`\`\`java
+// UserRole (תרגול 2)
+public class UserRole {
+    public static void main(String[] args) {
+        int role = Integer.parseInt(args[0]);
+        if (role == 1) {
+            System.out.println("Admin");
+        } else if (role == 2) {
+            System.out.println("Editor");
+        } else if (role == 3) {
+            System.out.println("Viewer");
+        } else {
+            System.out.println("Unknown role");
+        }
+    }
+}
+// java UserRole 1 → Admin
+\`\`\`
+
+**שימו לב (מהתרגול)**: אם נכתוב \`if (role >= 1)\` במקום \`if (role == 1)\`, הענף הראשון יתפוס גם role=2 ו-role=3. הסדר והאופרטור חשובים!
+
+### אופרטור שלישוני (Ternary)
+
+קיצור ל-if-else פשוט — **ביטוי** שמחזיר ערך:
+
+\`\`\`java
+// condition ? valueIfTrue : valueIfFalse
+int max = (x > y) ? x : y;
+\`\`\`
+
+## מחרוזות (Strings)
+
+לפי ההרצאה, \`String\` הוא טיפוס **אובייקט** (לא פרימיטיבי). מחרוזת היא **סדרה אינדקסית של תווים** — האינדקס מתחיל מ-0:
+
+\`\`\`
+s = "Hello"
+     H  e  l  l  o
+     0  1  2  3  4
+\`\`\`
+
+### מתודות עיקריות
+
+| מתודה | תיאור | דוגמה (\`s = "Hello"\`) |
+|--------|--------|-------------------------|
+| \`s.length()\` | מספר התווים | \`5\` |
+| \`s.charAt(i)\` | התו באינדקס i | \`s.charAt(1)\` → \`'e'\` |
+| \`s.indexOf(str)\` | אינדקס המופע הראשון | \`s.indexOf("ll")\` → \`2\` |
+| \`s.substring(a, b)\` | תת-מחרוזת מ-a עד b (לא כולל b) | \`s.substring(1, 4)\` → \`"ell"\` |
+
+\`indexOf\` מחזיר \`-1\` אם לא נמצא.
+
+### דוגמה מהתרגול — מרחק אוקלידי
+
+\`\`\`java
+// EuclideanDistance (תרגול 2)
+public class EuclideanDistance {
+    public static void main(String[] args) {
+        double x1 = Double.parseDouble(args[0]);
+        double y1 = Double.parseDouble(args[1]);
+        double x2 = Double.parseDouble(args[2]);
+        double y2 = Double.parseDouble(args[3]);
+        double dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        System.out.println(dist);
+    }
+}
+// java EuclideanDistance 0 0 3 4 → 5.0
+\`\`\`
+
+### דוגמה מהתרגול — בדיקת אימייל
+
+\`\`\`java
+// IsValidEmail (תרגול 2)
+public class IsValidEmail {
+    public static void main(String[] args) {
+        String email = args[0];
+        int atIndex = email.indexOf("@");
+        // בדיקה: יש @ שלא בהתחלה ולא בסוף
+        if (atIndex > 0 && atIndex < email.length() - 1) {
+            System.out.println("Valid");
+        } else {
+            System.out.println("Invalid");
+        }
+    }
+}
+// java IsValidEmail "user@mail.com" → Valid
+// java IsValidEmail "@bad.com"      → Invalid
 \`\`\`
 
 ## טעויות שכיחות
 
-- **= במקום ==**: \`if (x = 5)\` זו השמה, לא השוואה!
-- **שכחת break ב-switch**: הקוד "ייפול" ל-case הבא
-- **השוואת String עם ==**: חובה להשתמש ב-\`.equals()\`
-- **סדר תנאים שגוי**: \`if (grade >= 70)\` לפני \`if (grade >= 90)\` יתפוס 90+ ב-70+
+- **\`=\` במקום \`==\`**: \`if (x = 5)\` זו השמה, לא השוואה — שגיאת קומפילציה
+- **השוואת String עם \`==\`**: חובה \`str.equals("abc")\` ולא \`str == "abc"\`
+- **סדר תנאים שגוי**: \`if (grade >= 70)\` לפני \`if (grade >= 90)\` יתפוס ציון 95 כבר בענף 70+
+- **שכחת \`{}\`**: בלי סוגריים, רק השורה הראשונה שייכת ל-\`if\` — מקור נפוץ לבאגים
+- **\`charAt\` מחזיר \`char\`, לא \`String\`**: אי אפשר להשוות \`s.charAt(0) == "H"\` — צריך \`s.charAt(0) == 'H'\` (גרשיים בודדים)
+- **\`indexOf\` מחזיר \`-1\`**: שכחה לבדוק את ערך ההחזרה
 
 ## טיפים למבחן
 
-- עקבו אחרי סדר ביצוע התנאים — רק הראשון שמתקיים יבוצע
-- ב-switch: אם אין break — הקוד ממשיך ל-case הבא (fall-through)!
-- \`&&\` ו-\`||\` עושים short-circuit: אם התוצאה ידועה מהצד השמאלי, הצד הימני לא מחושב`,
+- **סדר ב-else-if**: עקבו אחרי סדר הביצוע — רק הראשון שמתקיים יבוצע, השאר נדלגים
+- **ternary הוא ביטוי**: אפשר לשים אותו בתוך \`println\` או השמה, אבל הוא לא יכול לעמוד לבד כמשפט
+- **\`substring(a, b)\`**: כולל את \`a\`, **לא** כולל את \`b\`. אורך התוצאה הוא \`b - a\`
+- **\`String\` הוא immutable**: מתודות כמו \`substring\` מחזירות מחרוזת **חדשה**, לא משנות את המקורית
+- **\`&&\` ו-\`||\` עושים short-circuit**: אם התוצאה ידועה מהצד השמאלי, הצד הימני לא מחושב כלל`,
   },
   {
     topicSlug: "logical-operators",
     dayNumber: 2,
-    title: "אופרטורים לוגיים",
-    estimatedReadingMinutes: 6,
+    title: "לולאות ופונקציות",
+    estimatedReadingMinutes: 14,
     pdfResources: day2Pdfs,
     markdown: `## מבוא
 
-אופרטורים לוגיים מאפשרים לשלב תנאים. הם מחזירים \`boolean\` ומשמשים בעיקר בתוך \`if\` ו-\`while\`.
+לולאות מאפשרות לחזור על בלוק קוד. פונקציות מאפשרות לארגן קוד ליחידות עם שם, שאפשר לקרוא להן שוב ושוב (עקרון DRY — Don't Repeat Yourself).
 
-## מושגי יסוד
+## לולאת while
 
-| אופרטור | שם | דוגמה | תיאור |
-|----------|-----|--------|--------|
-| \`&&\` | AND | \`a && b\` | true רק אם שניהם true |
-| \`\\|\\|\` | OR | \`a \\|\\| b\` | true אם לפחות אחד true |
-| \`!\` | NOT | \`!a\` | הופך true↔false |
-
-### סדר קדימות (Precedence)
-1. \`!\` (גבוה ביותר)
-2. \`&&\`
-3. \`||\` (נמוך ביותר)
-
-### Short-Circuit Evaluation
-- \`false && expr\` → לא מחשב את \`expr\`
-- \`true || expr\` → לא מחשב את \`expr\`
-
-## תחביר
+מבצעת את הגוף **כל עוד** התנאי \`true\`. אם התנאי \`false\` מההתחלה — הגוף לא מתבצע אף פעם:
 
 \`\`\`java
-// AND — שני תנאים חייבים להתקיים
-if (age >= 18 && hasLicense) { /* יכול לנהוג */ }
-
-// OR — מספיק שאחד מתקיים
-if (isStudent || isElderly) { /* הנחה */ }
-
-// NOT — היפוך
-if (!isEmpty) { /* יש תוכן */ }
-
-// שילוב עם סוגריים
-if ((a > 0 && b > 0) || c > 0) { /* ... */ }
+// דוגמה מההרצאה — הדפסת 0 עד N-1
+int i = 0;
+while (i < N) {
+    System.out.println(i);
+    i++;
+}
 \`\`\`
 
-## דפוסים נפוצים
+### טבלת מעקב (Trace Table)
 
-### בדיקת טווח
+כלי מההרצאה לעקוב אחרי לולאה — רושמים את ערכי המשתנים בכל סיבוב:
+
+| סיבוב | i | i < 3? | פלט |
+|--------|---|--------|------|
+| 1 | 0 | true | 0 |
+| 2 | 1 | true | 1 |
+| 3 | 2 | true | 2 |
+| 4 | 3 | false | — (יציאה) |
+
+## לולאת for
+
+מתאימה כשיודעים מראש כמה פעמים לחזור. שלושה חלקים: **אתחול**; **תנאי**; **קידום**:
+
 \`\`\`java
-boolean inRange = (x >= 0) && (x <= 100);
+for (int i = 0; i < N; i++) {
+    // גוף הלולאה
+}
 \`\`\`
 
-### בדיקת null בטוחה
+- **אתחול** (\`int i = 0\`) — מתבצע פעם אחת בהתחלה
+- **תנאי** (\`i < N\`) — נבדק לפני כל סיבוב; אם \`false\` — יציאה
+- **קידום** (\`i++\`) — מתבצע בסוף כל סיבוב
+
+### דוגמאות מההרצאה
+
 \`\`\`java
-if (str != null && str.length() > 0) { /* בטוח */ }
-// short-circuit מגן מ-NullPointerException
+// סכום 1 + 2 + ... + N
+int sum = 0;
+for (int i = 1; i <= N; i++) {
+    sum += i;
+}
+
+// עצרת N!
+int factorial = 1;
+for (int i = 1; i <= N; i++) {
+    factorial *= i;
+}
+
+// סכום הרמוני 1 + 1/2 + ... + 1/N
+double harmonic = 0;
+for (int i = 1; i <= N; i++) {
+    harmonic += 1.0 / i;  // חובה 1.0 ולא 1 — אחרת חילוק שלמים!
+}
 \`\`\`
 
-### חוקי דה-מורגן (De Morgan)
+### חזקות של 2 — גישה יעילה
+
 \`\`\`java
-!(A && B)  ==  (!A || !B)
-!(A || B)  ==  (!A && !B)
+// מההרצאה — חישוב 2^N ביעילות (בלי Math.pow)
+int power = 1;
+for (int i = 0; i < N; i++) {
+    power *= 2;  // מכפיל ב-2 בכל סיבוב
+}
 \`\`\`
 
-## דוגמאות
+### for מקוננן (Nested for)
 
 \`\`\`java
-// שנה מעוברת
-boolean isLeap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+// לוח כפל מההרצאה
+for (int i = 1; i <= N; i++) {
+    for (int j = 1; j <= N; j++) {
+        System.out.print(i * j + "\\t");
+    }
+    System.out.println();
+}
+\`\`\`
 
-// בדיקת תקינות קלט
-boolean valid = (input >= 1 && input <= 10);
+### break — יציאה מוקדמת מלולאה
+
+\`\`\`java
+// בדיקת פלינדרום מההרצאה
+boolean isPalindrome = true;
+for (int i = 0; i < s.length() / 2; i++) {
+    if (s.charAt(i) != s.charAt(s.length() - 1 - i)) {
+        isPalindrome = false;
+        break;  // אין טעם להמשיך לבדוק
+    }
+}
+\`\`\`
+
+### for מול while
+
+| | \`for\` | \`while\` |
+|---|--------|---------|
+| **מתי** | מספר חזרות ידוע מראש | תנאי עצירה דינמי |
+| **דוגמה** | "הדפס 100 פעמים" | "קרא עד שהקלט הוא 0" |
+| **מונה** | מוגדר בתוך ה-for | מוגדר לפני ה-while |
+
+## פונקציות (Functions)
+
+### מבנה פונקציה (מהתרגול)
+
+\`\`\`java
+public static returnType functionName(type param1, type param2) {
+    // גוף הפונקציה
+    return value;
+}
+\`\`\`
+
+- **\`public static\`** — נלמד בהמשך; כרגע כותבים תמיד
+- **\`returnType\`** — הטיפוס שהפונקציה מחזירה (\`int\`, \`boolean\`, \`String\`...)
+- **\`void\`** — פונקציה שלא מחזירה ערך (רק מבצעת פעולה)
+- **פרמטרים** — ערכים שהפונקציה מקבלת
+
+### העברה לפי ערך (Pass by Value)
+
+ב-Java, ערכים פרימיטיביים **מועתקים** לפונקציה. שינוי הפרמטר בתוך הפונקציה **לא** משפיע על המשתנה המקורי:
+
+\`\`\`java
+// דוגמה מהתרגול
+public static void add5(int x) {
+    x = x + 5;  // משנה רק את העותק המקומי!
+}
+
+public static void main(String[] args) {
+    int num = 10;
+    add5(num);
+    System.out.println(num);  // מדפיס 10 — לא 15!
+}
+\`\`\`
+
+### פונקציות עזר (Helper Functions)
+
+מהתרגול — פונקציות קטנות שבודקות תו בודד:
+
+\`\`\`java
+public static boolean isDigit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+public static boolean isUpper(char c) {
+    return c >= 'A' && c <= 'Z';
+}
+
+public static boolean isLower(char c) {
+    return c >= 'a' && c <= 'z';
+}
+\`\`\`
+
+### דוגמה מהתרגול — IsSubstring
+
+\`\`\`java
+// בדיקה אם sub היא תת-מחרוזת של str (תרגול 3)
+public static boolean isSubstring(String str, String sub) {
+    for (int i = 0; i <= str.length() - sub.length(); i++) {
+        boolean found = true;
+        for (int j = 0; j < sub.length(); j++) {
+            if (str.charAt(i + j) != sub.charAt(j)) {
+                found = false;
+                break;
+            }
+        }
+        if (found) return true;
+    }
+    return false;
+}
+\`\`\`
+
+### דוגמה מהתרגול — סיסמה חזקה
+
+\`\`\`java
+// IsStrongPassword (תרגול 3) — שימוש בפונקציות עזר
+public static boolean isStrongPassword(String password) {
+    if (password.length() < 8) return false;
+    boolean hasDigit = false, hasUpper = false, hasLower = false;
+    for (int i = 0; i < password.length(); i++) {
+        char c = password.charAt(i);
+        if (isDigit(c)) hasDigit = true;
+        if (isUpper(c)) hasUpper = true;
+        if (isLower(c)) hasLower = true;
+    }
+    return hasDigit && hasUpper && hasLower;
+}
 \`\`\`
 
 ## טעויות שכיחות
 
-- **בלבול && עם &**: \`&\` הוא bitwise AND — לא עושה short-circuit!
-- **שכחת סוגריים**: \`a || b && c\` שווה ל-\`a || (b && c)\` — לא \`(a || b) && c\`
-- **כפל שלילה**: \`!(x != 5)\` פשוט שווה ל-\`x == 5\`
+- **לולאה אינסופית**: שכחה לקדם את המונה ב-\`while\` → הלולאה לא מסתיימת לעולם
+- **Off-by-one**: \`i < N\` מול \`i <= N\` — הבדל של סיבוב אחד. \`i < N\` נותן N סיבובים (0 עד N-1)
+- **חילוק שלמים בסכום הרמוני**: \`1 / i\` תמיד 0 כש-\`i > 1\` — חובה \`1.0 / i\`
+- **pass by value**: שינוי פרמטר בתוך פונקציה **לא** משנה את המשתנה שנשלח
+- **שכחת \`return\`**: פונקציה לא-void חייבת להחזיר ערך בכל מסלול ביצוע
+- **\`break\` יוצא רק מלולאה אחת**: בלולאות מקוננות, \`break\` עוצר רק את הפנימית
 
 ## טיפים למבחן
 
-- שרטטו טבלת אמת אם הביטוי מסובך
-- זכרו דה-מורגן: הפכו && ↔ || כשמכניסים שלילה
-- short-circuit חשוב כשיש סכנת NullPointerException`,
+- **טבלת מעקב**: בלולאות, רשמו את ערכי המשתנים בכל סיבוב — זה מונע טעויות
+- **for מול while**: for כשמספר החזרות ידוע, while כשתלוי בתנאי
+- **\`break\`**: יוצא מהלולאה **הפנימית** בלבד
+- **פונקציות עזר**: פרקו בעיה מורכבת לפונקציות קטנות — קל יותר לבדוק ולתחזק
+- **DRY**: אם אותו קוד מופיע פעמיים — זו סיבה טובה לשים אותו בפונקציה`,
   },
 
-  // ==================== Day 3: Loops ====================
+  // ==================== Day 3: Approximation, Characters & Functions ====================
   {
     topicSlug: "basic-loops",
     dayNumber: 3,
-    title: "לולאות for ו-while",
-    estimatedReadingMinutes: 9,
+    title: "אלגוריתמי קירוב ותווים",
+    estimatedReadingMinutes: 12,
     pdfResources: day3Pdfs,
     markdown: `## מבוא
 
-לולאות מאפשרות חזרה על בלוק קוד. \`for\` מתאים כשיודעים מראש כמה פעמים לחזור, \`while\` כשהתנאי תלוי בקלט או מצב משתנה.
+מההרצאה: אלגוריתמי קירוב מוצאים ערכים מספריים כשאין נוסחה מדויקת, באמצעות **חיפוש חוזר** עם תנאי עצירה. בהמשך נלמד על טיפוס \`char\` ועל מחרוזות.
 
-## מושגי יסוד
+## חישוב שורש ריבועי (√x)
 
-### שלושה סוגי לולאות
+**הבעיה (מההרצאה)**: מצאו g כך ש-|g × g - x| ≤ epsilon.
 
-| לולאה | מתי להשתמש | מבנה |
-|--------|-------------|------|
-| \`for\` | מספר חזרות ידוע | \`for (init; cond; update)\` |
-| \`while\` | תנאי כללי | \`while (cond) { ... }\` |
-| \`do-while\` | לפחות פעם אחת | \`do { ... } while (cond);\` |
+### חיפוש סדרתי (Sequential Search)
 
-## תחביר
+גישת "כוח גס" — מתחילים מ-g=1 ומקדמים בצעדים קטנים:
 
-### for
 \`\`\`java
-for (int i = 0; i < n; i++) {
-    System.out.println(i);
+// Sqrt1 מההרצאה — חיפוש סדרתי
+double x = 16;
+double epsilon = 0.01, increment = 0.0001;
+double g = 1.0;
+int stepCounter = 0;
+while ((Math.abs(g * g - x) >= epsilon) && (g <= x)) {
+    g += increment;
+    stepCounter++;
 }
-// i לא נגיש מחוץ ללולאה
+if (g > x)
+    System.out.println("Use a smaller increment");
+else
+    System.out.println("Square root (approx.) = " + g);
+// x=16 → approx=3.998, iterations=29988
 \`\`\`
 
-### while
+**באג מההרצאה**: אם ה-increment גדול מדי, g עלול "לדלג" מעל התשובה → לולאה אינסופית! הפתרון: תנאי \`g <= x\` + הודעת שגיאה.
+
+**ביצועים**: ~x/increment צעדים — **זמן ריצה ליניארי**.
+
+### חיפוש בינארי (Bisection Search)
+
+מצמצם את טווח החיפוש **בחצי** בכל צעד:
+
 \`\`\`java
-int i = 0;
-while (i < n) {
-    System.out.println(i);
-    i++;
+// Sqrt2 מההרצאה — חיפוש בינארי
+double x = 16;
+double epsilon = 0.01;
+double L = 1.0, H = x;
+double g = (L + H) / 2.0;
+int stepCounter = 0;
+while (Math.abs(g * g - x) >= epsilon) {
+    if (g * g < x)
+        L = g;
+    else
+        H = g;
+    g = (L + H) / 2;
+    stepCounter++;
 }
+System.out.println("Square root (approx.) = " + g);
+// x=16 → 11 iterations, x=105 → 15 iterations
 \`\`\`
 
-### do-while
+**העיקרון**: L ו-H תוחמים את התשובה. בכל צעד מחצים את הטווח: x, x/2, x/4, ... x/2^k.
+
+**ביצועים**: log₂(x) צעדים — **זמן ריצה לוגריתמי**. עובד על פונקציות **מונוטוניות** (משפט ערך הביניים).
+
+### ניוטון-רפסון (Newton-Raphson)
+
+עבור f(x) רציפה וגזירה, הנוסחה g ← g - f(g)/f'(g) מתכנסת מהר לשורש:
+
 \`\`\`java
-int input;
-do {
-    System.out.print("Enter (1-10): ");
-    input = sc.nextInt();
-} while (input < 1 || input > 10);
+// Sqrt3 מההרצאה — ניוטון-רפסון
+// עבור √x: f(g) = g² - x, f'(g) = 2g
+// לכן: g ← g - (g² - x) / (2g)
+double x = 16;
+double epsilon = 0.01;
+double g = x / 2;
+int stepCounter = 0;
+while (Math.abs(g * g - x) > epsilon) {
+    g = g - (g * g - x) / (2 * g);
+    stepCounter++;
+}
+System.out.println("Square root (approx.) = " + g);
+// x=16 → 2 steps!  x=105 → 4 steps!
 \`\`\`
 
-### break ו-continue
+### השוואת שלוש השיטות (מההרצאה)
+
+| שיטה | דרישה | מספר צעדים | דוגמה (x=105) |
+|-------|---------|------------|----------------|
+| סדרתי | כל פונקציה | ~x/increment (ליניארי) | 29988 |
+| בינארי | פונקציה מונוטונית | ~log₂(x) (לוגריתמי) | 15 |
+| ניוטון-רפסון | רציפה + גזירה | מעט מאוד | 4 |
+
+## תווים (Characters)
+
+### הטיפוס char
+
+מההרצאה: \`char\` הוא **טיפוס מספרי** — 16 ביט (0–65535), מאחסן קוד של תו:
+
+| טיפוס | גודל | טווח |
+|--------|-------|------|
+| \`byte\` | 8 bit | -128 עד 127 |
+| \`short\` | 16 bit | -32768 עד 32767 |
+| \`char\` | 16 bit | 0 עד 65535 |
+| \`int\` | 32 bit | ±2.1 מיליארד |
+
+### ASCII ו-Unicode
+
+- **ASCII** (1963): 8 ביט, 256 תווים. 0–31 בקרה, 32–127 אותיות מערביות
+- **Unicode** (1991): 16 ביט, 65536 תווים. Java משתמשת ב-Unicode. ASCII מוטבע בתוכו
+- \`'a'\` = 97, \`'A'\` = 65, \`'0'\` = 48 — **בשתי הקידודים**
+
+### טווחים חשובים
+
+| תווים | טווח ASCII |
+|--------|------------|
+| ספרות \`'0'\`–\`'9'\` | 48–57 |
+| אותיות גדולות \`'A'\`–\`'Z'\` | 65–90 |
+| אותיות קטנות \`'a'\`–\`'z'\` | 97–122 |
+
+### חשבון תווים (מההרצאה)
+
+ערכי \`char\` **הם** מספרים — אפשר לעשות עליהם חשבון:
+
 \`\`\`java
-for (int i = 0; i < 100; i++) {
-    if (i == 50) break;     // יוצא מהלולאה לגמרי
-    if (i % 2 == 0) continue; // מדלג לאיטרציה הבאה
-    System.out.println(i);  // מדפיס רק אי-זוגיים עד 49
-}
+System.out.println(3);        // 3
+System.out.println('3');      // 3 (התו)
+System.out.println(3 + 1);    // 4
+System.out.println('3' + 1);  // 52 (קוד ASCII 51 + 1)
+
+char c = 'd';
+System.out.println(c - 32);          // 68 (int)
+System.out.println((char)(c - 32));  // D (המרה לאות גדולה!)
+
+// בדיקה אם תו הוא אות קטנה
+boolean isLower = (c >= 'a') && (c <= 'z');
+
+// בדיקה אם תו הוא ספרה
+boolean isDigit = (c >= '0') && (c <= '9');
 \`\`\`
 
-## דפוסים נפוצים
+**כלל חשוב**: ההפרש בין אות קטנה לגדולה הוא **32** תמיד (\`'a' - 'A' == 32\`).
 
-### סכום מספרים
-\`\`\`java
-int sum = 0;
-for (int i = 1; i <= n; i++) {
-    sum += i;
-}
+### תווים מיוחדים (Escape Sequences)
+
+| רצף | משמעות |
+|------|---------|
+| \`\\t\` | טאב |
+| \`\\n\` | שורה חדשה |
+| \`\\\\\` | backslash |
+| \`\\"\` | גרש כפול |
+| \`\\'\` | גרש בודד |
+
+## מחרוזות (Strings)
+
+מההרצאה: מחרוזת היא **סדרה של תווים** — ניתן לראות אותה ברמה גבוהה (תווים) או ברמה נמוכה (קודים):
+
+\`\`\`
+"As easy " → A  s     e  a  s  y
+             65 115 32 101 97 115 121 32
 \`\`\`
 
-### מונה עם תנאי
+### שרשור (Concatenation)
+
 \`\`\`java
-int count = 0;
-for (int i = 0; i < n; i++) {
-    if (arr[i] > 0) count++;
-}
+String s1 = "As easy ";
+String s2 = "as 123";
+String s3 = s1 + s2;  // "As easy as 123" (14 תווים)
 \`\`\`
 
-### הפרדת ספרות
-\`\`\`java
-while (n > 0) {
-    int digit = n % 10;
-    n /= 10;
-    // עיבוד digit...
-}
-\`\`\`
+### מתודות (מההרצאה)
 
-### חיפוש ראשון
-\`\`\`java
-int i = 0;
-while (i < arr.length && arr[i] != target) {
-    i++;
-}
-boolean found = (i < arr.length);
-\`\`\`
+| מתודה | תיאור | דוגמה (\`s = "As easy "\`) |
+|--------|--------|---------------------------|
+| \`s.length()\` | מספר תווים | \`8\` |
+| \`s.charAt(3)\` | תו באינדקס | \`'e'\` |
+| \`s.substring(1,5)\` | תת-מחרוזת (לא כולל 5) | \`"s ea"\` |
+| \`s.indexOf('a')\` | אינדקס מופע ראשון | \`4\` |
 
-## דוגמאות
+**הערה מההרצאה**: מתודות הן כמו פונקציות שפועלות על אובייקט — \`s1.charAt(3)\` ולא \`charAt(s1, 3)\`.
+
+### עיבוד מחרוזות — דוגמת upCase (מההרצאה)
 
 \`\`\`java
-// עצרת (Factorial)
-long fact = 1;
-for (int i = 2; i <= n; i++) {
-    fact *= i;
-}
+// המרת אות ראשונה בכל מילה לאות גדולה
+// "it was the best of time" → "It Was The Best Of Time"
 
-// ספירת ספרות
-int count = 0;
-int num = 12345;
-while (num > 0) {
-    count++;
-    num /= 10;
-}
-// count == 5
+// הרעיון: כשנתקלים ברווח, האות הבאה צריכה להיות גדולה
+// המרה: (char)(c - 32) — הפחתת 32 מהקוד
+
+// באג מההרצאה: "2 apples and 3 pears" → " Apples and 0ears"
+// הסיבה: הקוד מניח שהתו אחרי רווח הוא אות — אבל '3' זו ספרה!
 \`\`\`
 
 ## טעויות שכיחות
 
-- **לולאה אינסופית**: שכחתם לעדכן את המונה או התנאי אף פעם לא נהיה false
-- **Off-by-one**: \`i <= n\` vs \`i < n\` — הבדל של 1!
-- **שינוי מונה בתוך for**: \`for(int i=0; i<n; i++) { i++; }\` — מדלג על ערכים
-- **שכחת {} בלולאה חד-שורתית**: רק השורה הראשונה בתוך הלולאה
+- **\`'3' + 1\` שווה 52, לא 4**: פעולות חשבון על \`char\` מחזירות \`int\` — ה-cast ל-\`char\` הוא מפורש
+- **שכחת cast**: \`c - 32\` מחזיר \`int\`, צריך \`(char)(c - 32)\` כדי לקבל תו
+- **increment גדול מדי בחיפוש סדרתי**: גורם ללולאה אינסופית — חובה תנאי \`g <= x\`
+- **הנחות על קלט**: דוגמת upCase מראה שקוד שעובד על אותיות נשבר על ספרות
+- **\`substring(a, b)\`**: כולל את \`a\`, **לא** כולל את \`b\`. אורך = \`b - a\`
 
 ## טיפים למבחן
 
-- עקבו אחרי ערכי המשתנים באמצעות טבלה (trace table)
-- שימו לב לערך ההתחלתי ולתנאי העצירה
-- \`do-while\` מבצע לפחות פעם אחת — שונה מ-\`while\`
-- לולאה על ספרות: \`% 10\` ו-\`/ 10\` — דפוס קלאסי`,
+- **ניוטון-רפסון**: הנוסחה g ← g - f(g)/f'(g) — צריך לזכור לגזור
+- **\`char\` זה מספר**: אפשר להשוות, לחסר, לחבר — אבל צריך cast חזרה ל-\`char\`
+- **טווחי ASCII**: ספרות מ-48, גדולות מ-65, קטנות מ-97. הפרש קטנה↔גדולה = 32
+- **ביצועים**: סדרתי O(n), בינארי O(log n), ניוטון — הכי מהיר
+- **מתודות String**: \`length()\` עם סוגריים (מתודה), \`charAt\` מחזיר \`char\` לא \`String\``,
   },
   {
     topicSlug: "nested-loops",
     dayNumber: 3,
-    title: "לולאות מקוננות ודפוסים",
-    estimatedReadingMinutes: 8,
+    title: "פונקציות ומערכים",
+    estimatedReadingMinutes: 12,
     pdfResources: day3Pdfs,
     markdown: `## מבוא
 
-לולאה מקוננת היא לולאה בתוך לולאה. הלולאה הפנימית רצה מלאה עבור כל איטרציה של החיצונית. שימוש נפוץ: הדפסת דפוסים, עבודה עם מטריצות.
+מההרצאה: פונקציה הופכת חישוב לקוד **שימושי מחדש** (reusable). במקום לכתוב את קוד √x בכל תוכנית, שמים אותו בפונקציה \`sqrt\` בספרייה \`MyMath\` — וכל מחלקה יכולה לקרוא לה. מהתרגול: מערכים מאחסנים אוסף ערכים עם גישה לפי אינדקס.
 
-## מושגי יסוד
+## פונקציות (Functions)
 
-- הלולאה **החיצונית** שולטת בשורות
-- הלולאה **הפנימית** שולטת בעמודות
-- סיבוכיות: n חיצוני × m פנימי = O(n×m)
-
-## תחביר
+### אנטומיה של פונקציה (מההרצאה)
 
 \`\`\`java
-for (int i = 0; i < rows; i++) {       // שורות
-    for (int j = 0; j < cols; j++) {   // עמודות
-        System.out.print("* ");
+//   type of     function    parameter  parameter
+//   return value  name      type       name
+public static double sqrt(double x, double epsilon) {
+    if (x < 0) return Double.NaN;
+    double g = x;                        // local variable
+    while (Math.abs(g * g - x) > epsilon) {
+        g = g - (g * g - x) / (2 * g);
     }
-    System.out.println(); // ירידת שורה
+    return g;                            // return value
 }
 \`\`\`
 
-## דפוסים נפוצים
+פונקציה:
+- מקבלת אפס או יותר **ארגומנטים** (inputs)
+- מחזירה ערך (או \`void\` אם לא מחזירה כלום)
+- יש לה **טיפוס** — הטיפוס של הערך המוחזר
 
-### משולש ימני
+### קריאה לפונקציה וחזרה (מההרצאה)
+
+**טרמינולוגיה**: הפונקציה שקוראת = **caller**, הפונקציה שנקראת = **callee**.
+
 \`\`\`java
-for (int i = 1; i <= n; i++) {
-    for (int j = 1; j <= i; j++) {
-        System.out.print("* ");
+public class MyMath {
+    public static void main(String args[]) {
+        double d = hypot(2, 1, 5, 4);  // main קורא ל-hypot
+        System.out.println(d);          // 4.242642472890547
+    }
+
+    public static double hypot(double x1, double y1,
+                               double x2, double y2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return sqrt(dx*dx + dy*dy);     // hypot קורא ל-sqrt
+    }
+
+    public static double sqrt(double x) {
+        double epsilon = 0.01;
+        double g = x;
+        while (Math.abs(g * g - x) > epsilon) {
+            g = g - (g * g - x) / (2 * g);
+        }
+        return g;
+    }
+}
+\`\`\`
+
+**סדר הביצוע (מההרצאה)**: main → hypot → sqrt → sqrt חוזר → hypot חוזר → main מדפיס.
+
+**ארגומנטים מול פרמטרים**: ארגומנטים = הערכים שה-caller מעביר. פרמטרים = משתנים מקומיים שמאותחלים עם הארגומנטים.
+
+### Overloading (מההרצאה)
+
+**הגדרת פונקציות עם אותו שם אבל חתימות שונות** (מספר/טיפוסי פרמטרים שונים):
+
+\`\`\`java
+// שתי גרסאות של sqrt:
+public static double sqrt(double x, double epsilon) {
+    if (x < 0) return Double.NaN;
+    double g = x;
+    while (Math.abs(g * g - x) > epsilon) {
+        g = g - (g * g - x) / (2 * g);
+    }
+    return g;
+}
+
+public static double sqrt(double x) {
+    return sqrt(x, 0.001);  // ברירת מחדל
+}
+
+// קריאות:
+// sqrt(2, 0.1)   → קורא לגרסה עם epsilon
+// sqrt(2, 0.001) → קורא לגרסה עם epsilon
+// sqrt(2)        → קורא לגרסה עם ברירת מחדל
+\`\`\`
+
+**דוגמאות נוספות מההרצאה**: \`println\` של Java — overloaded ל-boolean, char, int, double, String ועוד. \`indexOf\` — overloaded לתו, תו+startIndex, מחרוזת, מחרוזת+startIndex.
+
+### מודולריות ו-API (מההרצאה)
+
+**מודולריות**: חלוקת תוכנית למודולים (מחלקות) — מפחיתה מורכבות, מאפשרת שימוש חוזר, בדיקות, ופיתוח מקבילי.
+
+**API** (Application Programming Interface): תיעוד שמתאר **איך להשתמש** בפונקציה (מנקודת המבט של ה-caller), בלי לחשוף את המימוש. הפונקציה היא "קופסה שחורה".
+
+**תחביר קריאה**:
+- באותה מחלקה: \`functionName(args)\`
+- ממחלקה אחרת: \`ClassName.functionName(args)\` (למשל \`MyMath.sqrt(719)\`)
+
+## מערכים (Arrays) — מהתרגול
+
+### הדפסת מערך
+
+\`\`\`java
+// println על מערך מדפיס כתובת זיכרון כמו [I@120d62b
+// צריך פונקציה מותאמת:
+public static void printArray(int[] array) {
+    System.out.print('{');
+    for (int i = 0; i < array.length; i++) {
+        System.out.print(array[i]);
+        char c = (i != array.length - 1) ? ',' : '}';
+        System.out.print(c);
     }
     System.out.println();
 }
-// n=4:
-// *
-// * *
-// * * *
-// * * * *
 \`\`\`
 
-### משולש הפוך
+**שימו לב**: \`string.length()\` עם סוגריים (מתודה) לעומת \`array.length\` **בלי** סוגריים (שדה)!
+
+### השוואת מערכים
+
 \`\`\`java
-for (int i = n; i >= 1; i--) {
-    for (int j = 1; j <= i; j++) {
-        System.out.print("* ");
+// == משווה הפניות (references), לא תוכן!
+int[] a = {1, 2, 3};
+int[] b = {1, 2, 3};
+System.out.println(a == b);  // false!
+
+// צריך פונקציה שמשווה איבר-איבר:
+public static boolean equalsArray(int[] arr1, int[] arr2) {
+    if (arr1.length != arr2.length) return false;
+    for (int i = 0; i < arr1.length; i++) {
+        if (arr1[i] != arr2[i]) return false;
     }
-    System.out.println();
+    return true;
 }
 \`\`\`
 
-### פירמידת מספרים
-\`\`\`java
-for (int i = 1; i <= n; i++) {
-    // רווחים
-    for (int j = 0; j < n - i; j++) System.out.print(" ");
-    // מספרים
-    for (int j = 1; j <= i; j++) System.out.print(j + " ");
-    System.out.println();
-}
-\`\`\`
+### פעולות על מערכים (מהתרגול)
 
-### לוח כפל
 \`\`\`java
-for (int i = 1; i <= n; i++) {
-    for (int j = 1; j <= n; j++) {
-        System.out.printf("%4d", i * j);
+// סכום מערך
+public static int sumArray(int[] arr) {
+    int sum = 0;
+    for (int i = 0; i < arr.length; i++) {
+        sum += arr[i];
     }
-    System.out.println();
+    return sum;
+}
+
+// מקסימום
+public static int maxElement(int[] arr) {
+    int max = Integer.MIN_VALUE;
+    for (int i = 0; i < arr.length; i++) {
+        max = Math.max(max, arr[i]);
+    }
+    return max;
+}
+
+// מינימום — Integer.MAX_VALUE + Math.min
+
+// אינדקס של המקסימום — שומרים גם ערך וגם אינדקס
+public static int indexOfMaxElement(int[] arr) {
+    int maxVal = arr[0];
+    int maxIdx = 0;
+    for (int i = 1; i < arr.length; i++) {
+        if (arr[i] > maxVal) {
+            maxVal = arr[i];
+            maxIdx = i;
+        }
+    }
+    return maxIdx;
+}
+
+// בדיקת סדר עולה
+public static boolean isInAscendingOrder(int[] arr) {
+    for (int i = 0; i < arr.length - 1; i++) {
+        if (arr[i] > arr[i + 1]) return false;
+    }
+    return true;
 }
 \`\`\`
 
-## דוגמאות
+### דוגמה מהתרגול — LengthOfLastWord
 
 \`\`\`java
-// דפוס יהלום
-int n = 5;
-// חצי עליון
-for (int i = 1; i <= n; i++) {
-    for (int j = 0; j < n - i; j++) System.out.print(" ");
-    for (int j = 0; j < 2 * i - 1; j++) System.out.print("*");
-    System.out.println();
-}
-// חצי תחתון
-for (int i = n - 1; i >= 1; i--) {
-    for (int j = 0; j < n - i; j++) System.out.print(" ");
-    for (int j = 0; j < 2 * i - 1; j++) System.out.print("*");
-    System.out.println();
+// נתונה מחרוזת של מילים ורווחים — מצאו את אורך המילה האחרונה
+public static int lengthOfLastWord(String str) {
+    int i = str.length() - 1;
+    // דילוג על רווחים מהסוף
+    while (i >= 0 && str.charAt(i) == ' ') {
+        i--;
+    }
+    // ספירת תווים עד הרווח הבא
+    int count = 0;
+    while (i >= 0 && str.charAt(i) != ' ') {
+        count++;
+        i--;
+    }
+    return count;
 }
 \`\`\`
 
 ## טעויות שכיחות
 
-- **שכחת println() אחרי שורה**: הכל מודפס בשורה אחת
-- **שימוש באותו שם מונה**: \`i\` בשתי הלולאות — שגיאת קומפילציה או התנהגות לא צפויה
-- **חישוב גבול שגוי**: \`j <= i\` vs \`j < i\` — משפיע על מספר הכוכביות
+- **שכחת \`return\`**: פונקציה לא-\`void\` חייבת להחזיר ערך **בכל מסלול ביצוע**
+- **pass by value**: שינוי פרמטר פרימיטיבי בתוך פונקציה **לא** משנה את המשתנה של ה-caller
+- **\`==\` על מערכים**: משווה הפניות, לא תוכן! צריך \`equalsArray\` (או \`Arrays.equals\`)
+- **\`array.length\` בלי סוגריים**: שדה, לא מתודה. \`string.length()\` **עם** סוגריים
+- **\`println(array)\`**: מדפיס כתובת, לא תוכן — צריך פונקציית הדפסה מותאמת
+- **\`Integer.MIN_VALUE\`**: ערך התחלתי למקסימום. \`Integer.MAX_VALUE\` למינימום
 
 ## טיפים למבחן
 
-- ציירו את הדפוס על נייר קודם — זהו כמה תווים בכל שורה
-- הלולאה הפנימית תלויה ב-\`i\` (המונה של החיצונית) — ככה הדפוס משתנה
-- עבור דפוסים מרוכזים: מספר רווחים = \`n - i\`, מספר כוכביות = \`2*i - 1\``,
+- **אנטומיה**: זכרו — \`public static returnType name(params) { body; return value; }\`
+- **overloading**: שם זהה, חתימה שונה. Java בוחרת את הגרסה לפי הארגומנטים
+- **caller ↔ callee**: ה-caller מושהה, ה-callee רץ. ערך ה-return מחליף את הקריאה בקוד ה-caller
+- **מערכים — דפוסי תרגול**: sum, max, min, indexOf, isAscending — הכירו את כולם
+- **\`length\` מול \`length()\`**: מערך = שדה (בלי סוגריים), מחרוזת = מתודה (עם סוגריים)
+- **pass by value**: העברת \`int\` לפונקציה = **העתקה**. שינוי הפרמטר לא משפיע על ה-caller`,
   },
 
   // ==================== Day 4: Arrays ====================

@@ -2,35 +2,14 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronDown, ChevronUp, FileDown, BookOpen, Clock, ExternalLink } from "lucide-react"
+import { ChevronDown, ChevronUp, BookOpen, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { getSummaryGroups, type DaySummaryGroup, type TheorySummary, type PdfResource } from "@/content/theory-summaries/marathon-summaries"
-
-function PdfLink({ pdf }: { pdf: PdfResource }) {
-  return (
-    <a
-      href={pdf.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
-        "hover:bg-accent/50 border border-border/50",
-        pdf.type === "lecture"
-          ? "text-blue-400 hover:text-blue-300"
-          : "text-emerald-400 hover:text-emerald-300"
-      )}
-    >
-      <FileDown className="h-4 w-4 shrink-0" />
-      <span>{pdf.title}</span>
-      <ExternalLink className="h-3 w-3 shrink-0 opacity-50" />
-    </a>
-  )
-}
+import { getSummaryGroups, type DaySummaryGroup, type TheorySummary } from "@/content/theory-summaries/marathon-summaries"
 
 function TopicSummaryCard({ summary }: { summary: TheorySummary }) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -188,8 +167,7 @@ function DayAccordion({
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {group.topics.length} נושאים &middot;{" "}
-                  {group.topics.reduce((sum, t) => sum + t.estimatedReadingMinutes, 0)} דק׳ קריאה &middot;{" "}
-                  {group.pdfResources.length} קבצי PDF
+                  {group.topics.reduce((sum, t) => sum + t.estimatedReadingMinutes, 0)} דק׳ קריאה
                 </p>
               </div>
             </div>
@@ -212,18 +190,6 @@ function DayAccordion({
               className="overflow-hidden"
             >
               <CardContent className="pt-0 space-y-4">
-                {/* PDF Resources */}
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground" dir="rtl">
-                    חומרי לימוד (PDF)
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {group.pdfResources.map((pdf) => (
-                      <PdfLink key={pdf.url} pdf={pdf} />
-                    ))}
-                  </div>
-                </div>
-
                 {/* Topic Summaries */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground" dir="rtl">
