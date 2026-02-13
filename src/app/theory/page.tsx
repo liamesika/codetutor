@@ -2,6 +2,7 @@
 
 import { PublicHeader } from "@/components/shared/public-header"
 import { LegalFooter } from "@/components/shared/legal-footer"
+import { VideoCTASection } from "@/components/shared/video-cta-section"
 import { TheorySummariesTab } from "@/components/dashboard/theory-summaries-tab"
 import { LanguageProvider } from "@/lib/i18n"
 
@@ -13,6 +14,7 @@ export default function TheoryPage() {
 
         <main className="flex-1 container mx-auto px-4 py-8 md:py-12 max-w-5xl">
           <TheorySummariesTab />
+          <VideoCTASection />
         </main>
 
         <LegalFooter variant="compact" />

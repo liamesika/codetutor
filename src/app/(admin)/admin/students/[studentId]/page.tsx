@@ -1,9 +1,9 @@
 "use client"
 
-import { use } from "react"
+import { use, useState } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,53 +11,70 @@ import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import {
   ArrowLeft,
-  User,
   Mail,
   Hash,
   Calendar,
   Trophy,
   Target,
   Flame,
-  Clock,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   FileQuestion,
+  Code2,
+  KeyRound,
+  Play,
+  Lightbulb,
+  Eye,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Activity,
 } from "lucide-react"
 
-interface QuestionStatus {
-  questionId: string
-  title: string
-  difficulty: number
-  points: number
-  isPassed: boolean
-  orderIndex: number
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+interface DayProgress {
+  dayNumber: number
+  dayTitle: string
+  totalQuestions: number
+  solvedQuestions: number
+  percentage: number
 }
 
-interface Submission {
+interface AttemptItem {
   id: string
-  assignmentId: string
   status: string
-  grade: number | null
-  submittedAt: string | null
-  assignment: {
-    id: string
-    title: string
-    description: string | null
-    dueDate: string | null
-    semester: string | null
-    week: {
-      id: string
-      weekNumber: number
-      title: string
-    }
-  }
-  questions: QuestionStatus[]
-  progress: {
-    passed: number
-    total: number
-    percentage: number
-  }
+  hintsUsed: number
+  pointsEarned: number
+  createdAt: string
+}
+
+interface QuestionAttempts {
+  questionId: string
+  questionTitle: string
+  questionSlug: string
+  topicTitle: string
+  difficulty: number
+  attempts: AttemptItem[]
+  bestStatus: string
+  totalAttempts: number
+  attemptsToPass: number | null
+  lastAttemptAt: string
+}
+
+interface DayAttempts {
+  dayNumber: number
+  dayTitle: string
+  questions: QuestionAttempts[]
+}
+
+interface ActivityItem {
+  id: string
+  activityType: string
+  metadata: Record<string, unknown> | null
+  createdAt: string
 }
 
 interface StudentDetail {
@@ -75,17 +92,388 @@ interface StudentDetail {
       bestStreak: number
       lastActiveDate: string | null
     } | null
+    plan: string | null
   }
-  submissions: Submission[]
+  dayProgress: DayProgress[]
+  attemptsByDay: DayAttempts[]
+  recentActivity: ActivityItem[]
   stats: {
-    totalAssignments: number
-    submittedCount: number
-    avgGrade: number | null
-    completionRate: number
-    inProgressCount: number
-    notStartedCount: number
+    totalQuestionsSolved: number
+    totalQuestionsAvailable: number
+    totalAttempts: number
+    completionPercentage: number
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMin < 1) return "just now"
+  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
+}
+
+function getPlanBadgeClass(plan: string | null): string {
+  switch (plan) {
+    case "PRO": return "bg-purple-500"
+    case "BASIC": return "bg-blue-500"
+    case "FREE": return "bg-gray-500"
+    default: return "bg-gray-400"
+  }
+}
+
+function getStatusBg(status: string): string {
+  switch (status) {
+    case "PASS": return "bg-green-500/10 text-green-600 dark:text-green-400"
+    case "FAIL": return "bg-red-500/10 text-red-600 dark:text-red-400"
+    case "COMPILE_ERROR": return "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+    case "RUNTIME_ERROR": return "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+    case "TIMEOUT": return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+    default: return "bg-muted text-muted-foreground"
+  }
+}
+
+const difficultyLabels: Record<number, string> = {
+  1: "Easy",
+  2: "Easy-Med",
+  3: "Medium",
+  4: "Hard",
+  5: "Expert",
+}
+
+const difficultyColors: Record<number, string> = {
+  1: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
+  2: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
+  3: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  4: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+  5: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+}
+
+function getActivityIcon(type: string) {
+  switch (type) {
+    case "LOGIN": return <KeyRound className="h-4 w-4" />
+    case "QUESTION_START": return <Play className="h-4 w-4" />
+    case "QUESTION_SUBMIT": return <Code2 className="h-4 w-4" />
+    case "HINT_VIEW": return <Lightbulb className="h-4 w-4" />
+    case "SOLUTION_VIEW": return <Eye className="h-4 w-4" />
+    case "LESSON_VIEW": return <Eye className="h-4 w-4" />
+    case "SESSION_START": return <Activity className="h-4 w-4" />
+    case "SESSION_END": return <Activity className="h-4 w-4" />
+    default: return <Clock className="h-4 w-4" />
+  }
+}
+
+function getActivityLabel(type: string): string {
+  switch (type) {
+    case "LOGIN": return "Logged in"
+    case "QUESTION_START": return "Started question"
+    case "QUESTION_SUBMIT": return "Submitted answer"
+    case "HINT_VIEW": return "Viewed hint"
+    case "SOLUTION_VIEW": return "Viewed solution"
+    case "LESSON_VIEW": return "Viewed lesson"
+    case "SESSION_START": return "Session started"
+    case "SESSION_END": return "Session ended"
+    default: return type
+  }
+}
+
+function getActivityColor(type: string): string {
+  switch (type) {
+    case "LOGIN": return "text-blue-500"
+    case "QUESTION_START": return "text-cyan-500"
+    case "QUESTION_SUBMIT": return "text-indigo-500"
+    case "HINT_VIEW": return "text-yellow-500"
+    case "SOLUTION_VIEW": return "text-orange-500"
+    default: return "text-muted-foreground"
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                     */
+/* ------------------------------------------------------------------ */
+
+function DayProgressGrid({ days }: { days: DayProgress[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Target className="h-5 w-5 text-indigo-500" />
+          Day Completion
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {days.map((day) => (
+            <div
+              key={day.dayNumber}
+              className={cn(
+                "rounded-xl border p-3 text-center transition-colors",
+                day.percentage === 100
+                  ? "border-green-500/30 bg-green-500/5"
+                  : day.percentage > 0
+                  ? "border-yellow-500/30 bg-yellow-500/5"
+                  : "border-border bg-muted/30"
+              )}
+            >
+              <div className="text-xs font-medium text-muted-foreground mb-1">
+                Day {day.dayNumber}
+              </div>
+              <div
+                className={cn(
+                  "text-2xl font-bold mb-1",
+                  day.percentage === 100
+                    ? "text-green-500"
+                    : day.percentage > 0
+                    ? "text-yellow-500"
+                    : "text-muted-foreground"
+                )}
+              >
+                {day.percentage}%
+              </div>
+              <Progress
+                value={day.percentage}
+                className="h-1.5 mb-1"
+              />
+              <div className="text-xs text-muted-foreground">
+                {day.solvedQuestions}/{day.totalQuestions}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ActivityTimeline({ activities }: { activities: ActivityItem[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Activity className="h-5 w-5 text-cyan-500" />
+          Recent Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {activities.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No activity recorded</p>
+          </div>
+        ) : (
+          <div className="max-h-[400px] overflow-y-auto space-y-1 pr-2">
+            {activities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className={cn("shrink-0", getActivityColor(activity.activityType))}>
+                  {getActivityIcon(activity.activityType)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium">
+                    {getActivityLabel(activity.activityType)}
+                  </span>
+                  {activity.metadata && typeof activity.metadata === "object" && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {(activity.metadata as Record<string, unknown>).questionTitle
+                        ? String((activity.metadata as Record<string, unknown>).questionTitle)
+                        : ""}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {formatRelativeDate(activity.createdAt)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function DayAttemptsAccordion({ day }: { day: DayAttempts }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const passedCount = day.questions.filter((q) => q.bestStatus === "PASS").length
+  const solvedQuestions = day.questions.filter((q) => q.attemptsToPass !== null)
+  const avgAttemptsToPass = solvedQuestions.length > 0
+    ? (solvedQuestions.reduce((s, q) => s + (q.attemptsToPass || 0), 0) / solvedQuestions.length).toFixed(1)
+    : null
+
+  return (
+    <Card className={cn(isExpanded && "border-primary/20")}>
+      <CardHeader
+        className="cursor-pointer select-none py-3"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[#4F46E5]/20 to-[#22D3EE]/20 flex items-center justify-center">
+              <span className="text-sm font-bold text-indigo-500">
+                {day.dayNumber}
+              </span>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm">
+                Day {day.dayNumber}: {day.dayTitle}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {passedCount}/{day.questions.length} passed &middot;{" "}
+                {day.questions.reduce((s, q) => s + q.totalAttempts, 0)} attempts
+                {avgAttemptsToPass && (
+                  <> &middot; avg {avgAttemptsToPass} tries to solve</>
+                )}
+              </p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </CardHeader>
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <CardContent className="pt-0 space-y-2">
+              {day.questions.map((q) => (
+                <QuestionAttemptRow key={q.questionId} question={q} />
+              ))}
+            </CardContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  )
+}
+
+function QuestionAttemptRow({ question }: { question: QuestionAttempts }) {
+  const [showAttempts, setShowAttempts] = useState(false)
+
+  return (
+    <div className="rounded-lg border p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {question.bestStatus === "PASS" ? (
+            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+          ) : (
+            <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+          )}
+          <span className="text-sm font-medium truncate">{question.questionTitle}</span>
+          <Badge
+            variant="outline"
+            className={cn("text-[10px] px-1.5 shrink-0", difficultyColors[question.difficulty])}
+          >
+            {difficultyLabels[question.difficulty] || `D${question.difficulty}`}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {question.attemptsToPass !== null ? (
+            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+              Solved in {question.attemptsToPass} {question.attemptsToPass === 1 ? "try" : "tries"}
+            </Badge>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {question.totalAttempts} {question.totalAttempts === 1 ? "attempt" : "attempts"}
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs"
+            onClick={() => setShowAttempts(!showAttempts)}
+          >
+            {showAttempts ? "Hide" : "Show"}
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mt-1">
+        <span className="text-xs text-muted-foreground">{question.topicTitle}</span>
+        <span className="text-xs text-muted-foreground">&middot;</span>
+        <span className="text-xs text-muted-foreground">
+          Last: {formatRelativeDate(question.lastAttemptAt)}
+        </span>
+        {question.attemptsToPass !== null && question.totalAttempts > question.attemptsToPass && (
+          <>
+            <span className="text-xs text-muted-foreground">&middot;</span>
+            <span className="text-xs text-muted-foreground">
+              {question.totalAttempts} total attempts
+            </span>
+          </>
+        )}
+      </div>
+      <AnimatePresence>
+        {showAttempts && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2 pt-2 border-t space-y-1">
+              {question.attempts.map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="flex items-center justify-between py-1 px-2 rounded text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={cn("font-medium px-1.5 py-0.5 rounded", getStatusBg(attempt.status))}>
+                      {attempt.status}
+                    </span>
+                    {attempt.hintsUsed > 0 && (
+                      <span className="text-muted-foreground flex items-center gap-0.5">
+                        <Lightbulb className="h-3 w-3" />
+                        {attempt.hintsUsed}
+                      </span>
+                    )}
+                    {attempt.pointsEarned > 0 && (
+                      <span className="text-yellow-500">+{attempt.pointsEarned}xp</span>
+                    )}
+                  </div>
+                  <span className="text-muted-foreground">
+                    {formatRelativeDate(attempt.createdAt)}
+                  </span>
+                </div>
+              ))}
+              {question.totalAttempts > question.attempts.length && (
+                <p className="text-xs text-muted-foreground text-center py-1">
+                  + {question.totalAttempts - question.attempts.length} more attempts
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main page                                                          */
+/* ------------------------------------------------------------------ */
 
 export default function StudentDetailPage({
   params,
@@ -106,13 +494,13 @@ export default function StudentDetailPage({
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
-        <div className="skeleton h-8 w-48 rounded" />
+        <div className="h-8 w-48 bg-muted animate-pulse rounded" />
         <div className="grid gap-4 md:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="skeleton h-24 rounded-lg" />
+            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
           ))}
         </div>
-        <div className="skeleton h-64 rounded-lg" />
+        <div className="h-64 bg-muted animate-pulse rounded-lg" />
       </div>
     )
   }
@@ -136,8 +524,7 @@ export default function StudentDetailPage({
     )
   }
 
-  const { student, submissions, stats } = data
-  const isAtRisk = (stats.avgGrade !== null && stats.avgGrade < 60) || stats.completionRate < 50
+  const { student, dayProgress, attemptsByDay, recentActivity, stats } = data
 
   return (
     <div className="p-6 space-y-6">
@@ -153,16 +540,13 @@ export default function StudentDetailPage({
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-2xl font-bold">{student.name}</h1>
-            {isAtRisk ? (
-              <Badge variant="destructive" className="gap-1">
-                <AlertTriangle className="h-3 w-3" />
-                At Risk
+            {student.plan && (
+              <Badge className={cn(getPlanBadgeClass(student.plan))}>
+                {student.plan}
               </Badge>
-            ) : (
-              <Badge className="bg-green-500">On Track</Badge>
             )}
           </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1">
               <Mail className="h-4 w-4" />
               {student.email}
@@ -180,49 +564,50 @@ export default function StudentDetailPage({
           </div>
         </div>
 
-        {stats.avgGrade !== null && (
-          <div className="text-center p-4 rounded-xl bg-card border">
-            <p className="text-sm text-muted-foreground mb-1">Overall Grade</p>
-            <p
-              className={cn(
-                "text-4xl font-bold",
-                stats.avgGrade >= 70
-                  ? "text-green-500"
-                  : stats.avgGrade >= 60
-                  ? "text-yellow-500"
-                  : "text-red-500"
-              )}
-            >
-              {stats.avgGrade}%
-            </p>
-          </div>
-        )}
+        <div className="text-center p-4 rounded-xl bg-card border hidden sm:block">
+          <p className="text-sm text-muted-foreground mb-1">Completion</p>
+          <p
+            className={cn(
+              "text-4xl font-bold",
+              stats.completionPercentage >= 70
+                ? "text-green-500"
+                : stats.completionPercentage >= 30
+                ? "text-yellow-500"
+                : "text-muted-foreground"
+            )}
+          >
+            {stats.completionPercentage}%
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {stats.totalQuestionsSolved}/{stats.totalQuestionsAvailable} questions
+          </p>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Questions Solved</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completionRate}%</div>
+            <div className="text-2xl font-bold">{stats.totalQuestionsSolved}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.submittedCount} of {stats.totalAssignments} submitted
+              of {stats.totalQuestionsAvailable} total
             </p>
-            <Progress value={stats.completionRate} className="mt-2 h-2" />
+            <Progress value={stats.completionPercentage} className="mt-2 h-2" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <CardTitle className="text-sm font-medium">Total Attempts</CardTitle>
+            <Code2 className="h-4 w-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgressCount}</div>
-            <p className="text-xs text-muted-foreground">assignments started</p>
+            <div className="text-2xl font-bold">{stats.totalAttempts}</div>
+            <p className="text-xs text-muted-foreground">code submissions</p>
           </CardContent>
         </Card>
 
@@ -260,22 +645,22 @@ export default function StudentDetailPage({
           <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Not Started</CardTitle>
-                <FileQuestion className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">XP & Level</CardTitle>
+                <Trophy className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.notStartedCount}</div>
-                <p className="text-xs text-muted-foreground">assignments pending</p>
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
+                <p className="text-xs text-muted-foreground">no activity yet</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Solved</CardTitle>
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CardTitle className="text-sm font-medium">Streak</CardTitle>
+                <Flame className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">-</div>
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
                 <p className="text-xs text-muted-foreground">no activity yet</p>
               </CardContent>
             </Card>
@@ -283,136 +668,59 @@ export default function StudentDetailPage({
         )}
       </div>
 
-      {/* Assignments List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Assignment History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {submissions.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No assignments found for this student.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {submissions.map((sub, index) => (
-                <motion.div
-                  key={sub.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Card
-                    className={cn(
-                      "overflow-hidden",
-                      sub.status === "SUBMITTED" && sub.grade !== null
-                        ? sub.grade >= 70
-                          ? "border-green-500/30"
-                          : sub.grade >= 60
-                          ? "border-yellow-500/30"
-                          : "border-red-500/30"
-                        : ""
-                    )}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline">
-                              Week {sub.assignment.week.weekNumber}
-                            </Badge>
-                            {sub.assignment.semester && (
-                              <Badge variant="secondary">{sub.assignment.semester}</Badge>
-                            )}
-                            {sub.status === "SUBMITTED" ? (
-                              <Badge className="bg-green-500 gap-1">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Submitted
-                              </Badge>
-                            ) : sub.status === "IN_PROGRESS" ? (
-                              <Badge variant="secondary" className="gap-1">
-                                <Clock className="h-3 w-3" />
-                                In Progress
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline">Not Started</Badge>
-                            )}
-                          </div>
-                          <h3 className="font-semibold">{sub.assignment.title}</h3>
-                          {sub.assignment.dueDate && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Due: {new Date(sub.assignment.dueDate).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
+      {/* Day Completion Grid */}
+      {dayProgress.length > 0 && <DayProgressGrid days={dayProgress} />}
 
-                        <div className="text-right shrink-0">
-                          {sub.status === "SUBMITTED" && sub.grade !== null ? (
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Grade</p>
-                              <p
-                                className={cn(
-                                  "text-3xl font-bold",
-                                  sub.grade >= 70
-                                    ? "text-green-500"
-                                    : sub.grade >= 60
-                                    ? "text-yellow-500"
-                                    : "text-red-500"
-                                )}
-                              >
-                                {sub.grade}%
-                              </p>
-                              {sub.submittedAt && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(sub.submittedAt).toLocaleDateString()}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-1">Progress</p>
-                              <p className="text-3xl font-bold">{sub.progress.percentage}%</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+      {/* Two-column: Activity Timeline + Attempts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Activity Timeline */}
+        <ActivityTimeline activities={recentActivity} />
 
-                      {/* Questions breakdown */}
-                      <div className="mt-4 pt-4 border-t">
-                        <p className="text-sm font-medium mb-2">
-                          Questions ({sub.progress.passed}/{sub.progress.total} passed)
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {sub.questions
-                            .sort((a, b) => a.orderIndex - b.orderIndex)
-                            .map((q, qIndex) => (
-                              <div
-                                key={q.questionId}
-                                className={cn(
-                                  "flex items-center gap-1 px-2 py-1 rounded text-sm",
-                                  q.isPassed
-                                    ? "bg-green-500/10 text-green-500"
-                                    : "bg-muted text-muted-foreground"
-                                )}
-                              >
-                                {q.isPassed ? (
-                                  <CheckCircle2 className="h-3 w-3" />
-                                ) : (
-                                  <XCircle className="h-3 w-3" />
-                                )}
-                                Q{qIndex + 1}
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Quick Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Target className="h-5 w-5 text-purple-500" />
+              Progress Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {dayProgress.map((day) => (
+              <div key={day.dayNumber} className="flex items-center gap-3">
+                <span className="text-sm font-medium w-14 shrink-0">
+                  Day {day.dayNumber}
+                </span>
+                <Progress value={day.percentage} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground w-12 text-right shrink-0">
+                  {day.solvedQuestions}/{day.totalQuestions}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Question Attempt History */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Code2 className="h-5 w-5 text-indigo-500" />
+          Question Attempt History
+        </h2>
+        {attemptsByDay.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12 text-muted-foreground">
+              <Code2 className="h-10 w-10 mx-auto mb-3 opacity-50" />
+              <p>No attempts yet for this student.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {attemptsByDay.map((day) => (
+              <DayAttemptsAccordion key={day.dayNumber} day={day} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

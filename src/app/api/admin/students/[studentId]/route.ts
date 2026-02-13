@@ -19,6 +19,7 @@ export async function GET(
 
     const { studentId } = await params
 
+    // Fetch student with progress, entitlement, all attempts, and recent activity
     const student = await db.user.findUnique({
       where: { id: studentId },
       select: {
@@ -37,49 +38,51 @@ export async function GET(
             lastActiveDate: true,
           },
         },
-        assignmentSubmissions: {
-          include: {
-            assignment: {
-              include: {
-                week: {
-                  select: {
-                    id: true,
-                    weekNumber: true,
-                    title: true,
-                  },
-                },
-                questions: {
-                  include: {
-                    question: {
-                      select: {
-                        id: true,
-                        title: true,
-                        difficulty: true,
-                        points: true,
-                      },
-                    },
-                  },
-                  orderBy: { orderIndex: "asc" },
-                },
-              },
-            },
-          },
-          orderBy: {
-            assignment: {
-              week: {
-                weekNumber: "asc",
-              },
-            },
+        entitlement: {
+          select: {
+            plan: true,
+            status: true,
           },
         },
         attempts: {
-          where: {
-            status: "PASS",
-          },
           select: {
+            id: true,
             questionId: true,
+            status: true,
+            hintsUsed: true,
+            pointsEarned: true,
+            createdAt: true,
+            question: {
+              select: {
+                title: true,
+                difficulty: true,
+                slug: true,
+                topic: {
+                  select: {
+                    title: true,
+                    slug: true,
+                    week: {
+                      select: {
+                        weekNumber: true,
+                        title: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
-          distinct: ["questionId"],
+          orderBy: { createdAt: "desc" },
+        },
+        activities: {
+          select: {
+            id: true,
+            activityType: true,
+            metadata: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
         },
       },
     })
@@ -91,73 +94,172 @@ export async function GET(
       )
     }
 
-    // Get passed question IDs
-    const passedQuestionIds = new Set(student.attempts.map((a) => a.questionId))
+    // Get all weeks with their topics and question counts for the marathon course
+    const marathonCourse = await db.course.findUnique({
+      where: { slug: "cs-exam-marathon" },
+      select: {
+        weeks: {
+          select: {
+            id: true,
+            weekNumber: true,
+            title: true,
+            topics: {
+              select: {
+                id: true,
+                title: true,
+                questions: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { weekNumber: "asc" },
+        },
+      },
+    })
 
-    // Process submissions with question-level pass status
-    const submissions = student.assignmentSubmissions.map((sub) => {
-      const questionsWithStatus = sub.assignment.questions.map((aq) => ({
-        questionId: aq.questionId,
-        title: aq.question.title,
-        difficulty: aq.question.difficulty,
-        points: aq.question.points,
-        isPassed: passedQuestionIds.has(aq.questionId),
-        orderIndex: aq.orderIndex,
-      }))
+    // Build set of passed question IDs
+    const passedQuestionIds = new Set(
+      student.attempts
+        .filter((a) => a.status === "PASS")
+        .map((a) => a.questionId)
+    )
 
-      const passedCount = questionsWithStatus.filter((q) => q.isPassed).length
-      const totalCount = questionsWithStatus.length
-      const progressPercentage =
-        totalCount > 0 ? Math.round((passedCount / totalCount) * 100) : 0
+    // Build day progress grid
+    const dayProgress = (marathonCourse?.weeks || []).map((week) => {
+      const questionIds = week.topics.flatMap((t) =>
+        t.questions.map((q) => q.id)
+      )
+      const totalQuestions = questionIds.length
+      const solvedQuestions = questionIds.filter((id) =>
+        passedQuestionIds.has(id)
+      ).length
+      const percentage =
+        totalQuestions > 0
+          ? Math.round((solvedQuestions / totalQuestions) * 100)
+          : 0
 
       return {
-        id: sub.id,
-        assignmentId: sub.assignmentId,
-        status: sub.status,
-        grade: sub.grade,
-        submittedAt: sub.submittedAt,
-        createdAt: sub.createdAt,
-        assignment: {
-          id: sub.assignment.id,
-          title: sub.assignment.title,
-          description: sub.assignment.description,
-          dueDate: sub.assignment.dueDate,
-          semester: sub.assignment.semester,
-          week: sub.assignment.week,
-        },
-        questions: questionsWithStatus,
-        progress: {
-          passed: passedCount,
-          total: totalCount,
-          percentage: progressPercentage,
-        },
+        dayNumber: week.weekNumber,
+        dayTitle: week.title,
+        totalQuestions,
+        solvedQuestions,
+        percentage,
       }
     })
 
-    // Calculate overall stats
-    const submittedAssignments = submissions.filter(
-      (s) => s.status === "SUBMITTED"
-    )
-    const gradesWithValues = submittedAssignments.filter(
-      (s) => s.grade !== null
-    )
-    const avgGrade =
-      gradesWithValues.length > 0
-        ? Math.round(
-            gradesWithValues.reduce((sum, s) => sum + (s.grade || 0), 0) /
-              gradesWithValues.length
-          )
-        : null
+    // Group attempts by day (weekNumber) → question
+    const attemptsByDayMap = new Map<
+      number,
+      {
+        dayNumber: number
+        dayTitle: string
+        questions: Map<
+          string,
+          {
+            questionId: string
+            questionTitle: string
+            questionSlug: string
+            topicTitle: string
+            difficulty: number
+            attempts: {
+              id: string
+              status: string
+              hintsUsed: number
+              pointsEarned: number
+              createdAt: Date
+            }[]
+            bestStatus: string
+            totalAttempts: number
+            attemptsToPass: number | null
+            lastAttemptAt: Date
+          }
+        >
+      }
+    >()
 
-    // Get all published assignments for completion rate
-    const totalAssignments = await db.assignment.count({
-      where: { isPublished: true },
-    })
+    for (const attempt of student.attempts) {
+      const weekNum = attempt.question.topic.week.weekNumber
+      const weekTitle = attempt.question.topic.week.title
 
-    const completionRate =
-      totalAssignments > 0
-        ? Math.round((submittedAssignments.length / totalAssignments) * 100)
-        : 0
+      if (!attemptsByDayMap.has(weekNum)) {
+        attemptsByDayMap.set(weekNum, {
+          dayNumber: weekNum,
+          dayTitle: weekTitle,
+          questions: new Map(),
+        })
+      }
+
+      const dayGroup = attemptsByDayMap.get(weekNum)!
+      const qId = attempt.questionId
+
+      if (!dayGroup.questions.has(qId)) {
+        dayGroup.questions.set(qId, {
+          questionId: qId,
+          questionTitle: attempt.question.title,
+          questionSlug: attempt.question.slug,
+          topicTitle: attempt.question.topic.title,
+          difficulty: attempt.question.difficulty,
+          attempts: [],
+          bestStatus: "FAIL",
+          totalAttempts: 0,
+          attemptsToPass: null as number | null,
+          lastAttemptAt: attempt.createdAt,
+        })
+      }
+
+      const questionGroup = dayGroup.questions.get(qId)!
+      questionGroup.attempts.push({
+        id: attempt.id,
+        status: attempt.status,
+        hintsUsed: attempt.hintsUsed,
+        pointsEarned: attempt.pointsEarned,
+        createdAt: attempt.createdAt,
+      })
+      questionGroup.totalAttempts++
+      if (attempt.status === "PASS") {
+        questionGroup.bestStatus = "PASS"
+      }
+      // Since attempts are ordered desc, the first one is the latest
+      if (attempt.createdAt > questionGroup.lastAttemptAt) {
+        questionGroup.lastAttemptAt = attempt.createdAt
+      }
+    }
+
+    // Compute attemptsToPass for each question
+    for (const [, day] of attemptsByDayMap) {
+      for (const [, q] of day.questions) {
+        if (q.bestStatus === "PASS") {
+          // Attempts are in desc order, reverse to find first PASS chronologically
+          const chronological = [...q.attempts].reverse()
+          const firstPassIdx = chronological.findIndex((a) => a.status === "PASS")
+          q.attemptsToPass = firstPassIdx + 1
+        }
+      }
+    }
+
+    // Convert to serializable array
+    const attemptsByDay = Array.from(attemptsByDayMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([, day]) => ({
+        dayNumber: day.dayNumber,
+        dayTitle: day.dayTitle,
+        questions: Array.from(day.questions.values()).map((q) => ({
+          ...q,
+          // Only send last 5 attempts per question to keep payload small
+          attempts: q.attempts.slice(0, 5),
+        })),
+      }))
+
+    // Overall stats
+    const totalQuestionsSolved = passedQuestionIds.size
+    const totalQuestionsAvailable = (marathonCourse?.weeks || []).reduce(
+      (sum, w) =>
+        sum + w.topics.reduce((s, t) => s + t.questions.length, 0),
+      0
+    )
 
     return NextResponse.json({
       student: {
@@ -167,17 +269,21 @@ export async function GET(
         studentExternalId: student.studentExternalId,
         createdAt: student.createdAt,
         progress: student.progress,
+        plan: student.entitlement?.plan || null,
       },
-      submissions,
+      dayProgress,
+      attemptsByDay,
+      recentActivity: student.activities,
       stats: {
-        totalAssignments,
-        submittedCount: submittedAssignments.length,
-        avgGrade,
-        completionRate,
-        inProgressCount: submissions.filter((s) => s.status === "IN_PROGRESS")
-          .length,
-        notStartedCount: submissions.filter((s) => s.status === "NOT_STARTED")
-          .length,
+        totalQuestionsSolved,
+        totalQuestionsAvailable,
+        totalAttempts: student.attempts.length,
+        completionPercentage:
+          totalQuestionsAvailable > 0
+            ? Math.round(
+                (totalQuestionsSolved / totalQuestionsAvailable) * 100
+              )
+            : 0,
       },
     })
   } catch (error) {

@@ -26,16 +26,15 @@ import { cn } from "@/lib/utils"
 import {
   Users,
   Search,
-  AlertTriangle,
-  TrendingUp,
-  FileCheck,
-  GraduationCap,
+  Activity,
+  CheckCircle2,
   ChevronRight,
   ArrowUpDown,
   Filter,
-  CheckCircle2,
   User,
   XCircle,
+  Code2,
+  Clock,
 } from "lucide-react"
 
 interface Student {
@@ -44,63 +43,65 @@ interface Student {
   email: string
   studentExternalId: string | null
   createdAt: string
-  submittedCount: number
-  totalAssignments: number
-  avgGrade: number | null
-  lastSubmission: string | null
-  isAtRisk: boolean
+  questionsSolved: number
+  totalAttempts: number
+  lastActive: string | null
+  plan: string | null
+  xp: number
+  level: number
+  isNoActivity: boolean
 }
 
 interface StudentsResponse {
   students: Student[]
-  semesters: string[]
   kpis: {
     totalStudents: number
-    avgGradeOverall: number | null
-    atRiskCount: number
-    noSubmissionsCount: number
-    totalAssignments: number
+    activeToday: number
+    totalQuestionsSolved: number
+    noActivityCount: number
   }
 }
 
-type SortField = "name" | "studentExternalId" | "avgGrade" | "submittedCount" | "lastSubmission"
+type SortField = "name" | "questionsSolved" | "totalAttempts" | "lastActive" | "plan"
 type SortOrder = "asc" | "desc"
 
-// Grade color helper
-function getGradeColor(grade: number | null): string {
-  if (grade === null) return "text-gray-400"
-  if (grade >= 90) return "text-green-600 dark:text-green-400"
-  if (grade >= 75) return "text-blue-600 dark:text-blue-400"
-  if (grade >= 60) return "text-orange-600 dark:text-orange-400"
-  return "text-red-600 dark:text-red-400"
+function formatRelativeDate(dateStr: string | null): string {
+  if (!dateStr) return "—"
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMin < 1) return "just now"
+  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
 }
 
-function getGradeBadgeClass(grade: number | null): string {
-  if (grade === null) return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-  if (grade >= 90) return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
-  if (grade >= 75) return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-  if (grade >= 60) return "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
-  return "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+function getPlanBadgeClass(plan: string | null): string {
+  switch (plan) {
+    case "PRO": return "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border-purple-200 dark:border-purple-800"
+    case "BASIC": return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+    case "FREE": return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700"
+    default: return "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+  }
 }
 
 export default function AdminStudentsPage() {
   const [search, setSearch] = useState("")
-  const [semester, setSemester] = useState("all")
   const [status, setStatus] = useState("all")
-  const [gradeMin, setGradeMin] = useState("")
-  const [gradeMax, setGradeMax] = useState("")
-  const [sortField, setSortField] = useState<SortField>("name")
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
+  const [sortField, setSortField] = useState<SortField>("lastActive")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
 
   const { data, isLoading } = useQuery<StudentsResponse>({
-    queryKey: ["admin-students", search, semester, status, gradeMin, gradeMax],
+    queryKey: ["admin-students", search, status],
     queryFn: async () => {
       const params = new URLSearchParams()
       if (search) params.set("search", search)
-      if (semester && semester !== "all") params.set("semester", semester)
       if (status && status !== "all") params.set("status", status)
-      if (gradeMin) params.set("gradeMin", gradeMin)
-      if (gradeMax) params.set("gradeMax", gradeMax)
 
       const res = await fetch(`/api/admin/students?${params.toString()}`)
       if (!res.ok) throw new Error("Failed to fetch students")
@@ -115,20 +116,17 @@ export default function AdminStudentsPage() {
     switch (sortField) {
       case "name":
         return multiplier * (a.name || "").localeCompare(b.name || "")
-      case "studentExternalId":
-        return multiplier * (a.studentExternalId || "").localeCompare(b.studentExternalId || "")
-      case "avgGrade":
-        if (a.avgGrade === null && b.avgGrade === null) return 0
-        if (a.avgGrade === null) return 1
-        if (b.avgGrade === null) return -1
-        return multiplier * (a.avgGrade - b.avgGrade)
-      case "submittedCount":
-        return multiplier * (a.submittedCount - b.submittedCount)
-      case "lastSubmission":
-        if (!a.lastSubmission && !b.lastSubmission) return 0
-        if (!a.lastSubmission) return 1
-        if (!b.lastSubmission) return -1
-        return multiplier * (new Date(a.lastSubmission).getTime() - new Date(b.lastSubmission).getTime())
+      case "questionsSolved":
+        return multiplier * (a.questionsSolved - b.questionsSolved)
+      case "totalAttempts":
+        return multiplier * (a.totalAttempts - b.totalAttempts)
+      case "lastActive":
+        if (!a.lastActive && !b.lastActive) return 0
+        if (!a.lastActive) return 1
+        if (!b.lastActive) return -1
+        return multiplier * (new Date(a.lastActive).getTime() - new Date(b.lastActive).getTime())
+      case "plan":
+        return multiplier * (a.plan || "").localeCompare(b.plan || "")
       default:
         return 0
     }
@@ -139,7 +137,7 @@ export default function AdminStudentsPage() {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
     } else {
       setSortField(field)
-      setSortOrder("asc")
+      setSortOrder("desc")
     }
   }
 
@@ -160,20 +158,17 @@ export default function AdminStudentsPage() {
 
   const clearFilters = () => {
     setSearch("")
-    setSemester("all")
     setStatus("all")
-    setGradeMin("")
-    setGradeMax("")
   }
 
-  const hasActiveFilters = search || semester !== "all" || status !== "all" || gradeMin || gradeMax
+  const hasActiveFilters = search || status !== "all"
 
   if (isLoading) {
     return (
       <div className="p-4 md:p-6 lg:p-8 space-y-6">
         <div className="h-10 w-64 bg-muted animate-pulse rounded" />
-        <div className="grid gap-4 md:grid-cols-5">
-          {[1, 2, 3, 4, 5].map((i) => (
+        <div className="grid gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-28 bg-muted animate-pulse rounded" />
           ))}
         </div>
@@ -190,15 +185,15 @@ export default function AdminStudentsPage() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Users className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold">Student Progress Center</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Student Activity Center</h1>
         </div>
         <p className="text-muted-foreground ml-[52px]">
-          Monitor student performance, submissions, and identify at-risk students
+          Monitor student progress, practice activity, and identify inactive students
         </p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200/50 dark:border-blue-800/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
@@ -214,36 +209,11 @@ export default function AdminStudentsPage() {
         <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200/50 dark:border-emerald-800/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
-              <TrendingUp className="h-4 w-4" />
-              <span className="text-xs font-medium">Class Average</span>
+              <Activity className="h-4 w-4" />
+              <span className="text-xs font-medium">Active Today</span>
             </div>
-            <p className={cn("text-3xl font-bold", getGradeColor(data?.kpis?.avgGradeOverall ?? null))}>
-              {data?.kpis?.avgGradeOverall != null ? `${data.kpis.avgGradeOverall}%` : "—"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200/50 dark:border-red-800/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-1">
-              <AlertTriangle className="h-4 w-4" />
-              <span className="text-xs font-medium">At Risk</span>
-            </div>
-            <p className="text-3xl font-bold text-red-700 dark:text-red-300">
-              {data?.kpis.atRiskCount ?? 0}
-            </p>
-            <p className="text-xs text-red-600/70 dark:text-red-400/70">Avg &lt;60 or missing</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200/50 dark:border-orange-800/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 mb-1">
-              <XCircle className="h-4 w-4" />
-              <span className="text-xs font-medium">No Submissions</span>
-            </div>
-            <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
-              {data?.kpis.noSubmissionsCount ?? 0}
+            <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
+              {data?.kpis.activeToday ?? 0}
             </p>
           </CardContent>
         </Card>
@@ -251,12 +221,26 @@ export default function AdminStudentsPage() {
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200/50 dark:border-purple-800/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 mb-1">
-              <GraduationCap className="h-4 w-4" />
-              <span className="text-xs font-medium">Assignments</span>
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="text-xs font-medium">Questions Solved</span>
             </div>
             <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">
-              {data?.kpis.totalAssignments ?? 0}
+              {data?.kpis.totalQuestionsSolved ?? 0}
             </p>
+            <p className="text-xs text-purple-600/70 dark:text-purple-400/70">across all students</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200/50 dark:border-orange-800/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 mb-1">
+              <XCircle className="h-4 w-4" />
+              <span className="text-xs font-medium">No Activity</span>
+            </div>
+            <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
+              {data?.kpis.noActivityCount ?? 0}
+            </p>
+            <p className="text-xs text-orange-600/70 dark:text-orange-400/70">zero attempts</p>
           </CardContent>
         </Card>
       </div>
@@ -278,60 +262,18 @@ export default function AdminStudentsPage() {
               </div>
             </div>
 
-            <div className="w-full md:w-[150px]">
-              <label className="text-sm font-medium mb-2 block text-muted-foreground">Semester</label>
-              <Select value={semester} onValueChange={setSemester}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All semesters" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Semesters</SelectItem>
-                  {data?.semesters.map((sem) => (
-                    <SelectItem key={sem} value={sem}>
-                      {sem}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full md:w-[150px]">
+            <div className="w-full md:w-[180px]">
               <label className="text-sm font-medium mb-2 block text-muted-foreground">Status</label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
+                  <SelectValue placeholder="All students" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Students</SelectItem>
-                  <SelectItem value="passing">Passing (≥60%)</SelectItem>
-                  <SelectItem value="at_risk">At Risk</SelectItem>
-                  <SelectItem value="no_submissions">No Submissions</SelectItem>
+                  <SelectItem value="active">Active Today</SelectItem>
+                  <SelectItem value="no_activity">No Activity</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="w-[100px]">
-              <label className="text-sm font-medium mb-2 block text-muted-foreground">Min Grade</label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                placeholder="0"
-                value={gradeMin}
-                onChange={(e) => setGradeMin(e.target.value)}
-              />
-            </div>
-
-            <div className="w-[100px]">
-              <label className="text-sm font-medium mb-2 block text-muted-foreground">Max Grade</label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                placeholder="100"
-                value={gradeMax}
-                onChange={(e) => setGradeMax(e.target.value)}
-              />
             </div>
 
             {hasActiveFilters && (
@@ -371,11 +313,14 @@ export default function AdminStudentsPage() {
                     <TableHead className="w-[50px]">#</TableHead>
                     <SortableHeader field="name">Name</SortableHeader>
                     <TableHead className="hidden md:table-cell">Email</TableHead>
-                    <SortableHeader field="submittedCount">
-                      Submissions
+                    <SortableHeader field="questionsSolved">
+                      Solved
                     </SortableHeader>
-                    <SortableHeader field="avgGrade">Avg Grade</SortableHeader>
-                    <TableHead>Risk Level</TableHead>
+                    <SortableHeader field="totalAttempts">
+                      Attempts
+                    </SortableHeader>
+                    <SortableHeader field="lastActive">Last Active</SortableHeader>
+                    <SortableHeader field="plan">Plan</SortableHeader>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -385,7 +330,7 @@ export default function AdminStudentsPage() {
                       key={student.id}
                       className={cn(
                         "hover:bg-muted/30 transition-colors",
-                        student.isAtRisk && "bg-red-50/50 dark:bg-red-950/20"
+                        student.isNoActivity && "bg-orange-50/50 dark:bg-orange-950/20"
                       )}
                     >
                       <TableCell className="text-muted-foreground text-sm">
@@ -395,14 +340,14 @@ export default function AdminStudentsPage() {
                         <div className="flex items-center gap-2">
                           <div className={cn(
                             "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                            student.isAtRisk
-                              ? "bg-red-100 dark:bg-red-900/50"
+                            student.isNoActivity
+                              ? "bg-orange-100 dark:bg-orange-900/50"
                               : "bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/50 dark:to-indigo-900/50"
                           )}>
                             <User className={cn(
                               "h-4 w-4",
-                              student.isAtRisk
-                                ? "text-red-600 dark:text-red-400"
+                              student.isNoActivity
+                                ? "text-orange-600 dark:text-orange-400"
                                 : "text-purple-600 dark:text-purple-400"
                             )} />
                           </div>
@@ -416,46 +361,47 @@ export default function AdminStudentsPage() {
                         {student.email}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <Code2 className={cn(
+                            "h-3.5 w-3.5",
+                            student.questionsSolved > 0
+                              ? "text-green-500"
+                              : "text-muted-foreground"
+                          )} />
                           <span className={cn(
                             "font-bold",
-                            student.submittedCount === student.totalAssignments
+                            student.questionsSolved > 0
                               ? "text-green-600 dark:text-green-400"
-                              : student.submittedCount === 0
-                              ? "text-red-600 dark:text-red-400"
-                              : "text-orange-600 dark:text-orange-400"
+                              : "text-muted-foreground"
                           )}>
-                            {student.submittedCount}
+                            {student.questionsSolved}
                           </span>
-                          <span className="text-muted-foreground">/{student.totalAssignments}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {student.avgGrade !== null ? (
-                          <span className={cn("font-bold text-sm px-2 py-1 rounded", getGradeBadgeClass(student.avgGrade))}>
-                            {student.avgGrade}%
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {student.totalAttempts}
+                        </span>
                       </TableCell>
                       <TableCell>
-                        {student.isAtRisk ? (
-                          <Badge className="bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 border-red-200 dark:border-red-800 gap-1">
-                            <AlertTriangle className="h-3 w-3" />
-                            At Risk
-                          </Badge>
-                        ) : student.submittedCount === 0 ? (
-                          <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 border-orange-200 dark:border-orange-800 gap-1">
-                            <XCircle className="h-3 w-3" />
-                            No Activity
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800 gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            OK
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className={cn(
+                            "text-sm",
+                            !student.lastActive
+                              ? "text-muted-foreground"
+                              : new Date(student.lastActive) > new Date(Date.now() - 86400000)
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-muted-foreground"
+                          )}>
+                            {formatRelativeDate(student.lastActive)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={cn("text-xs", getPlanBadgeClass(student.plan))}>
+                          {student.plan || "—"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Link href={`/admin/students/${student.id}`}>
