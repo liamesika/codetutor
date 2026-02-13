@@ -102,101 +102,207 @@ export const theorySummaries: TheorySummary[] = [
   {
     topicSlug: "variables-and-types",
     dayNumber: 1,
-    title: "משתנים וטיפוסי נתונים",
-    estimatedReadingMinutes: 10,
+    title: "יסודות Java, משתנים וטיפוסים",
+    estimatedReadingMinutes: 12,
     pdfResources: day1Pdfs,
-    markdown: `## מהו משתנה?
+    markdown: `## מהי תוכנית Java?
+
+תוכנית Java מורכבת מ-**מחלקה (class)** אחת או יותר. כל מחלקה מכילה **מתודות (methods/functions)**, וכל מתודה מכילה סדרה של **פקודות (statements)**.
+
+בשלב הזה, נכתוב תוכניות עם מחלקה אחת ומתודה אחת — \`main\`:
+
+\`\`\`java
+public class ClassName {
+    public static void main(String[] args) {
+        // הפקודות שלנו כאן
+    }
+}
+\`\`\`
+
+- שם הקובץ **חייב** להתאים לשם המחלקה: \`ClassName.java\`
+- המתודה \`main\` היא **נקודת הכניסה** — בלעדיה לא ניתן להריץ את המחלקה
+
+## קומפילציה והרצה
+
+Java עובדת בשני שלבים:
+
+**שלב 1 — קומפילציה** (הידור): ממירה קוד מקור לקובץ bytecode
+\`\`\`
+javac MyCode.java
+\`\`\`
+- מקבלת קובץ \`.java\` (קוד מקור שכתבנו)
+- יוצרת קובץ \`.class\` (bytecode — קוד שהמחשב יודע להריץ)
+
+**שלב 2 — הרצה**: מריצה את ה-bytecode
+\`\`\`
+java MyCode
+\`\`\`
+- שימו לב: כותבים רק את **שם המחלקה**, בלי \`.class\`
+
+## שורת הפקודה (Command Line)
+
+מהתרגול — כך מקמפלים ומריצים תוכנית Java בטרמינל:
+
+\`\`\`
+javac MyCode.java
+java MyCode
+\`\`\`
+
+אם התוכנית מצפה לקבל ארגומנטים, מעבירים אותם **אחרי שם המחלקה**, מופרדים ברווח:
+\`\`\`
+java Mult 9 3
+\`\`\`
+
+**כללים**:
+- הארגומנטים באים אחרי שם המחלקה
+- רווח יחיד בין כל ארגומנט
+- למחלקה חייבת להיות מתודת \`main\` כדי שאפשר יהיה להריץ אותה
+
+## Git & GitHub
+
+**Git** — תוכנה לניהול גרסאות של קוד. עוזרת למפתחים לעקוב אחרי שינויים בפרויקט.
+
+**GitHub** — אתר שמאחסן פרויקטים שמנוהלים ב-Git, ומאפשר שיתוף עם אחרים.
+
+מושגי יסוד:
+- **Repository (ריפו)** — פרויקט או תיקייה ש-Git עוקב אחריה
+- **Commit** — שמירת מצב נוכחי (גרסה שמורה)
+
+### פקודות Git בסיסיות
+
+| פקודה | מה עושה |
+|--------|---------|
+| \`git init\` | יוצרת repository חדש בתיקייה קיימת |
+| \`git clone <url>\` | מעתיקה repository מ-GitHub למחשב המקומי |
+| \`git add <file>\` | מוסיפה קובץ לאזור ההכנה (staging) לפני commit |
+| \`git commit -m "message"\` | שומרת את השינויים עם הודעה מתארת |
+| \`git push\` | שולחת את ה-commits ל-repository מרוחק (GitHub) |
+
+### .gitignore
+קובץ מיוחד שאומר ל-Git אילו קבצים **להתעלם מהם**:
+- קבצים רגישים (כמו הגדרות מערכת)
+- קבצים שנוצרים אוטומטית (כמו \`.class\`)
+- קבצים של מערכת ההפעלה או כלים
+
+## שגיאות (Errors)
+
+שלושה סוגים עיקריים של שגיאות:
+
+### 1. שגיאות קומפילציה (Compiler Errors)
+מתרחשות בזמן הקומפילציה (\`javac\`). הקוד לא עומד בכללי התחביר של Java.
+
+דוגמאות:
+- **שגיאת תחביר (Syntax)** — שכחתם \`;\` או \`}\`
+- **אי-התאמת טיפוסים (Type Mismatch)** — למשל: \`int num = "1";\` (בלי casting)
+- **משתנה לא מאותחל** — שימוש במשתנה שלא קיבל ערך התחלתי: \`int n; int m = n;\`
+
+### 2. שגיאות ריצה (Runtime Errors)
+הקוד עובר קומפילציה בהצלחה, אבל קורס בזמן ההרצה.
+
+דוגמאות:
+- **חוסר ארגומנטים** — הרצה בלי לתת מספיק ארגומנטים → \`ArrayIndexOutOfBoundsException\`
+- **שגיאה אריתמטית** — חילוק ב-0: \`1 / 0\` → \`ArithmeticException\`
+- **חריגה מגבולות** — גישה לאינדקס שלא קיים
+- **NumberFormatException** — ניסיון לפרסר מחרוזת שאינה מספר: \`Integer.parseInt("Hello World")\`
+- **StackOverflow** — שגיאה לוגית שגורמת לרקורסיה אינסופית
+
+**טיפ לדיבאג**: הודעת השגיאה מכילה "שרשרת" של שורות. בדרך כלל **קרוב לתחתית** תמצאו את השורה מהקוד שלכם — התחילו משם.
+
+### 3. שגיאות לוגיות (Logical Errors)
+הקוד מתקמפל ורץ בלי לקרוס, אבל **התוצאה שגויה**.
+
+סימנים:
+- התוכנית לא עוצרת (לולאה אינסופית — ctrl+c / command+c לעצירה)
+- התוכנית עוצרת אבל הפלט לא נכון
+
+**איך מוצאים?** בודקים את הקוד עם **מקרי בדיקה רבים**, כולל **מקרי קצה (edge cases)**. לכל שלב, בודקים שהפלט בפועל מתאים לפלט הצפוי.
+
+**טיפ מהתרגול**: התחילו לעבוד עם ערכים קבועים (literals) בקוד. רק אחרי שהכל עובד — עברו לארגומנטים משורת הפקודה. אחרי שזה עובד, בדקו עם ארגומנטים.
+
+## משתנים וטיפוסי נתונים
+
+### מהו משתנה?
 
 לפי ההגדרה מההרצאה, משתנה הוא **מיכל מופשט (abstract container)** שיש לו:
-- **שם (name)** — קבוע, לא משתנה לאורך התוכנית
+- **שם (name)** — קבוע לאורך התוכנית
 - **טיפוס (type)** — קבוע, נקבע בהצהרה
 - **ערך (value)** — יכול להשתנות במהלך הריצה
 
-### הצהרה והשמה
+### הצהרה (Declaration)
 
+יצירת משתנה חדש עם ציון הטיפוס:
 \`\`\`java
-int x;          // הצהרה — יצירת המשתנה
-x = 5;          // השמה — מכניסים ערך למשתנה
-int y = 10;     // הצהרה + אתחול בשורה אחת
+int x;              // הצהרה
+int a, b;           // הצהרת כמה משתנים מאותו טיפוס
+int z = x + y;      // הצהרה + אתחול בשורה אחת
 \`\`\`
+משתנה יכול להחזיק **רק ערכים מהטיפוס שהוצהר**. שימוש במשתנה לא מאותחל גורם לשגיאת קומפילציה.
 
-בהשמה, **קודם מחשבים את צד ימין** של ה-\`=\`, ואז שמים את התוצאה במשתנה שבצד שמאל.
+### השמה (Assignment)
 
-## טיפוסי נתונים
+הכנסת ערך למשתנה:
+\`\`\`java
+x = 5;
+\`\`\`
+**אנטומיית ההשמה** (מההרצאה):
+1. קודם מחשבים את **הביטוי בצד ימין**
+2. שמים את התוצאה במשתנה שב**צד שמאל**
 
-Java היא שפה **strongly typed** — כל משתנה חייב להיות מוצהר עם טיפוס, והקומפיילר בודק שימוש נכון.
+**חשוב**: ה-\`=\` הוא **אופרטור השמה**, לא סימן שוויון מתמטי.
 
 ### טיפוסים פרימיטיביים
 
-| טיפוס | גודל | תיאור |
-|--------|-------|--------|
-| \`byte\` | 8 ביט | מספר שלם |
-| \`short\` | 16 ביט | מספר שלם |
-| \`char\` | 16 ביט | תו Unicode |
-| \`int\` | 32 ביט | מספר שלם (הנפוץ ביותר) |
-| \`long\` | 64 ביט | מספר שלם גדול |
-| \`float\` | 32 ביט | מספר ממשי, ~7 ספרות דיוק |
-| \`double\` | 64 ביט | מספר ממשי, ~15 ספרות דיוק |
-| \`boolean\` | — | \`true\` או \`false\` בלבד |
+| טיפוס | תיאור |
+|--------|--------|
+| \`int\` | מספר שלם (32 ביט) |
+| \`double\` | מספר ממשי (64 ביט) |
+| \`boolean\` | ערך לוגי — \`true\` או \`false\` |
+| \`char\` | תו בודד (16 ביט) |
 
 ### טיפוס הפניה — String
-\`String\` הוא טיפוס אובייקט (לא primitive) המייצג מחרוזת טקסט.
+
+\`String\` הוא **טיפוס אובייקט** (לא פרימיטיבי) שמייצג רצף של תווים:
+\`\`\`java
+String city = "Herzliya";
+\`\`\`
 
 ## פעולות על שלמים (int)
 
 האופרטורים: \`+\`, \`-\`, \`*\`, \`/\`, \`%\`
 
-**סדר קדימויות**: \`*\`, \`/\`, \`%\` לפני \`+\`, \`-\`. באותה רמה — חישוב משמאל לימין. סוגריים גוברים על הכל.
-
 \`\`\`java
-// דוגמה מההרצאה (Demo2)
-int a = 2 + 3;           // 5
-int b = 2 + 3 * 5;       // 17 (לא 25!)
-int c = (2 + 3) * 5;     // 25
-int d = 1 / 3;           // 0 (חילוק שלמים!)
+// דוגמאות מההרצאה (Demo2)
+System.out.println(5 + 3);    // 8
+System.out.println(5 - 3);    // 2
+System.out.println(5 * 3);    // 15
+System.out.println(5 / 5);    // 1
+System.out.println(5 % 3);    // 2
+System.out.println(1 / 0);    // Runtime error!
 \`\`\`
 
-**חילוק שלמים**: כאשר שני האופרנדים \`int\`, התוצאה היא \`int\` — החלק השלם בלבד. \`1 / 3\` שווה \`0\`, לא \`0.333\`.
+**סדר קדימויות**: \`*\`, \`/\`, \`%\` לפני \`+\`, \`-\`. באותה רמה — חישוב משמאל לימין. סוגריים גוברים על הכל:
+\`\`\`java
+System.out.println(3 * 5 - 2);       // 13
+System.out.println(3 + 5 / 2);       // 5
+System.out.println(3 - 5 - 2);       // -4
+System.out.println(3 - (5 - 2));     // 0
+\`\`\`
+
+**חילוק שלמים**: כאשר שני האופרנדים \`int\`, התוצאה היא \`int\` — **החלק השלם בלבד**. \`1 / 3\` שווה \`0\`, לא \`0.333\`.
 
 ## שרשור מחרוזות (String Concatenation)
 
-כאשר \`String\` + כל טיפוס אחר, Java ממירה את הערך ל-\`String\` ומשרשרת:
+כאשר אחד הצדדים הוא \`String\`, Java ממירה את הצד השני ל-\`String\` ומשרשרת:
 
 \`\`\`java
 // דוגמאות מההרצאה (Demo3)
-System.out.println("Tel" + "Aviv");   // TelAviv
-System.out.println("6" + 5);          // 65 (לא 11!)
-System.out.println(6 + 5);            // 11 (שני int-ים)
+System.out.println("Tel" + "Aviv");     // "TelAviv"
+System.out.println("Tel" + 3);          // "Tel3"
+System.out.println(6 + 5);             // 11
+System.out.println("6" + "5");         // "65"
+System.out.println("6" + 5);           // "65"
+System.out.println(2 + " + " + 3 + " = " + (2 + 3)); // "2 + 3 = 5"
 \`\`\`
-
-## ארגומנטים משורת הפקודה (Command-Line Arguments)
-
-בקורס הזה, קלט מתקבל דרך **ארגומנטים משורת הפקודה** — ערכים שנכתבים אחרי שם המחלקה בפקודת \`java\`:
-
-\`\`\`
-% java Demo5 3 5
-\`\`\`
-
-הארגומנטים מגיעים למערך \`args\` בפונקציית \`main\` כ-**String**. צריך להמיר (לפרסר) אותם לטיפוס הרצוי:
-- \`int\` ← \`Integer.parseInt(args[0])\`
-- \`double\` ← \`Double.parseDouble(args[0])\`
-- \`boolean\` ← \`Boolean.parseBoolean(args[0])\`
-
-\`\`\`java
-// דוגמה מההרצאה (Demo5)
-public class Demo5 {
-    public static void main(String[] args) {
-        int x = Integer.parseInt(args[0]);
-        int y = Integer.parseInt(args[1]);
-        System.out.println(x + " + " + y + " = " + (x + y));
-        System.out.println(x + " * " + y + " = " + (x * y));
-    }
-}
-\`\`\`
-
-**זהירות** (מהתרגול):
-- אם לא מעבירים מספיק ארגומנטים → \`ArrayIndexOutOfBoundsException\`
-- אם מעבירים טקסט במקום מספר → \`NumberFormatException\`
 
 ## מספרים ממשיים (double)
 
@@ -205,9 +311,8 @@ public class Demo5 {
 \`\`\`java
 // דוגמאות מההרצאה (Demo6)
 System.out.println(5.0 / 2.0);  // 2.5
-System.out.println(5 / 2);      // 2 (שני int!)
+System.out.println(5 / 2);      // 2 (שני int — תוצאה int!)
 System.out.println(5.0 / 2);    // 2.5 (אחד double — תוצאה double)
-System.out.println(5 / 2.0);    // 2.5
 System.out.println(1 / 3);      // 0
 System.out.println(1.0 / 3.0);  // 0.3333333333333333
 System.out.println(1.0 / 0.0);  // Infinity
@@ -216,24 +321,9 @@ System.out.println(1 / 0);      // Runtime error!
 
 \`Math.sqrt(-1.0)\` מחזיר \`NaN\` (Not a Number).
 
-## ספריית Math
-
-פונקציות נפוצות מספריית \`Math\`:
-
-| פונקציה | תיאור |
-|---------|--------|
-| \`Math.abs(x)\` | ערך מוחלט |
-| \`Math.max(a, b)\` | המקסימום בין שני ערכים |
-| \`Math.min(a, b)\` | המינימום בין שני ערכים |
-| \`Math.sqrt(x)\` | שורש ריבועי |
-| \`Math.pow(a, b)\` | a בחזקת b |
-| \`Math.random()\` | מספר אקראי ב-[0, 1) |
-| \`Math.round(x)\` | עיגול לשלם הקרוב |
-| \`Math.PI\` | הקבוע π |
-
 ## boolean — ערכים לוגיים
 
-שני ערכים בלבד: \`true\` ו-\`false\`. משמשים לביטויים לוגיים ולבקרת זרימה.
+שני ערכים בלבד: \`true\` ו-\`false\`.
 
 ### אופרטורים להשוואה
 
@@ -283,26 +373,58 @@ Integer.parseInt("123")   // 123 (String → int)
 (11 * (int) 0.3)          // 0 (קודם (int)0.3=0, אז 11*0=0!)
 \`\`\`
 
-**שימו לב**: סדר ה-cast משנה את התוצאה!
+**שימו לב**: **סדר ה-cast משנה את התוצאה!**
 
-## הצפה ושגיאות עיגול (Overflow & Rounding)
+## ספריית Math
 
+\`Math.random()\` — מחזירה מספר \`double\` אקראי בטווח [0, 1).
+
+דוגמה מההרצאה — יצירת מספר שלם אקראי בטווח [0, N):
 \`\`\`java
-// דוגמה מההרצאה (Demo9)
-System.out.println(100000 * 100000 * 100000);  // -1530494976 (overflow!)
-System.out.println(1.03 - 0.42);                // 0.6100000000000001
-System.out.println(1.00 - 9 * .10);             // 0.09999999999999998
-System.out.println((0.7 + 0.1) == (0.9 - 0.1)); // false!
+public class RandomInt {
+    public static void main(String[] args) {
+        int N = Integer.parseInt(args[0]);
+        double r = Math.random();
+        int n = (int) (r * N);
+        System.out.println("random integer is " + n);
+    }
+}
+// java RandomInt 10 → random integer is 6
 \`\`\`
 
-המחשב מייצג מספרים עם מספר סופי של ביטים → **הצפה** בשלמים, **אי-דיוק** בממשיים.
+## דפוס נפוץ — חילוף ערכים (FlipFlop)
 
-## דפוס נפוץ — חילוף ערכים (Swap)
-
-מהתרגול (FlipFlop) — החלפת ערכים בין שני משתנים דורשת **משתנה עזר**:
+מהתרגול — החלפת ערכים בין שני משתנים דורשת **משתנה עזר (temp)**:
 
 \`\`\`java
-// דוגמה מהתרגול (FlipFlop עם ארגומנטים)
+public class FlipFlop {
+    public static void main(String[] args) {
+        int a = 5;
+        int b = 7;
+        int temp = a;
+        a = b;
+        b = temp;
+    }
+}
+\`\`\`
+
+עם הדפסות:
+\`\`\`java
+public class FlipFlop {
+    public static void main(String[] args) {
+        int a = 5;
+        int b = 7;
+        System.out.println("a: " + a + ", b: " + b);
+        int temp = a;
+        a = b;
+        b = temp;
+        System.out.println("a: " + a + ", b: " + b);
+    }
+}
+\`\`\`
+
+גרסה עם ארגומנטים משורת הפקודה:
+\`\`\`java
 public class FlipFlop {
     public static void main(String[] args) {
         int a = Integer.parseInt(args[0]);
@@ -317,110 +439,131 @@ public class FlipFlop {
 // java FlipFlop 6 67 → a: 6, b: 67 → a: 67, b: 6
 \`\`\`
 
-## שגיאות נפוצות
+**הסבר**: \`args[0]\` ו-\`args[1]\` הם **תמיד מסוג String**. צריך לפרסר (להמיר) אותם לטיפוס הרצוי לפני השימוש.
 
-מתוך ההרצאה והתרגול, שלושה סוגי שגיאות:
-1. **שגיאות קומפילציה (Compile Errors)** — שגיאות תחביר, חוסר \`;\`, סוגריים לא מאוזנים
-2. **שגיאות ריצה (Runtime Errors)** — חילוק ב-0, חריגה מגבולות מערך, ארגומנט לא תקין
-3. **שגיאות לוגיות (Logical Errors)** — הקוד רץ אבל התוצאה שגויה
+## ארגומנטים משורת הפקודה (Command-Line Arguments)
 
-**טיפ מהתרגול**: תתחילו לעבוד עם ערכים קבועים (literals) בקוד, ורק אחרי שהכל עובד — עברו לארגומנטים משורת הפקודה.
+ערכים שנכתבים אחרי שם המחלקה בפקודת \`java\` מגיעים למערך \`args\` בפונקציית \`main\`.
+
+\`\`\`
+java Demo5 5 3
+\`\`\`
+- \`args[0]\` = \`"5"\` (String!)
+- \`args[1]\` = \`"3"\` (String!)
+
+### פרסור (Parsing) — המרה מ-String לטיפוס אחר:
+
+| המרה | פונקציה |
+|--------|---------|
+| String → int | \`Integer.parseInt(args[0])\` |
+| String → double | \`Double.parseDouble(args[0])\` |
+| String → boolean | \`Boolean.parseBoolean(args[0])\` |
+
+\`\`\`java
+// דוגמה מההרצאה (Demo5)
+public class Demo5 {
+    public static void main(String[] args) {
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
+        System.out.println(a + " + " + b + " = " + (a + b));
+        System.out.println(a + " * " + b + " = " + (a * b));
+        System.out.println(a + " / " + b + " = " + (a / b));
+        System.out.println(a + " % " + b + " = " + (a % b));
+    }
+}
+\`\`\`
+
+**אזהרות**:
+- אם לא מעבירים מספיק ארגומנטים → \`ArrayIndexOutOfBoundsException\`
+- אם מעבירים טקסט במקום מספר → \`NumberFormatException\`
+
+## הצפה ושגיאות עיגול (Overflow & Rounding)
+
+\`\`\`java
+// דוגמה מההרצאה (Demo9)
+System.out.println(100000 * 100000 * 100000);  // -1530494976 (overflow!)
+System.out.println(1.03 - 0.42);                // 0.6100000000000001
+System.out.println(1.00 - 9 * .10);             // 0.09999999999999998
+System.out.println((0.7 + 0.1) == (0.9 - 0.1)); // false!
+\`\`\`
+
+המחשב מייצג מספרים עם מספר סופי של ביטים → **הצפה** בשלמים, **אי-דיוק** בממשיים.
 
 ## טיפים למבחן
 
 - **חילוק שלמים**: \`1 / 3 == 0\`, לא \`0.333\`! אם רוצים תוצאה עשרונית — לפחות אופרנד אחד צריך להיות \`double\`
 - **casting**: סדר ה-cast קריטי — \`(int)(11 * 0.3)\` → \`3\`, אבל \`(11 * (int)0.3)\` → \`0\`
 - **overflow**: \`100000 * 100000 * 100000\` נותן מספר שלילי בגלל הצפת \`int\`
-- **דיוק ממשיים**: \`(0.7 + 0.1) == (0.9 - 0.1)\` מחזיר \`false\` בגלל שגיאות עיגול
+- **args הם String**: חייבים לפרסר אותם לפני שימוש מתמטי
 - **שרשור מחרוזות**: \`"6" + 5\` → \`"65"\` — כשאחד הצדדים הוא \`String\`, הכל הופך ל-\`String\``,
   },
   {
     topicSlug: "input-output",
     dayNumber: 1,
-    title: "קלט ופלט",
-    estimatedReadingMinutes: 7,
+    title: "פלט ושורת הפקודה",
+    estimatedReadingMinutes: 5,
     pdfResources: day1Pdfs,
-    markdown: `## מבוא
+    markdown: `## פלט בסיסי
 
-Java משתמשת ב-\`Scanner\` לקלט מהמשתמש וב-\`System.out\` לפלט. חשוב להבין את ההבדל בין מתודות הקריאה השונות.
+Java משתמשת ב-\`System.out\` להדפסה:
 
-## מושגי יסוד
-
-### קלט עם Scanner
 \`\`\`java
-import java.util.Scanner;
-Scanner sc = new Scanner(System.in);
-\`\`\`
-
-### מתודות קריאה
-
-| מתודה | קוראת | מדלגת על שורה? |
-|--------|--------|----------------|
-| \`nextInt()\` | מספר שלם | לא |
-| \`nextDouble()\` | מספר עשרוני | לא |
-| \`next()\` | מילה (עד רווח) | לא |
-| \`nextLine()\` | שורה שלמה | כן |
-
-## תחביר
-
-### פלט בסיסי
-\`\`\`java
-System.out.println("Hello");   // מדפיס + ירידת שורה
+System.out.println("Hello");    // מדפיס + ירידת שורה
 System.out.print("No newline"); // מדפיס בלי ירידת שורה
-System.out.printf("Name: %s, Age: %d%n", name, age); // פורמט
 \`\`\`
 
-### קודי פורמט (printf)
+## תהליך הפיתוח
 
-| קוד | טיפוס | דוגמה |
-|------|--------|--------|
-| \`%d\` | int | \`printf("%d", 42)\` → \`42\` |
-| \`%f\` | double | \`printf("%.2f", 3.14159)\` → \`3.14\` |
-| \`%s\` | String | \`printf("%s", "hi")\` → \`hi\` |
-| \`%c\` | char | \`printf("%c", 'A')\` → \`A\` |
-| \`%n\` | שורה חדשה | (עדיף על \`\\n\`) |
+לפי ההרצאה, תהליך הפיתוח הוא מעגלי:
+1. **עריכה** — כתיבת הקוד בקובץ \`.java\`
+2. **קומפילציה** — \`javac MyProg.java\` → יוצרת \`MyProg.class\`
+3. **הרצה** — \`java MyProg\`
+4. **בדיקה** — האם התוצאה נכונה?
+5. אם לא — חזרה לשלב 1 (דיבאג)
 
-## דפוסים נפוצים
+## קלט דרך ארגומנטים (לא Scanner)
 
-### קריאת מספר ואז שורה
-\`\`\`java
-int n = sc.nextInt();
-sc.nextLine();  // ← חובה! ניקוי ה-newline
-String line = sc.nextLine();
+**חשוב**: בקורס הזה, בשבוע 1 הקלט מגיע דרך **ארגומנטים משורת הפקודה**, לא דרך Scanner.
+
+\`\`\`
+javac Demo5.java
+java Demo5 5 3
 \`\`\`
 
-### קריאה בלולאה
+הארגומנטים \`5\` ו-\`3\` מגיעים ל-\`args[0]\` ו-\`args[1]\` כ-\`String\`:
 \`\`\`java
-int n = sc.nextInt();
-for (int i = 0; i < n; i++) {
-    int value = sc.nextInt();
-    // עיבוד...
+int a = Integer.parseInt(args[0]);    // "5" → 5
+int b = Integer.parseInt(args[1]);    // "3" → 3
+\`\`\`
+
+## דוגמה מלאה — Quad1 (משוואה ריבועית)
+
+\`\`\`java
+public class Quad1 {
+    public static void main(String[] args) {
+        double b = Double.parseDouble(args[0]);
+        double c = Double.parseDouble(args[1]);
+        double discriminant = b * b - 4.0 * c;
+        double d = Math.sqrt(discriminant);
+        double root1 = (-b + d) / 2.0;
+        double root2 = (-b - d) / 2.0;
+        System.out.println(root1);
+        System.out.println(root2);
+    }
 }
 \`\`\`
 
-## דוגמאות
-
-\`\`\`java
-// קריאת שם מלא ועיצוב פלט
-Scanner sc = new Scanner(System.in);
-System.out.print("Enter name: ");
-String name = sc.nextLine();
-System.out.print("Enter age: ");
-int age = sc.nextInt();
-System.out.printf("Hello %s, you are %d years old%n", name, age);
 \`\`\`
-
-## טעויות שכיחות
-
-- **בעיית nextLine() אחרי nextInt()**: \`nextInt()\` לא צורכת את ה-Enter, אז \`nextLine()\` הבא מקבל מחרוזת ריקה. פתרון: הוסיפו \`sc.nextLine();\` ביניהם
-- **שכחת import**: חייבים \`import java.util.Scanner;\`
-- **בלבול בין next() ל-nextLine()**: \`next()\` קוראת עד רווח, \`nextLine()\` קוראת שורה שלמה
+java Quad1 -3.0 2.0 → 2.0, 1.0
+java Quad1 1.0 hello → NumberFormatException
+java Quad1 1.0       → ArrayIndexOutOfBoundsException
+\`\`\`
 
 ## טיפים למבחן
 
-- תמיד שימו לב אם הקלט הוא מספרים או מחרוזות — זה קובע את המתודה
-- \`printf\` עם \`%.2f\` מעגל אוטומטית (4.125 → 4.13)
-- אם קוראים \`nextInt()\` ואז \`nextLine()\` — **חובה** לנקות עם \`nextLine()\` מיותר`,
+- קלט בשבוע 1 הוא דרך **ארגומנטים משורת הפקודה** — לא Scanner
+- \`System.out.println\` מדפיס עם ירידת שורה, \`System.out.print\` בלי
+- תמיד לפרסר \`args\` לפני שימוש — הם תמיד \`String\``,
   },
 
   // ==================== Day 2: Control Flow ====================
