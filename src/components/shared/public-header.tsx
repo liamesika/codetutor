@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
-import { Menu, ArrowRight, LogOut, LayoutDashboard, Home, ScrollText } from "lucide-react"
+import { Menu, ArrowRight, LogOut, LayoutDashboard, Home, ScrollText, Code2 } from "lucide-react"
 import { NeonButton } from "@/components/ui/neon-button"
 import { MobileDrawer } from "@/components/shared/mobile-drawer"
 import { useLanguage, type Locale } from "@/lib/i18n"
@@ -15,6 +15,7 @@ const text = {
     home: "Home",
     pricing: "Pricing",
     theory: "Theory",
+    exercises: "Exercises",
     login: "Log in",
     cta: "Start Free",
     dashboard: "Dashboard",
@@ -24,6 +25,7 @@ const text = {
     home: "דף הבית",
     pricing: "מחירון",
     theory: "סיכום חומר",
+    exercises: "תרגילים",
     login: "התחברות",
     cta: "התחילו חינם",
     dashboard: "לוח בקרה",
@@ -63,6 +65,13 @@ export function PublicHeader() {
           >
             <ScrollText className="h-3.5 w-3.5" />
             {t.theory}
+          </Link>
+          <Link
+            href="/exercises"
+            className="text-sm text-[#9CA3AF] hover:text-white transition-colors flex items-center gap-1.5"
+          >
+            <Code2 className="h-3.5 w-3.5" />
+            {t.exercises}
           </Link>
           <Link
             href="/pricing"
@@ -141,6 +150,14 @@ export function PublicHeader() {
             >
               <ScrollText className="h-4 w-4 text-[#9CA3AF]" />
               {t.theory}
+            </Link>
+            <Link
+              href="/exercises"
+              onClick={closeDrawer}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
+            >
+              <Code2 className="h-4 w-4 text-[#9CA3AF]" />
+              {t.exercises}
             </Link>
             <Link
               href="/pricing"

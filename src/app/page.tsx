@@ -116,6 +116,7 @@ const en = {
   videoHighlight: "Action",
   videoSub: "A quick look at what the marathon experience looks like.",
   theoryCta: "Browse Theory Summaries",
+  exercisesCta: "Exercises with Solutions",
   finalTitle: "Ready to Ace Your",
   finalHighlight: "CS Exam",
   finalSub: "Join the marathon and start practicing today.",
@@ -214,6 +215,7 @@ const he = {
   videoHighlight: "בפעולה",
   videoSub: "הצצה קצרה לחוויית המרתון מבפנים.",
   theoryCta: "לסיכומי החומר העיוניים",
+  exercisesCta: "תרגילים עם פתרונות",
   finalTitle: "מוכנים להצליח",
   finalHighlight: "במבחן CS",
   finalSub: "הצטרפו למרתון והתחילו לתרגל היום.",
@@ -536,11 +538,11 @@ function HomeContent() {
           </div>
         </section>
 
-        {/* ── Theory CTA ── */}
+        {/* ── Theory & Exercises CTAs ── */}
         <section className="px-4 pb-10">
           <div className="container mx-auto max-w-5xl">
             <motion.div
-              className="text-center"
+              className="flex flex-col sm:flex-row gap-4 justify-center"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -553,6 +555,16 @@ function HomeContent() {
                   rightIcon={<ArrowRight className="h-4 w-4" />}
                 >
                   {t.theoryCta}
+                </NeonButton>
+              </Link>
+              <Link href="/exercises">
+                <NeonButton
+                  variant="ghost"
+                  size="lg"
+                  leftIcon={<Code2 className="h-4 w-4" />}
+                  rightIcon={<ArrowRight className="h-4 w-4" />}
+                >
+                  {t.exercisesCta}
                 </NeonButton>
               </Link>
             </motion.div>
