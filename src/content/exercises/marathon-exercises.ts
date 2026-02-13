@@ -4,6 +4,7 @@
  */
 
 import { marathonCurriculum } from "@/content/curriculum/marathon-curriculum"
+import { exerciseTranslationsHe } from "./exercise-translations-he"
 
 export interface TestExample {
   input: string
@@ -15,11 +16,13 @@ export interface ExerciseItem {
   slug: string
   title: string
   prompt: string
+  promptHe?: string
   constraints?: string
   type: string
   starterCode: string
   solutionCode: string
   hints: string[]
+  hintsHe?: string[]
   explanation?: string
   tags: string[]
   difficulty: number
@@ -48,15 +51,19 @@ export function getExerciseGroups(): DayExerciseGroup[] {
       slug: topic.slug,
       title: topic.title,
       description: topic.description,
-      exercises: topic.questions.map((q) => ({
+      exercises: topic.questions.map((q) => {
+        const translation = exerciseTranslationsHe[q.slug]
+        return {
         slug: q.slug,
         title: q.title,
         prompt: q.prompt,
+        promptHe: translation?.promptHe,
         constraints: q.constraints,
         type: q.type,
         starterCode: q.starterCode,
         solutionCode: q.solutionCode,
         hints: q.hints,
+        hintsHe: translation?.hintsHe,
         explanation: q.explanation,
         tags: q.tags,
         difficulty: q.difficulty,
@@ -70,7 +77,8 @@ export function getExerciseGroups(): DayExerciseGroup[] {
             expectedOutput: t.expectedOutput,
             description: t.description,
           })),
-      })),
+      }
+      }),
     }))
 
     const totalExercises = topics.reduce((sum, t) => sum + t.exercises.length, 0)

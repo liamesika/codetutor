@@ -165,13 +165,16 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
                   <Target className="h-4 w-4 text-primary" />
                   מה צריך לעשות?
                 </h4>
-                <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed" dir="ltr">
-                  {exercise.prompt}
+                <p
+                  className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed"
+                  dir={exercise.promptHe ? "rtl" : "ltr"}
+                >
+                  {exercise.promptHe || exercise.prompt}
                 </p>
                 {exercise.constraints && (
-                  <div className="rounded-md bg-yellow-500/5 border border-yellow-500/20 p-2.5" dir="ltr">
+                  <div className="rounded-md bg-yellow-500/5 border border-yellow-500/20 p-2.5" dir="rtl">
                     <p className="text-xs text-yellow-500 font-medium">
-                      Constraints: {exercise.constraints}
+                      אילוצים: {exercise.constraints}
                     </p>
                   </div>
                 )}
@@ -199,16 +202,16 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
                         )}
                         <div className="grid grid-cols-2 divide-x divide-border/50">
                           <div className="p-3">
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                              Input
+                            <p className="text-[10px] font-medium text-muted-foreground tracking-wider mb-1">
+                              קלט
                             </p>
                             <pre className="text-xs font-mono text-cyan-400" dir="ltr">
                               {ex.input}
                             </pre>
                           </div>
                           <div className="p-3">
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                              Output
+                            <p className="text-[10px] font-medium text-muted-foreground tracking-wider mb-1">
+                              פלט
                             </p>
                             <pre className="text-xs font-mono text-green-400" dir="ltr">
                               {ex.expectedOutput}
@@ -261,13 +264,13 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
                       className="overflow-hidden"
                     >
                       <div className="mt-2 space-y-1.5">
-                        {exercise.hints.map((hint, i) => (
+                        {(exercise.hintsHe || exercise.hints).map((hint, i) => (
                           <div
                             key={i}
                             className="flex items-start gap-2 rounded-md bg-yellow-500/5 border border-yellow-500/10 px-3 py-2"
                           >
                             <Lightbulb className="h-3.5 w-3.5 text-yellow-500 shrink-0 mt-0.5" />
-                            <p className="text-sm text-foreground/80" dir="ltr">
+                            <p className="text-sm text-foreground/80" dir={exercise.hintsHe ? "rtl" : "ltr"}>
                               {hint}
                             </p>
                           </div>
