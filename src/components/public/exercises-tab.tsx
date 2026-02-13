@@ -12,6 +12,7 @@ import {
   Tag,
   Copy,
   Check,
+  Terminal,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,6 +45,13 @@ const typeLabels: Record<string, string> = {
   FUNCTION: "פונקציה",
   FIX_BUG: "תקן באג",
   PREDICT_OUTPUT: "חזה פלט",
+}
+
+const typeDescriptions: Record<string, string> = {
+  FULL_PROGRAM: "כתבו תוכנית Java שלמה עם public static void main",
+  FUNCTION: "השלימו את הפונקציה הנתונה",
+  FIX_BUG: "מצאו ותקנו את הבאג בקוד הנתון",
+  PREDICT_OUTPUT: "חזו מה הפלט של הקוד הבא",
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -129,9 +137,9 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
             className="overflow-hidden"
           >
             <CardContent className="pt-2 border-t border-border/50 space-y-4">
-              {/* Metadata */}
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-xs">
+              {/* Type + Tags */}
+              <div className="flex flex-wrap gap-2" dir="rtl">
+                <Badge variant="outline" className="text-xs bg-primary/5">
                   {typeLabels[exercise.type] || exercise.type}
                 </Badge>
                 {exercise.tags.slice(0, 4).map((tag) => (
@@ -146,21 +154,88 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
                 ))}
               </div>
 
+              {/* Type description */}
+              <p className="text-xs text-muted-foreground" dir="rtl">
+                {typeDescriptions[exercise.type]}
+              </p>
+
               {/* Prompt */}
-              <div className="rounded-lg bg-muted/50 p-4">
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+              <div className="rounded-lg bg-muted/50 p-4 space-y-3">
+                <h4 className="text-sm font-semibold flex items-center gap-2" dir="rtl">
                   <Target className="h-4 w-4 text-primary" />
-                  תיאור התרגיל
+                  מה צריך לעשות?
                 </h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap" dir="ltr">
+                <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed" dir="ltr">
                   {exercise.prompt}
                 </p>
                 {exercise.constraints && (
-                  <p className="text-xs text-muted-foreground/70 mt-2 italic" dir="ltr">
-                    Constraints: {exercise.constraints}
-                  </p>
+                  <div className="rounded-md bg-yellow-500/5 border border-yellow-500/20 p-2.5" dir="ltr">
+                    <p className="text-xs text-yellow-500 font-medium">
+                      Constraints: {exercise.constraints}
+                    </p>
+                  </div>
                 )}
               </div>
+
+              {/* Input/Output Examples */}
+              {exercise.examples.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2" dir="rtl">
+                    <Terminal className="h-4 w-4 text-cyan-400" />
+                    דוגמאות קלט / פלט
+                  </h4>
+                  <div className="grid gap-2">
+                    {exercise.examples.map((ex, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg border border-border/50 bg-muted/30 overflow-hidden"
+                      >
+                        {ex.description && (
+                          <div className="px-3 py-1.5 bg-muted/50 border-b border-border/50">
+                            <p className="text-[11px] text-muted-foreground" dir="ltr">
+                              {ex.description}
+                            </p>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 divide-x divide-border/50">
+                          <div className="p-3">
+                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                              Input
+                            </p>
+                            <pre className="text-xs font-mono text-cyan-400" dir="ltr">
+                              {ex.input}
+                            </pre>
+                          </div>
+                          <div className="p-3">
+                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                              Output
+                            </p>
+                            <pre className="text-xs font-mono text-green-400" dir="ltr">
+                              {ex.expectedOutput}
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Starter Code */}
+              {exercise.starterCode && (
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2" dir="rtl">
+                    <Code2 className="h-4 w-4 text-indigo-400" />
+                    קוד התחלתי
+                  </h4>
+                  <pre
+                    className="bg-muted rounded-lg p-4 overflow-x-auto text-xs font-mono leading-relaxed border border-border/50"
+                    dir="ltr"
+                  >
+                    <code>{exercise.starterCode}</code>
+                  </pre>
+                </div>
+              )}
 
               {/* Hints */}
               <div>
@@ -185,13 +260,19 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <ul className="mt-2 space-y-1.5 pr-4 list-disc" dir="ltr">
+                      <div className="mt-2 space-y-1.5">
                         {exercise.hints.map((hint, i) => (
-                          <li key={i} className="text-sm text-muted-foreground">
-                            {hint}
-                          </li>
+                          <div
+                            key={i}
+                            className="flex items-start gap-2 rounded-md bg-yellow-500/5 border border-yellow-500/10 px-3 py-2"
+                          >
+                            <Lightbulb className="h-3.5 w-3.5 text-yellow-500 shrink-0 mt-0.5" />
+                            <p className="text-sm text-foreground/80" dir="ltr">
+                              {hint}
+                            </p>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -225,7 +306,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseItem }) {
                           <CopyButton text={exercise.solutionCode} />
                         </div>
                         <pre
-                          className="bg-muted rounded-lg p-4 overflow-x-auto text-xs font-mono leading-relaxed"
+                          className="bg-muted rounded-lg p-4 overflow-x-auto text-xs font-mono leading-relaxed border border-green-500/20"
                           dir="ltr"
                         >
                           <code>{exercise.solutionCode}</code>
@@ -357,6 +438,12 @@ export function ExercisesTab() {
           {totalExercises} תרגילים &middot; {totalMinutes} דק׳
         </Badge>
       </div>
+
+      {/* Description */}
+      <p className="text-sm text-muted-foreground leading-relaxed" dir="rtl">
+        לחצו על תרגיל כדי לראות את ההוראות המלאות, דוגמאות קלט/פלט, רמזים ופתרון מלא.
+        כל תרגיל כולל קוד התחלתי שאפשר להעתיק ולהריץ.
+      </p>
 
       {/* Day filter */}
       <div className="flex gap-2 flex-wrap" dir="rtl">

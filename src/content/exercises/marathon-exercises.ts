@@ -5,12 +5,19 @@
 
 import { marathonCurriculum } from "@/content/curriculum/marathon-curriculum"
 
+export interface TestExample {
+  input: string
+  expectedOutput: string
+  description?: string
+}
+
 export interface ExerciseItem {
   slug: string
   title: string
   prompt: string
   constraints?: string
   type: string
+  starterCode: string
   solutionCode: string
   hints: string[]
   explanation?: string
@@ -18,6 +25,7 @@ export interface ExerciseItem {
   difficulty: number
   estimatedMinutes: number
   topicTitle: string
+  examples: TestExample[]
 }
 
 export interface DayExerciseGroup {
@@ -46,6 +54,7 @@ export function getExerciseGroups(): DayExerciseGroup[] {
         prompt: q.prompt,
         constraints: q.constraints,
         type: q.type,
+        starterCode: q.starterCode,
         solutionCode: q.solutionCode,
         hints: q.hints,
         explanation: q.explanation,
@@ -53,6 +62,14 @@ export function getExerciseGroups(): DayExerciseGroup[] {
         difficulty: q.difficulty,
         estimatedMinutes: q.estimatedMinutes,
         topicTitle: topic.title,
+        examples: (q.tests as Array<TestExample & { isHidden?: boolean }>)
+          .filter((t) => !t.isHidden)
+          .slice(0, 2)
+          .map((t) => ({
+            input: t.input,
+            expectedOutput: t.expectedOutput,
+            description: t.description,
+          })),
       })),
     }))
 
