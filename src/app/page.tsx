@@ -20,6 +20,7 @@ import {
   GraduationCap,
   Check,
   X,
+  BookMarked,
 } from "lucide-react"
 
 /* ─── Translations ─── */
@@ -117,6 +118,7 @@ const en = {
   videoSub: "A quick look at what the marathon experience looks like.",
   theoryCta: "Browse Theory Summaries",
   exercisesCta: "Exercises with Solutions",
+  cheatsheetCta: "Java Cheat Sheet",
   finalTitle: "Ready to Ace Your",
   finalHighlight: "CS Exam",
   finalSub: "Join the marathon and start practicing today.",
@@ -216,6 +218,7 @@ const he = {
   videoSub: "הצצה קצרה לחוויית המרתון מבפנים.",
   theoryCta: "לסיכומי החומר העיוניים",
   exercisesCta: "תרגילים עם פתרונות",
+  cheatsheetCta: "דף עזר Java",
   finalTitle: "מוכנים להצליח",
   finalHighlight: "במבחן CS",
   finalSub: "הצטרפו למרתון והתחילו לתרגל היום.",
@@ -565,6 +568,16 @@ function HomeContent() {
                   rightIcon={<ArrowRight className="h-4 w-4" />}
                 >
                   {t.exercisesCta}
+                </NeonButton>
+              </Link>
+              <Link href="/cheatsheet">
+                <NeonButton
+                  variant="ghost"
+                  size="lg"
+                  leftIcon={<BookMarked className="h-4 w-4" />}
+                  rightIcon={<ArrowRight className="h-4 w-4" />}
+                >
+                  {t.cheatsheetCta}
                 </NeonButton>
               </Link>
             </motion.div>
