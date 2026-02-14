@@ -117,7 +117,6 @@ const en = {
   videoHighlight: "Action",
   videoSub: "A quick look at what the marathon experience looks like.",
   theoryCta: "Browse Theory Summaries",
-  exercisesCta: "Exercises with Solutions",
   cheatsheetCta: "Java Cheat Sheet",
   finalTitle: "Ready to Ace Your",
   finalHighlight: "CS Exam",
@@ -217,7 +216,6 @@ const he = {
   videoHighlight: "בפעולה",
   videoSub: "הצצה קצרה לחוויית המרתון מבפנים.",
   theoryCta: "לסיכומי החומר העיוניים",
-  exercisesCta: "תרגילים עם פתרונות",
   cheatsheetCta: "דף עזר Java",
   finalTitle: "מוכנים להצליח",
   finalHighlight: "במבחן CS",
@@ -558,16 +556,6 @@ function HomeContent() {
                   rightIcon={<ArrowRight className="h-4 w-4" />}
                 >
                   {t.theoryCta}
-                </NeonButton>
-              </Link>
-              <Link href="/exercises">
-                <NeonButton
-                  variant="ghost"
-                  size="lg"
-                  leftIcon={<Code2 className="h-4 w-4" />}
-                  rightIcon={<ArrowRight className="h-4 w-4" />}
-                >
-                  {t.exercisesCta}
                 </NeonButton>
               </Link>
               <Link href="/cheatsheet">
