@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { getUserEntitlement, PLAN_INFO, FREE_ACCESS } from "@/lib/entitlement"
+import { getUserEntitlement, PLAN_INFO, FREE_ACCESS, isUserAdmin } from "@/lib/entitlement"
 
 export async function GET() {
   try {
@@ -11,7 +11,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const entitlement = await getUserEntitlement(session.user.id)
+    const [entitlement, admin] = await Promise.all([
+      getUserEntitlement(session.user.id),
+      isUserAdmin(session.user.id),
+    ])
 
     return NextResponse.json({
       entitlement: {
@@ -20,6 +23,7 @@ export async function GET() {
         hasAccess: entitlement.hasAccess,
         expiresAt: entitlement.expiresAt,
         grantedAt: entitlement.grantedAt,
+        isAdmin: admin,
       },
       planInfo: entitlement.plan ? PLAN_INFO[entitlement.plan] : null,
       freeAccess: FREE_ACCESS,

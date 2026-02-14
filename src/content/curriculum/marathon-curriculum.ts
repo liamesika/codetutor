@@ -60,25 +60,20 @@ System.out.printf("%.2f%n", 3.5);    // 3.50 (עיגול לשתי ספרות)
               slug: "declare-and-print-variables",
               type: "FULL_PROGRAM",
               title: "Declare & Print Variables",
-              prompt: "Read two integers from input. Print their sum on the first line and their product on the second line.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives two integers via command-line arguments (args).\n\nYou need to:\n1. Read the two numbers from args and convert them to int using Integer.parseInt\n2. Print their sum on the first line\n3. Print their product on the second line\n\nExample: if the arguments are 3 and 5, the output is:\n8\n15",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read two integers a and b
+        // args[0] and args[1] contain the two numbers as strings
+        // Convert them to int using Integer.parseInt
         // Print their sum on one line
         // Print their product on the next line
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
         System.out.println(a + b);
         System.out.println(a * b);
     }
@@ -89,11 +84,11 @@ public class Solution {
                 { input: "0 7", expectedOutput: "7\n0", isHidden: true, description: "Zero case" }
               ],
               hints: [
-                "Use sc.nextInt() to read each integer",
+                "args[0] and args[1] are strings — convert them to numbers with Integer.parseInt",
                 "Use System.out.println() to print each result on its own line",
-                "Remember that + adds numbers and * multiplies them"
+                "Sum: a + b, Product: a * b"
               ],
-              tags: ["variables", "int", "arithmetic", "scanner"],
+              tags: ["variables", "int", "arithmetic", "args"],
               difficulty: 1,
               estimatedMinutes: 3,
               points: 15
@@ -102,26 +97,20 @@ public class Solution {
               slug: "type-casting-int-to-double",
               type: "FULL_PROGRAM",
               title: "Integer Division vs Double Division",
-              prompt: "Read two integers from input. Print the result of integer division on the first line, then the result of double (decimal) division on the second line, formatted to exactly two decimal places.\n\nFor example, if the input is 7 and 2, output:\n3\n3.50",
+              prompt: "The program receives two integers via command-line arguments (args).\n\nYou need to:\n1. Read the two numbers from args and convert to int\n2. Print integer division result on the first line (in Java, dividing two ints truncates the decimal)\n3. Print double (decimal) division result on the second line, formatted to exactly 2 decimal places\n\nTo get a decimal result, cast one operand to double before dividing.\n\nExample: for arguments 7 and 2, the output is:\n3\n3.50\n\nThe second integer will never be zero.",
               constraints: "The second integer will never be zero.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read two integers
+        // Read two integers from args using Integer.parseInt
         // Print integer division result
         // Print double division result with 2 decimal places
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
         System.out.println(a / b);
         System.out.printf("%.2f%n", (double) a / b);
     }
@@ -133,11 +122,11 @@ public class Solution {
                 { input: "1 4", expectedOutput: "0\n0.25", isHidden: true, description: "Result less than 1" }
               ],
               hints: [
-                "Integer division in Java truncates the decimal: 7/2 = 3",
+                "Integer division in Java: 7 / 2 = 3 (the decimal part is truncated)",
                 "Cast one operand to double before dividing: (double) a / b",
                 "Use System.out.printf(\"%.2f%n\", value) to format to 2 decimal places"
               ],
-              tags: ["variables", "type-casting", "double", "printf"],
+              tags: ["variables", "type-casting", "double", "printf", "args"],
               difficulty: 2,
               estimatedMinutes: 5,
               points: 25
@@ -146,26 +135,20 @@ public class Solution {
               slug: "swap-two-variables",
               type: "FULL_PROGRAM",
               title: "Swap Two Variables",
-              prompt: "Read two integers from input. Swap their values and print them, each on a separate line. The first line of output should be the second input value, and the second line should be the first input value.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives two integers via command-line arguments (args).\n\nYou need to:\n1. Read the two numbers from args and convert them to int\n2. Swap their values using a temporary variable (temp)\n3. Print each number on a separate line — first the value that was originally second, then the value that was originally first\n\nTo swap two variables, you must use a third variable to temporarily hold one value. Without it, one value would be lost when overwritten.\n\nExample: for arguments 3 and 7, the output is:\n7\n3",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
-        // Swap the values of a and b
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
+        // Swap the values of a and b using a temp variable
         // Print a then b (after swap)
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
         int temp = a;
         a = b;
         b = temp;
@@ -179,11 +162,11 @@ public class Solution {
                 { input: "-5 8", expectedOutput: "8\n-5", isHidden: true, description: "Negative number" }
               ],
               hints: [
-                "You need a temporary variable to hold one value during the swap",
-                "Store a in temp, then set a = b, then set b = temp",
-                "Print a and b after the swap is complete"
+                "Save the value of a in a temporary variable: int temp = a",
+                "Then assign b's value to a: a = b",
+                "Finally assign the saved value to b: b = temp"
               ],
-              tags: ["variables", "swap", "temp-variable"],
+              tags: ["variables", "swap", "temp-variable", "args"],
               difficulty: 1,
               estimatedMinutes: 3,
               points: 15
@@ -192,40 +175,34 @@ public class Solution {
               slug: "expression-evaluation",
               type: "FULL_PROGRAM",
               title: "Expression Evaluator",
-              prompt: "Read three integers a, b, and c from input. Compute and print the result of the expression: a^2 + 2*b - c (where ^ means exponent, so a squared plus two times b minus c). Print the result as a single integer.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives three integers a, b, and c via command-line arguments (args).\n\nYou need to:\n1. Read the three numbers from args and convert them to int\n2. Compute the expression: a\u00b2 + 2\u00d7b \u2212 c (a squared plus two times b minus c)\n3. Print the result as a single integer\n\nNote: Java has no exponent operator \u2014 to compute a\u00b2 write a * a.\n\nExample: for a=3, b=4, c=2:\n3\u00d73 + 2\u00d74 \u2212 2 = 9 + 8 \u2212 2 = 15\nOutput: 15",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read three integers a, b, c
+        // Read three integers a, b, c from args using Integer.parseInt
         // Compute a*a + 2*b - c and print the result
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
-        int c = sc.nextInt();
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
+        int c = Integer.parseInt(args[2]);
         System.out.println(a * a + 2 * b - c);
     }
 }`,
               tests: [
-                { input: "3 4 2", expectedOutput: "15", isHidden: false, description: "3^2 + 2*4 - 2 = 9+8-2 = 15" },
-                { input: "1 1 1", expectedOutput: "2", isHidden: false, description: "1+2-1 = 2" },
-                { input: "5 0 10", expectedOutput: "15", isHidden: true, description: "25+0-10 = 15" },
+                { input: "3 4 2", expectedOutput: "15", isHidden: false, description: "3\u00b2 + 2\u00d74 \u2212 2 = 15" },
+                { input: "1 1 1", expectedOutput: "2", isHidden: false, description: "1 + 2 \u2212 1 = 2" },
+                { input: "5 0 10", expectedOutput: "15", isHidden: true, description: "25 + 0 \u2212 10 = 15" },
                 { input: "0 0 0", expectedOutput: "0", isHidden: true, description: "All zeros" }
               ],
               hints: [
-                "Java does not have an exponent operator; use a * a for a squared",
-                "Follow standard math order of operations: multiplication before addition/subtraction",
-                "The expression in Java is: a * a + 2 * b - c"
+                "a squared in Java is a * a (there is no ** operator)",
+                "The full expression: a * a + 2 * b - c",
+                "Order of operations: multiplication before addition/subtraction"
               ],
-              tags: ["arithmetic", "expressions", "operators"],
+              tags: ["arithmetic", "expressions", "operators", "args"],
               difficulty: 2,
               estimatedMinutes: 5,
               points: 25
@@ -234,10 +211,10 @@ public class Solution {
         },
         {
           slug: "input-output",
-          title: "Input & Output",
-          introMarkdown: `## מה זה Input/Output?
+          title: "Output & Command-Line Arguments",
+          introMarkdown: `## פלט ושורת הפקודה (args)
 
-**קלט (Input)** — קריאת נתונים מהמשתמש. **פלט (Output)** — הדפסת תוצאות למסך.
+**פלט (Output)** — הדפסת תוצאות למסך. **קלט דרך שורת הפקודה** — קבלת ערכים דרך \`args[]\`.
 
 ## פלט — הדפסה
 
@@ -245,25 +222,31 @@ public class Solution {
 - \`System.out.print(x)\` — מדפיס בלי לרדת שורה
 - \`System.out.printf("%.2f", x)\` — הדפסה מפורמטת
 
-## קלט — Scanner
+## קלט — שורת הפקודה (args)
 
-\`\`\`java
-Scanner sc = new Scanner(System.in);
-int n = sc.nextInt();        // קורא מספר שלם
-double d = sc.nextDouble();  // קורא מספר עשרוני
-String word = sc.next();     // קורא מילה אחת
-String line = sc.nextLine(); // קורא שורה שלמה
+כשמריצים תוכנית Java, אפשר להעביר ערכים דרך שורת הפקודה:
+
+\`\`\`
+java Solution Hello 42 3.14
 \`\`\`
 
-## מלכודת נפוצה!
-
-אחרי \`nextInt()\` או \`nextDouble()\`, אם רוצים לקרוא שורה שלמה עם \`nextLine()\`, חייבים לעשות \`sc.nextLine()\` נוסף כדי "לנקות" את ה-Enter שנשאר:
+הערכים מגיעים כמערך מחרוזות \`args[]\`:
 
 \`\`\`java
-int n = sc.nextInt();
-sc.nextLine();              // ניקוי ה-buffer
-String line = sc.nextLine(); // עכשיו קורא שורה שלמה
+public static void main(String[] args) {
+    String name = args[0];                        // "Hello"
+    int num = Integer.parseInt(args[1]);           // 42
+    double d = Double.parseDouble(args[2]);        // 3.14
+}
 \`\`\`
+
+## המרת טיפוסים מ-String
+
+| מתודה | ממירה ל- | דוגמה |
+|-------|----------|-------|
+| \`Integer.parseInt(s)\` | int | \`Integer.parseInt("42")\` → 42 |
+| \`Double.parseDouble(s)\` | double | \`Double.parseDouble("3.14")\` → 3.14 |
+| \`Boolean.parseBoolean(s)\` | boolean | \`Boolean.parseBoolean("true")\` → true |
 
 ## פורמט הדפסה
 
@@ -274,28 +257,23 @@ String line = sc.nextLine(); // עכשיו קורא שורה שלמה
 | \`%s\` | מחרוזת | \`printf("%s", "hi")\` → hi |
 | \`%n\` | שורה חדשה | |
 `,
-          description: "Scanner input and System.out output formatting",
+          description: "args[] input, parse methods, and System.out output formatting",
           questions: [
             {
               slug: "read-and-greet",
               type: "FULL_PROGRAM",
               title: "Read & Greet",
-              prompt: "Read a person's name (a single word) from input and print \"Hello, <name>!\" where <name> is replaced with the input.\n\nExample: if input is \"Alice\", print \"Hello, Alice!\"",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives a person's name (a single word) via command-line arguments (args).\n\nYou need to:\n1. Read the name from args[0] \u2014 since it is already a String, no conversion is needed\n2. Print a greeting in the exact format: Hello, <name>!\n\nPay attention to the comma after Hello and the exclamation mark at the end.\n\nExample: for the argument Alice, the output is:\nHello, Alice!",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read a name and print the greeting
+        // args[0] contains the name (already a String)
+        // Print the greeting: Hello, <name>!
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        String name = sc.next();
+        String name = args[0];
         System.out.println("Hello, " + name + "!");
     }
 }`,
@@ -305,55 +283,50 @@ public class Solution {
                 { input: "World", expectedOutput: "Hello, World!", isHidden: true, description: "Generic word" }
               ],
               hints: [
-                "Use sc.next() to read a single word",
-                "Use string concatenation with + to build the greeting",
-                "Don't forget the comma after Hello and the exclamation mark at the end"
+                "args[0] is already a String \u2014 no conversion needed",
+                "Use string concatenation: \"Hello, \" + name + \"!\"",
+                "Make sure there is a comma and space after Hello and an exclamation mark at the end"
               ],
-              tags: ["scanner", "input", "string-concatenation", "output"],
+              tags: ["args", "string-concatenation", "output"],
               difficulty: 1,
               estimatedMinutes: 3,
               points: 15
             },
             {
-              slug: "read-full-line",
+              slug: "circle-calculator",
               type: "FULL_PROGRAM",
-              title: "Read Full Line",
-              prompt: "Read an integer n from the first line of input, then read a full line of text from the second line. Print the text repeated n times, each on a separate line.\n\nExample:\nInput:\n2\nHello World\n\nOutput:\nHello World\nHello World",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              title: "Circle Calculator",
+              prompt: "The program receives a decimal number representing the radius of a circle via command-line arguments (args).\n\nYou need to:\n1. Read the radius from args[0] and convert it to double using Double.parseDouble\n2. Calculate the area of the circle using the formula: \u03c0 \u00d7 r\u00b2\n3. Calculate the circumference using the formula: 2 \u00d7 \u03c0 \u00d7 r\n4. Print the area on the first line and the circumference on the second line, both rounded to exactly 2 decimal places\n\nUse Math.PI for the value of \u03c0.\n\nExample: for radius 5.0, the output is:\n78.54\n31.42",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read an integer n
-        // Read a full line of text
-        // Print the text n times, each on its own line
+        // Read the radius from args[0] as a double
+        // Calculate area = Math.PI * r * r
+        // Calculate circumference = 2 * Math.PI * r
+        // Print both with 2 decimal places
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int n = sc.nextInt();
-        sc.nextLine(); // consume the newline after the integer
-        String text = sc.nextLine();
-        for (int i = 0; i < n; i++) {
-            System.out.println(text);
-        }
+        double r = Double.parseDouble(args[0]);
+        double area = Math.PI * r * r;
+        double circumference = 2 * Math.PI * r;
+        System.out.printf("%.2f%n", area);
+        System.out.printf("%.2f%n", circumference);
     }
 }`,
               tests: [
-                { input: "2\nHello World", expectedOutput: "Hello World\nHello World", isHidden: false, description: "Two repetitions" },
-                { input: "3\nJava", expectedOutput: "Java\nJava\nJava", isHidden: false, description: "Three repetitions" },
-                { input: "1\nTest Line", expectedOutput: "Test Line", isHidden: true, description: "Single repetition" }
+                { input: "5.0", expectedOutput: "78.54\n31.42", isHidden: false, description: "Radius 5" },
+                { input: "1.0", expectedOutput: "3.14\n6.28", isHidden: false, description: "Unit circle" },
+                { input: "10.0", expectedOutput: "314.16\n62.83", isHidden: true, description: "Radius 10" },
+                { input: "0.5", expectedOutput: "0.79\n3.14", isHidden: true, description: "Small radius" }
               ],
               hints: [
-                "After sc.nextInt(), call sc.nextLine() to consume the leftover newline character",
-                "Then use sc.nextLine() again to read the full line of text",
-                "Use a for loop to print the text n times"
+                "Use Double.parseDouble(args[0]) to convert the radius to double",
+                "Area: Math.PI * r * r, Circumference: 2 * Math.PI * r",
+                "Use System.out.printf(\"%.2f%n\", value) to print with 2 decimal places"
               ],
-              tags: ["scanner", "nextLine", "loops", "input"],
+              tags: ["args", "double", "Math.PI", "printf", "parseDouble"],
               difficulty: 2,
               estimatedMinutes: 5,
               points: 25
@@ -362,25 +335,21 @@ public class Solution {
               slug: "formatted-receipt",
               type: "FULL_PROGRAM",
               title: "Formatted Receipt",
-              prompt: "Read an item name (single word), quantity (integer), and unit price (double) from input, each on a separate line. Print a receipt in this exact format:\n\nItem: <name>\nQty: <quantity>\nTotal: $<total>\n\nThe total is quantity * price, formatted to exactly 2 decimal places.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives three values via command-line arguments (args):\n\u2022 args[0] \u2014 item name (a single word, String)\n\u2022 args[1] \u2014 quantity (integer)\n\u2022 args[2] \u2014 unit price (decimal number)\n\nYou need to:\n1. Read the values from args and convert each to the appropriate type\n2. Calculate the total price (quantity \u00d7 unit price)\n3. Print a receipt in this exact format:\nItem: <name>\nQty: <quantity>\nTotal: $<total>\n\nThe total must be formatted to exactly 2 decimal places.\n\nExample: for arguments Apple 3 1.50, the output is:\nItem: Apple\nQty: 3\nTotal: $4.50",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read item name, quantity, and price
-        // Print the formatted receipt
+        // args[0] = item name (String, no conversion needed)
+        // args[1] = quantity (convert to int with Integer.parseInt)
+        // args[2] = unit price (convert to double with Double.parseDouble)
+        // Calculate total and print the receipt
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        String name = sc.next();
-        int qty = sc.nextInt();
-        double price = sc.nextDouble();
+        String name = args[0];
+        int qty = Integer.parseInt(args[1]);
+        double price = Double.parseDouble(args[2]);
         double total = qty * price;
         System.out.println("Item: " + name);
         System.out.println("Qty: " + qty);
@@ -388,16 +357,16 @@ public class Solution {
     }
 }`,
               tests: [
-                { input: "Apple\n3\n1.50", expectedOutput: "Item: Apple\nQty: 3\nTotal: $4.50", isHidden: false, description: "Basic receipt" },
-                { input: "Book\n1\n29.99", expectedOutput: "Item: Book\nQty: 1\nTotal: $29.99", isHidden: false, description: "Single item" },
-                { input: "Pen\n10\n0.75", expectedOutput: "Item: Pen\nQty: 10\nTotal: $7.50", isHidden: true, description: "Multiple cheap items" }
+                { input: "Apple 3 1.50", expectedOutput: "Item: Apple\nQty: 3\nTotal: $4.50", isHidden: false, description: "Basic receipt" },
+                { input: "Book 1 29.99", expectedOutput: "Item: Book\nQty: 1\nTotal: $29.99", isHidden: false, description: "Single item" },
+                { input: "Pen 10 0.75", expectedOutput: "Item: Pen\nQty: 10\nTotal: $7.50", isHidden: true, description: "Multiple cheap items" }
               ],
               hints: [
-                "Use sc.next() for the name, sc.nextInt() for quantity, sc.nextDouble() for price",
+                "args[0] is already a String. Use Integer.parseInt for qty, Double.parseDouble for price",
                 "Multiply quantity by price to get the total",
                 "Use System.out.printf(\"Total: $%.2f%n\", total) for 2 decimal places"
               ],
-              tags: ["scanner", "printf", "formatting", "output"],
+              tags: ["args", "parseInt", "parseDouble", "printf"],
               difficulty: 2,
               estimatedMinutes: 5,
               points: 25
@@ -406,26 +375,23 @@ public class Solution {
               slug: "multi-type-parser",
               type: "FULL_PROGRAM",
               title: "Multi-Type Input Parser",
-              prompt: "Read the following from a single line of input separated by spaces: a string (word), an int, a double, and a boolean.\n\nPrint each value on its own line with a label:\nWord: <string>\nInteger: <int>\nDecimal: <double>\nBoolean: <boolean>\n\nThe double should be printed with exactly 1 decimal place.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives four values of different types via command-line arguments (args):\n\u2022 args[0] \u2014 a word (String)\n\u2022 args[1] \u2014 an integer (int)\n\u2022 args[2] \u2014 a decimal number (double)\n\u2022 args[3] \u2014 a boolean value (true or false)\n\nYou need to convert each value to its appropriate type and print it on a separate line with a label:\nWord: <string>\nInteger: <int>\nDecimal: <double>\nBoolean: <boolean>\n\nThe decimal number must be displayed with exactly 1 digit after the decimal point.\n\nExample: for arguments Hello 42 3.14 true, the output is:\nWord: Hello\nInteger: 42\nDecimal: 3.1\nBoolean: true",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read a string, int, double, and boolean from one line
+        // args[0] = word (String, no conversion needed)
+        // args[1] = integer (use Integer.parseInt)
+        // args[2] = decimal (use Double.parseDouble)
+        // args[3] = boolean (use Boolean.parseBoolean)
         // Print each with its label
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        String word = sc.next();
-        int num = sc.nextInt();
-        double dec = sc.nextDouble();
-        boolean bool = sc.nextBoolean();
+        String word = args[0];
+        int num = Integer.parseInt(args[1]);
+        double dec = Double.parseDouble(args[2]);
+        boolean bool = Boolean.parseBoolean(args[3]);
         System.out.println("Word: " + word);
         System.out.println("Integer: " + num);
         System.out.printf("Decimal: %.1f%n", dec);
@@ -438,11 +404,11 @@ public class Solution {
                 { input: "Test 0 0.0 true", expectedOutput: "Word: Test\nInteger: 0\nDecimal: 0.0\nBoolean: true", isHidden: true, description: "Zero values" }
               ],
               hints: [
-                "Scanner has methods for each type: next(), nextInt(), nextDouble(), nextBoolean()",
-                "Read them in the exact order they appear in the input",
-                "Use printf with %.1f for 1 decimal place on the double"
+                "args[0] is already a String. Use Integer.parseInt, Double.parseDouble, Boolean.parseBoolean for the rest",
+                "The conversion order matches the args order: args[0], args[1], args[2], args[3]",
+                "Use printf(\"Decimal: %.1f%n\", value) to display 1 decimal place"
               ],
-              tags: ["scanner", "data-types", "printf", "parsing"],
+              tags: ["args", "parseInt", "parseDouble", "parseBoolean", "printf"],
               difficulty: 3,
               estimatedMinutes: 8,
               points: 40
@@ -505,143 +471,141 @@ String result = (x > 0) ? "positive" : "non-positive";
           description: "Conditional statements, if-else chains, and switch-case",
           questions: [
             {
-              slug: "positive-negative-zero",
+              slug: "point-quadrant",
               type: "FULL_PROGRAM",
-              title: "Positive, Negative, or Zero",
-              prompt: "Read an integer from input. Print \"Positive\" if it is greater than zero, \"Negative\" if it is less than zero, or \"Zero\" if it is exactly zero.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              title: "Point Quadrant",
+              prompt: "The program receives two real numbers x and y representing a point in the Cartesian coordinate system.\n\nDetermine and print where the point is located:\n- \"Quadrant 1\" if x > 0 and y > 0\n- \"Quadrant 2\" if x < 0 and y > 0\n- \"Quadrant 3\" if x < 0 and y < 0\n- \"Quadrant 4\" if x > 0 and y < 0\n- \"Origin\" if both x and y are 0\n- \"Axis\" if the point is on an axis (one coordinate is 0 but not both)",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read an integer and classify it
+        // args[0] = x coordinate, args[1] = y coordinate
+        // Determine which quadrant the point is in
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int n = sc.nextInt();
-        if (n > 0) {
-            System.out.println("Positive");
-        } else if (n < 0) {
-            System.out.println("Negative");
+        double x = Double.parseDouble(args[0]);
+        double y = Double.parseDouble(args[1]);
+        if (x == 0 && y == 0) {
+            System.out.println("Origin");
+        } else if (x == 0 || y == 0) {
+            System.out.println("Axis");
+        } else if (x > 0 && y > 0) {
+            System.out.println("Quadrant 1");
+        } else if (x < 0 && y > 0) {
+            System.out.println("Quadrant 2");
+        } else if (x < 0 && y < 0) {
+            System.out.println("Quadrant 3");
         } else {
-            System.out.println("Zero");
+            System.out.println("Quadrant 4");
         }
     }
 }`,
               tests: [
-                { input: "5", expectedOutput: "Positive", isHidden: false, description: "Positive number" },
-                { input: "-3", expectedOutput: "Negative", isHidden: false, description: "Negative number" },
-                { input: "0", expectedOutput: "Zero", isHidden: true, description: "Zero" }
+                { input: "3 5", expectedOutput: "Quadrant 1", isHidden: false, description: "Point in quadrant 1" },
+                { input: "-2 4", expectedOutput: "Quadrant 2", isHidden: false, description: "Point in quadrant 2" },
+                { input: "7 -3", expectedOutput: "Quadrant 4", isHidden: false, description: "Point in quadrant 4" },
+                { input: "0 0", expectedOutput: "Origin", isHidden: true, description: "Origin point" },
+                { input: "0 5", expectedOutput: "Axis", isHidden: true, description: "Point on Y axis" }
               ],
               hints: [
-                "Use if-else if-else to check three conditions",
-                "Check > 0 first, then < 0, then else covers zero",
-                "Make sure to match the exact output strings including capitalization"
+                "Start by checking the special cases: both zero (Origin), then one zero (Axis)",
+                "For quadrants, combine conditions with &&: x > 0 && y > 0 for quadrant 1",
+                "The last quadrant (4) can be the else case since all other options are exhausted"
               ],
-              tags: ["conditionals", "if-else", "comparison"],
+              tags: ["conditionals", "if-else", "comparison", "geometry"],
               difficulty: 1,
-              estimatedMinutes: 3,
-              points: 15
+              estimatedMinutes: 5,
+              points: 20
             },
             {
-              slug: "grade-calculator",
+              slug: "bmi-calculator",
               type: "FULL_PROGRAM",
-              title: "Grade Calculator",
-              prompt: "Read an integer score (0-100) from input. Print the letter grade:\n- 90-100: \"A\"\n- 80-89: \"B\"\n- 70-79: \"C\"\n- 60-69: \"D\"\n- Below 60: \"F\"",
-              constraints: "Input will always be between 0 and 100 inclusive.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              title: "BMI Calculator",
+              prompt: "The program receives two values: weight in kilograms and height in centimeters.\n\nCalculate the BMI (Body Mass Index) using the formula:\n  BMI = weight / (height_in_meters)^2\n\nNote: Convert height from cm to meters first (divide by 100).\n\nClassify and print:\n- \"Underweight\" if BMI < 18.5\n- \"Normal\" if 18.5 <= BMI < 25.0\n- \"Overweight\" if 25.0 <= BMI < 30.0\n- \"Obese\" if BMI >= 30.0",
+              constraints: "Weight and height will be positive numbers.",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read a score and print the letter grade
+        // args[0] = weight in kg, args[1] = height in cm
+        // Calculate BMI and classify
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int score = sc.nextInt();
-        if (score >= 90) {
-            System.out.println("A");
-        } else if (score >= 80) {
-            System.out.println("B");
-        } else if (score >= 70) {
-            System.out.println("C");
-        } else if (score >= 60) {
-            System.out.println("D");
+        double weight = Double.parseDouble(args[0]);
+        double heightCm = Double.parseDouble(args[1]);
+        double heightM = heightCm / 100.0;
+        double bmi = weight / (heightM * heightM);
+        if (bmi < 18.5) {
+            System.out.println("Underweight");
+        } else if (bmi < 25.0) {
+            System.out.println("Normal");
+        } else if (bmi < 30.0) {
+            System.out.println("Overweight");
         } else {
-            System.out.println("F");
+            System.out.println("Obese");
         }
     }
 }`,
               tests: [
-                { input: "95", expectedOutput: "A", isHidden: false, description: "A grade" },
-                { input: "72", expectedOutput: "C", isHidden: false, description: "C grade" },
-                { input: "60", expectedOutput: "D", isHidden: true, description: "Boundary D grade" },
-                { input: "45", expectedOutput: "F", isHidden: true, description: "F grade" }
+                { input: "70 175", expectedOutput: "Normal", isHidden: false, description: "Normal BMI (22.86)" },
+                { input: "50 170", expectedOutput: "Underweight", isHidden: false, description: "Underweight BMI (17.30)" },
+                { input: "80 170", expectedOutput: "Overweight", isHidden: true, description: "Overweight BMI (27.68)" },
+                { input: "95 165", expectedOutput: "Obese", isHidden: true, description: "Obese BMI (34.89)" }
               ],
               hints: [
-                "Use if-else if chain starting from the highest range",
-                "Since you check >= 90 first, the next check >= 80 automatically means 80-89",
-                "The else at the end catches everything below 60"
+                "Convert height from cm to meters: heightM = heightCm / 100.0",
+                "BMI formula: weight / (heightM * heightM) — use doubles for precision",
+                "Check ranges from lowest to highest: < 18.5, then < 25.0, then < 30.0, else Obese"
               ],
-              tags: ["conditionals", "if-else-chain", "ranges"],
-              difficulty: 1,
-              estimatedMinutes: 3,
-              points: 15
+              tags: ["conditionals", "if-else-chain", "double", "arithmetic"],
+              difficulty: 2,
+              estimatedMinutes: 5,
+              points: 25
             },
             {
-              slug: "day-of-week-switch",
+              slug: "season-by-month",
               type: "FULL_PROGRAM",
-              title: "Day of Week (Switch)",
-              prompt: "Read an integer (1-7) from input. Print the corresponding day name using a switch statement:\n1 = \"Sunday\", 2 = \"Monday\", 3 = \"Tuesday\", 4 = \"Wednesday\", 5 = \"Thursday\", 6 = \"Friday\", 7 = \"Saturday\".\nIf the number is not 1-7, print \"Invalid\".",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              title: "Season by Month",
+              prompt: "The program receives a month number (1-12).\n\nPrint the season using a switch statement with grouped cases:\n- Months 12, 1, 2 → \"Winter\"\n- Months 3, 4, 5 → \"Spring\"\n- Months 6, 7, 8 → \"Summer\"\n- Months 9, 10, 11 → \"Autumn\"\n- Any other value → \"Invalid\"\n\nUse switch with fall-through (multiple case labels sharing the same code block).",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read an integer and print the day name using switch
+        // args[0] = month number
+        // Use switch with fall-through to print the season
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int day = sc.nextInt();
-        switch (day) {
-            case 1: System.out.println("Sunday"); break;
-            case 2: System.out.println("Monday"); break;
-            case 3: System.out.println("Tuesday"); break;
-            case 4: System.out.println("Wednesday"); break;
-            case 5: System.out.println("Thursday"); break;
-            case 6: System.out.println("Friday"); break;
-            case 7: System.out.println("Saturday"); break;
-            default: System.out.println("Invalid"); break;
+        int month = Integer.parseInt(args[0]);
+        switch (month) {
+            case 12: case 1: case 2:
+                System.out.println("Winter"); break;
+            case 3: case 4: case 5:
+                System.out.println("Spring"); break;
+            case 6: case 7: case 8:
+                System.out.println("Summer"); break;
+            case 9: case 10: case 11:
+                System.out.println("Autumn"); break;
+            default:
+                System.out.println("Invalid"); break;
         }
     }
 }`,
               tests: [
-                { input: "1", expectedOutput: "Sunday", isHidden: false, description: "Sunday" },
-                { input: "4", expectedOutput: "Wednesday", isHidden: false, description: "Wednesday" },
-                { input: "7", expectedOutput: "Saturday", isHidden: true, description: "Saturday" },
-                { input: "9", expectedOutput: "Invalid", isHidden: true, description: "Invalid input" }
+                { input: "1", expectedOutput: "Winter", isHidden: false, description: "January is Winter" },
+                { input: "7", expectedOutput: "Summer", isHidden: false, description: "July is Summer" },
+                { input: "12", expectedOutput: "Winter", isHidden: true, description: "December is Winter" },
+                { input: "10", expectedOutput: "Autumn", isHidden: true, description: "October is Autumn" },
+                { input: "13", expectedOutput: "Invalid", isHidden: true, description: "Invalid month" }
               ],
               hints: [
-                "Use switch(day) with case 1: through case 7:",
-                "Don't forget the break; statement after each case",
-                "Use default: for any number outside 1-7"
+                "Use switch with multiple case labels before one break: case 12: case 1: case 2:",
+                "Without break, execution falls through to the next case — use this to group months",
+                "Don't forget default for invalid input and break after each season"
               ],
-              tags: ["switch", "conditionals", "control-flow"],
+              tags: ["switch", "fall-through", "conditionals"],
               difficulty: 2,
               estimatedMinutes: 5,
               points: 25
@@ -650,24 +614,19 @@ public class Solution {
               slug: "triangle-type-classifier",
               type: "FULL_PROGRAM",
               title: "Triangle Classifier",
-              prompt: "Read three integers representing the sides of a triangle. Determine and print the type of triangle:\n- \"Equilateral\" if all three sides are equal\n- \"Isosceles\" if exactly two sides are equal\n- \"Scalene\" if no sides are equal\n- \"Not a triangle\" if the sides cannot form a valid triangle\n\nA valid triangle requires that the sum of any two sides is greater than the third side.",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives three integers representing the sides of a triangle.\n\nFirst check if the sides can form a valid triangle (the sum of any two sides must be greater than the third). If not, print \"Not a triangle\".\n\nIf valid, determine and print the type:\n- \"Equilateral\" if all three sides are equal\n- \"Isosceles\" if exactly two sides are equal\n- \"Scalene\" if no sides are equal",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read three sides and classify the triangle
+        // args[0], args[1], args[2] = three sides
+        // Validate and classify the triangle
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
-        int c = sc.nextInt();
+        int a = Integer.parseInt(args[0]);
+        int b = Integer.parseInt(args[1]);
+        int c = Integer.parseInt(args[2]);
         if (a + b <= c || a + c <= b || b + c <= a) {
             System.out.println("Not a triangle");
         } else if (a == b && b == c) {
@@ -699,22 +658,17 @@ public class Solution {
               slug: "leap-year-checker",
               type: "FULL_PROGRAM",
               title: "Leap Year Checker",
-              prompt: "Read a year (integer) from input. Determine if it is a leap year and print \"Leap year\" or \"Not a leap year\".\n\nLeap year rules:\n- Divisible by 4 AND not divisible by 100 => leap year\n- Divisible by 400 => leap year\n- Everything else => not a leap year",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              prompt: "The program receives a year (integer).\n\nDetermine if it is a leap year and print \"Leap year\" or \"Not a leap year\".\n\nLeap year rules:\n- Divisible by 4 AND not divisible by 100 → leap year\n- Divisible by 400 → always a leap year\n- Everything else → not a leap year\n\nExamples: 2024 → Leap year, 1900 → Not a leap year, 2000 → Leap year.",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read a year and determine if it's a leap year
+        // args[0] = year
+        // Determine if it's a leap year
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int year = sc.nextInt();
+        int year = Integer.parseInt(args[0]);
         if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
             System.out.println("Leap year");
         } else {
@@ -789,89 +743,85 @@ if (arr != null && arr.length > 0) { ... }
           description: "Boolean expressions with &&, ||, and !",
           questions: [
             {
-              slug: "voting-eligibility",
+              slug: "password-validator",
               type: "FULL_PROGRAM",
-              title: "Voting Eligibility",
-              prompt: "Read an integer age and a string citizenship (\"yes\" or \"no\") from input, each on a separate line. A person can vote if they are 18 or older AND are a citizen. Print \"Eligible\" or \"Not eligible\".",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              title: "Password Validator",
+              prompt: "The program receives a password string.\n\nA valid password must satisfy ALL of these conditions:\n1. Length is at least 8 characters\n2. Starts with an uppercase letter (A-Z)\n3. Ends with a digit (0-9)\n\nPrint \"Valid\" if all conditions are met, otherwise \"Invalid\".\n\nExamples: \"Abcdefg1\" → Valid, \"abcdefg1\" → Invalid (lowercase start), \"Abcdefgh\" → Invalid (no digit at end).",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read age and citizenship status
-        // Print eligibility
+        // args[0] = password string
+        // Check all three conditions using logical operators
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int age = sc.nextInt();
-        String citizen = sc.next();
-        if (age >= 18 && citizen.equals("yes")) {
-            System.out.println("Eligible");
+        String password = args[0];
+        boolean longEnough = password.length() >= 8;
+        char first = password.charAt(0);
+        char last = password.charAt(password.length() - 1);
+        boolean startsUpper = first >= 'A' && first <= 'Z';
+        boolean endsDigit = last >= '0' && last <= '9';
+        if (longEnough && startsUpper && endsDigit) {
+            System.out.println("Valid");
         } else {
-            System.out.println("Not eligible");
+            System.out.println("Invalid");
         }
     }
 }`,
               tests: [
-                { input: "20\nyes", expectedOutput: "Eligible", isHidden: false, description: "Eligible voter" },
-                { input: "16\nyes", expectedOutput: "Not eligible", isHidden: false, description: "Too young" },
-                { input: "25\nno", expectedOutput: "Not eligible", isHidden: true, description: "Not a citizen" }
+                { input: "Abcdefg1", expectedOutput: "Valid", isHidden: false, description: "Valid password" },
+                { input: "abcdefg1", expectedOutput: "Invalid", isHidden: false, description: "Lowercase start" },
+                { input: "Abcdefgh", expectedOutput: "Invalid", isHidden: true, description: "No digit at end" },
+                { input: "Ab1", expectedOutput: "Invalid", isHidden: true, description: "Too short" }
               ],
               hints: [
-                "Use && to combine both conditions: age and citizenship",
-                "Compare strings with .equals(), not ==",
-                "Both conditions must be true for eligibility"
+                "Use password.length() for length, password.charAt(0) for first char, password.charAt(password.length()-1) for last",
+                "Check uppercase: first >= 'A' && first <= 'Z'. Check digit: last >= '0' && last <= '9'",
+                "Combine all three boolean conditions with && — all must be true for Valid"
               ],
-              tags: ["logical-operators", "and", "boolean", "conditionals"],
-              difficulty: 1,
-              estimatedMinutes: 3,
-              points: 15
+              tags: ["logical-operators", "and", "boolean", "string-methods"],
+              difficulty: 2,
+              estimatedMinutes: 5,
+              points: 25
             },
             {
-              slug: "number-range-check",
+              slug: "cinema-ticket-price",
               type: "FULL_PROGRAM",
-              title: "Number Range Check",
-              prompt: "Read an integer n from input. Check if n is within at least one of these ranges:\n- 1 to 10 (inclusive)\n- 20 to 30 (inclusive)\n- 50 to 60 (inclusive)\n\nPrint \"In range\" if n falls in any of these ranges, otherwise print \"Out of range\".",
-              starterCode: `import java.util.Scanner;
-
-public class Solution {
+              title: "Cinema Ticket Price",
+              prompt: "The program receives two values: age (integer) and whether the person is a student (\"true\" or \"false\").\n\nDetermine the ticket price:\n- Children under 12 → \"20\"\n- Seniors 65+ OR students (any age) → \"35\"\n- Everyone else → \"50\"\n\nPrint only the price number.\n\nExamples: age=8, student=false → 20 | age=25, student=true → 35 | age=30, student=false → 50",
+              starterCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Read n and check if it's in any of the three ranges
+        // args[0] = age, args[1] = "true" or "false" (student)
+        // Determine ticket price using || and &&
 
     }
 }`,
-              solutionCode: `import java.util.Scanner;
-
-public class Solution {
+              solutionCode: `public class Solution {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int n = sc.nextInt();
-        boolean inRange = (n >= 1 && n <= 10) || (n >= 20 && n <= 30) || (n >= 50 && n <= 60);
-        if (inRange) {
-            System.out.println("In range");
+        int age = Integer.parseInt(args[0]);
+        boolean isStudent = Boolean.parseBoolean(args[1]);
+        if (age < 12) {
+            System.out.println("20");
+        } else if (age >= 65 || isStudent) {
+            System.out.println("35");
         } else {
-            System.out.println("Out of range");
+            System.out.println("50");
         }
     }
 }`,
               tests: [
-                { input: "5", expectedOutput: "In range", isHidden: false, description: "In first range" },
-                { input: "25", expectedOutput: "In range", isHidden: false, description: "In second range" },
-                { input: "15", expectedOutput: "Out of range", isHidden: true, description: "Between ranges" },
-                { input: "55", expectedOutput: "In range", isHidden: true, description: "In third range" }
+                { input: "8 false", expectedOutput: "20", isHidden: false, description: "Child ticket" },
+                { input: "25 true", expectedOutput: "35", isHidden: false, description: "Student discount" },
+                { input: "70 false", expectedOutput: "35", isHidden: true, description: "Senior discount" },
+                { input: "30 false", expectedOutput: "50", isHidden: true, description: "Regular ticket" }
               ],
               hints: [
-                "Each range check needs both a lower and upper bound connected with &&",
-                "Connect the three range checks with || (or)",
-                "Use parentheses to group each range check: (n >= 1 && n <= 10)"
+                "Check children first (age < 12), then use || for senior OR student",
+                "Boolean.parseBoolean(args[1]) converts \"true\"/\"false\" string to boolean",
+                "The || operator means either condition being true is enough for the discount"
               ],
-              tags: ["logical-operators", "or", "and", "ranges"],
+              tags: ["logical-operators", "or", "boolean", "conditionals"],
               difficulty: 2,
               estimatedMinutes: 5,
               points: 25

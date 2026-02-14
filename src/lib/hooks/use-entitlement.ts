@@ -10,6 +10,7 @@ interface EntitlementResponse {
     hasAccess: boolean
     expiresAt: string | null
     grantedAt: string | null
+    isAdmin?: boolean
   }
 }
 
@@ -29,9 +30,12 @@ export function useEntitlement() {
     gcTime: 10 * 60 * 1000,
   })
 
+  const isAdmin = data?.entitlement.isAdmin ?? false
+
   return {
     plan: data?.entitlement.plan ?? "FREE",
-    isPro: data?.entitlement.plan === "PRO",
+    isPro: data?.entitlement.plan === "PRO" || isAdmin,
+    isAdmin,
     isLoading,
   }
 }

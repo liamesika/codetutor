@@ -26,13 +26,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet"
-import {
   CodeEditor,
   QuestionPanel,
   ResultsPanel,
@@ -211,7 +204,6 @@ export default function PracticePage({
   const [result, setResult] = useState<ExecutionResult | null>(null)
   const [activeTab, setActiveTab] = useState("question")
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
-  const [resultsOpen, setResultsOpen] = useState(false)
   const [nextError, setNextError] = useState<string | null>(null)
   const [isLoadingNext, setIsLoadingNext] = useState(false)
 
@@ -274,13 +266,6 @@ export default function PracticePage({
       setHintsUsed(question.hintsUsed)
     }
   }, [question])
-
-  // Open results drawer when result changes
-  useEffect(() => {
-    if (result) {
-      setResultsOpen(true)
-    }
-  }, [result])
 
   // Save draft mutation
   const saveDraftMutation = useMutation({
@@ -862,55 +847,6 @@ export default function PracticePage({
           />
         </div>
 
-        {/* Mobile results drawer - with aria-describedby for a11y */}
-        <Sheet open={resultsOpen} onOpenChange={setResultsOpen}>
-          <SheetContent
-            side="bottom"
-            className="h-[70vh] glass-card border-t border-border/50 rounded-t-3xl p-0"
-            aria-describedby="results-sheet-description"
-          >
-            <SheetHeader className="px-4 pt-4 pb-2 border-b border-border/50">
-              <div className="flex items-center justify-center mb-2">
-                <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30" />
-              </div>
-              <SheetTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Test Results
-                {result && (
-                  <Badge
-                    variant={result.status === "PASS" ? "default" : "destructive"}
-                    className={cn(
-                      "ml-2",
-                      result.status === "PASS" && "bg-green-500"
-                    )}
-                  >
-                    {result.status}
-                  </Badge>
-                )}
-              </SheetTitle>
-              <SheetDescription id="results-sheet-description" className="sr-only">
-                View the results of your code execution including test cases and output
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex-1 overflow-y-auto">
-              <ResultsPanel
-                result={result}
-                isLoading={executeMutation.isPending}
-                onNextQuestion={handleNextQuestion}
-                onRetryNext={handleRetryNext}
-                onRetry={() => {
-                  handleRetry()
-                  setResultsOpen(false)
-                }}
-                onBackToWeek={handleBackToWeek}
-                nextError={nextError}
-                isLoadingNext={isLoadingNext}
-                questionId={questionId}
-                code={code}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
 
       {/* Dev-only debug panel */}

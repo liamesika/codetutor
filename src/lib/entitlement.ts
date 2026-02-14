@@ -330,8 +330,10 @@ export async function hasFeature(
 
 /**
  * Check if user has PRO access
+ * Admin users always have PRO access
  */
 export async function checkProAccess(userId: string): Promise<boolean> {
+  if (await isUserAdmin(userId)) return true
   const entitlement = await getUserEntitlement(userId)
   return entitlement.plan === "PRO"
 }
