@@ -13,6 +13,7 @@ import {
   type ExecutionResponse,
 } from "@/lib/executor"
 import { checkExecutionRateLimit } from "@/lib/redis"
+import { canAccessQuestion } from "@/lib/entitlement"
 import { processQuestionCompletion } from "@/lib/progression"
 import { updateNodeProgress } from "@/lib/skill-tree"
 import { completeDailyChallenge, getDailyChallenge } from "@/lib/daily-challenge"
@@ -205,6 +206,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Question not found", requestId },
         { status: 404 }
+      )
+    }
+
+    // Enforce entitlement: block access to questions outside user's plan
+    const access = await canAccessQuestion(userId, questionId)
+    if (!access.allowed) {
+      logExecutorEvent("access_denied", {
+        requestId,
+        userId: hashUserId(userId),
+        questionId,
+        weekNumber: access.weekNumber,
+        reason: access.reason,
+      })
+
+      return NextResponse.json(
+        {
+          error: "Access denied",
+          message: access.reason || "You do not have access to this content",
+          requiredPlan: access.requiredPlan,
+          requestId,
+        },
+        { status: 403, headers: { "X-Request-Id": requestId } }
       )
     }
 
